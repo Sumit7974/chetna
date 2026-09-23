@@ -1,0 +1,6 @@
+openmeteo-requests
+geopandas
+rasterio
+osmnx
+streamlit
+folium
