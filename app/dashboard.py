@@ -12,12 +12,33 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+# When executed directly (e.g. `streamlit run app/dashboard.py`), Streamlit prepends
+# the app/ directory to sys.path, causing app/app.py to shadow the 'app' package.
+# Normalize sys.path so 'app' always resolves to the top-level package.
+_APP_DIR = str(Path(__file__).resolve().parent)
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+
+while _APP_DIR in sys.path:
+    sys.path.remove(_APP_DIR)
+
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
+if "app" in sys.modules and not hasattr(sys.modules["app"], "__path__"):
+    del sys.modules["app"]
 
 import folium
 from folium import plugins
 import streamlit as st
+
+try:
+    from app.citizen_view import render_citizen_view
+except (ImportError, ModuleNotFoundError):
+    from citizen_view import render_citizen_view  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -479,108 +500,166 @@ def render_sidebar(metrics: Dict[str, Any]) -> Dict[str, Any]:
 
         st.sidebar.markdown("<hr style='margin: 0.85rem 0 1rem 0; border-color: #1e293b;'/>", unsafe_allow_html=True)
 
-        # 2. Sleek Minimalist Navigation
-        st.markdown(
-            """
-            <div style="margin-bottom: 1.25rem;">
-                <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.5rem;">NAVIGATION</div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: rgba(14, 165, 233, 0.15); border-left: 3px solid #0ea5e9; border-radius: 4px; color: #ffffff; font-weight: 600; font-size: 0.84rem;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                        Dashboard
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-                        Map View
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        Risk &amp; Alerts
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                        Reports
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        Settings
-                    </div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.markdown("<hr style='margin: 0.5rem 0 0.85rem 0;'/>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.6rem;'>CONTROL CENTER</div>", unsafe_allow_html=True)
-
-        # 3. Forecast Horizon Controls (Placeholders for Day 3)
-        horizon = st.radio(
-            "Forecast Horizon",
-            options=["Live / Current", "+1 Hour", "+3 Hours", "+6 Hours"],
+        # 2. View Mode Selector (F1 Operations Dashboard vs F2 Citizen View)
+        view_mode = st.sidebar.radio(
+            "PORTAL VIEW",
+            options=["🏢 Operations Dashboard", "👤 Citizen View"],
             index=0,
-            help="Dynamic forecast horizon selector. Model predictions activate in Day 3.",
+            help="Switch between Emergency Operations Center and Citizen-facing Community Portal.",
         )
-        controls["horizon"] = horizon
-        st.caption("Ingestion engine collects +1h, +3h, and +6h rainfall horizons (B1).")
+        controls["view_mode"] = view_mode
 
-        st.markdown("<hr style='margin: 0.75rem 0;'/>", unsafe_allow_html=True)
+        st.sidebar.markdown("<hr style='margin: 0.75rem 0 1rem 0; border-color: #1e293b;'/>", unsafe_allow_html=True)
 
-        # 4. Map Layers Toggle Placeholders
-        st.markdown("<div style='font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f1f5f9; margin-bottom: 0.35rem;'>Map Layers</div>", unsafe_allow_html=True)
-        st.checkbox("Base Map (Chennai)", value=True, disabled=True, help="Active base OpenStreetMap layer.")
-        controls["show_static_risk"] = st.checkbox(
-            "Static Vulnerability",
-            value=False,
-            disabled=True,
-            help="Deterministic terrain vulnerability layer (scheduled for F1 Day 2).",
-        )
-        controls["show_hotspots"] = st.checkbox(
-            "Waterlogging Hotspots",
-            value=False,
-            disabled=True,
-            help="Documented flood-prone locations (scheduled for F1/F2 Day 2).",
-        )
-        controls["show_sensors"] = st.checkbox(
-            "Virtual Sensors",
-            value=False,
-            disabled=True,
-            help="Simulated water-level sensor network (scheduled for B2 Day 2).",
-        )
-
-        # 5. System Status Box
-        st.markdown(
-            """
-            <div style="margin-top: 1.1rem; padding: 0.85rem 0.95rem; background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-radius: 8px;">
-                <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.6rem;">SYSTEM STATUS</div>
-                <div style="display: flex; flex-direction: column; gap: 7px; font-size: 0.8rem;">
-                    <div style="display: flex; align-items: center; gap: 8px; color: #e2e8f0;">
-                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5);"></span>
-                        <span>Data Connected</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; color: #e2e8f0;">
-                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5);"></span>
-                        <span>Forecast Available</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8;">
-                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
-                        <span>Sensors: Simulated / Standby</span>
+        if view_mode == "👤 Citizen View":
+            # Citizen View Sidebar navigation shortcuts & helplines
+            st.markdown(
+                """
+                <div style="margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.5rem;">COMMUNITY SHORTCUTS</div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: rgba(14, 165, 233, 0.15); border-left: 3px solid #0ea5e9; border-radius: 4px; color: #ffffff; font-weight: 600; font-size: 0.84rem;">
+                            🏠 Community Overview
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
+                            🏥 Hospitals &amp; Safe Havens
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
+                            📢 Advisories (Bilingual)
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
+                            🚶 Safe Route (Day 4)
+                        </div>
                     </div>
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
-        # 6. Prototype Notice
-        st.markdown(
-            """
-            <div style="margin-top: 1rem; text-align: center;">
-                <span class="chetna-pill chetna-pill-blue" style="font-size:0.7rem;">Prototype &bull; F1 Day 1</span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            st.markdown("<hr style='margin: 0.5rem 0 0.85rem 0;'/>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.6rem;'>CITIZEN HELPLINES</div>", unsafe_allow_html=True)
+            st.markdown(
+                """
+                <div style="padding: 0.75rem; background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-radius: 6px; font-size: 0.78rem; color: #cbd5e1; line-height: 1.6;">
+                    <div>📞 <b>GCC Helpline:</b> <span style="color:#38bdf8;">1913</span></div>
+                    <div>🚨 <b>National Emergency:</b> <span style="color:#38bdf8;">112</span></div>
+                    <div>🛡️ <b>Disaster Response:</b> <span style="color:#38bdf8;">1077</span></div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            st.markdown(
+                """
+                <div style="margin-top: 1.25rem; text-align: center;">
+                    <span class="chetna-pill chetna-pill-teal" style="font-size:0.7rem;">Citizen View &bull; F2 Day 1</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            # 3. Sleek Minimalist Navigation
+            st.markdown(
+                """
+                <div style="margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.5rem;">NAVIGATION</div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: rgba(14, 165, 233, 0.15); border-left: 3px solid #0ea5e9; border-radius: 4px; color: #ffffff; font-weight: 600; font-size: 0.84rem;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                            Dashboard
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                            Map View
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            Risk &amp; Alerts
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            Reports
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: #94a3b8; font-size: 0.84rem; border-radius: 4px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            Settings
+                        </div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            st.markdown("<hr style='margin: 0.5rem 0 0.85rem 0;'/>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.6rem;'>CONTROL CENTER</div>", unsafe_allow_html=True)
+
+            # 4. Forecast Horizon Controls (Placeholders for Day 3)
+            horizon = st.radio(
+                "Forecast Horizon",
+                options=["Live / Current", "+1 Hour", "+3 Hours", "+6 Hours"],
+                index=0,
+                help="Dynamic forecast horizon selector. Model predictions activate in Day 3.",
+            )
+            controls["horizon"] = horizon
+            st.caption("Ingestion engine collects +1h, +3h, and +6h rainfall horizons (B1).")
+
+            st.markdown("<hr style='margin: 0.75rem 0;'/>", unsafe_allow_html=True)
+
+            # 5. Map Layers Toggle Placeholders
+            st.markdown("<div style='font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f1f5f9; margin-bottom: 0.35rem;'>Map Layers</div>", unsafe_allow_html=True)
+            st.checkbox("Base Map (Chennai)", value=True, disabled=True, help="Active base OpenStreetMap layer.")
+            controls["show_static_risk"] = st.checkbox(
+                "Static Vulnerability",
+                value=False,
+                disabled=True,
+                help="Deterministic terrain vulnerability layer (scheduled for F1 Day 2).",
+            )
+            controls["show_hotspots"] = st.checkbox(
+                "Waterlogging Hotspots",
+                value=False,
+                disabled=True,
+                help="Documented flood-prone locations (scheduled for F1/F2 Day 2).",
+            )
+            controls["show_sensors"] = st.checkbox(
+                "Virtual Sensors",
+                value=False,
+                disabled=True,
+                help="Simulated water-level sensor network (scheduled for B2 Day 2).",
+            )
+
+            # 6. System Status Box
+            st.markdown(
+                """
+                <div style="margin-top: 1.1rem; padding: 0.85rem 0.95rem; background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-radius: 8px;">
+                    <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.6rem;'>SYSTEM STATUS</div>
+                    <div style="display: flex; flex-direction: column; gap: 7px; font-size: 0.8rem;">
+                        <div style="display: flex; align-items: center; gap: 8px; color: #e2e8f0;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5);"></span>
+                            <span>Data Connected</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; color: #e2e8f0;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5);"></span>
+                            <span>Forecast Available</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
+                            <span>Sensors: Simulated / Standby</span>
+                        </div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # 7. Prototype Notice
+            st.markdown(
+                """
+                <div style="margin-top: 1rem; text-align: center;">
+                    <span class="chetna-pill chetna-pill-blue" style="font-size:0.7rem;">Prototype &bull; F1 Day 1</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
     return controls
 
@@ -900,16 +979,9 @@ def main() -> None:
     hotspots = load_hotspots_data()
 
     # 3. Render dark navy sidebar with logo, navigation, and controls
-    render_sidebar(metrics)
+    controls = render_sidebar(metrics)
 
-    # 4. Render main workspace header
-    render_header()
-
-    # 5. Render summary metric cards
-    render_summary_cards(metrics)
-    st.markdown("<div style='margin-bottom: 0.85rem;'></div>", unsafe_allow_html=True)
-
-    # 6. Create Folium base map and render main workspace (map + hotspots panel)
+    # 4. Create Folium base map centered on Chennai
     folium_map = create_base_map(
         center=DEFAULT_COORDINATES,
         zoom_start=DEFAULT_ZOOM_START,
@@ -917,13 +989,18 @@ def main() -> None:
         add_center_marker=True,
         add_fullscreen_control=True,
     )
-    render_main_workspace(folium_map, hotspots)
 
-    # 7. Render Alert Centre preview & static risk architecture readiness
-    render_alert_and_architecture_section(static_meta)
-
-    # 8. Render Footer
-    render_footer()
+    # 5. Render Selected Portal View
+    if controls.get("view_mode") == "👤 Citizen View":
+        render_citizen_view(folium_map, hotspots, metrics)
+    else:
+        # Operations Dashboard (F1 Day 1)
+        render_header()
+        render_summary_cards(metrics)
+        st.markdown("<div style='margin-bottom: 0.85rem;'></div>", unsafe_allow_html=True)
+        render_main_workspace(folium_map, hotspots)
+        render_alert_and_architecture_section(static_meta)
+        render_footer()
 
 
 if __name__ == "__main__":

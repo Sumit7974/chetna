@@ -13,6 +13,11 @@ from app.dashboard import (
     load_hotspots_data,
     load_static_risk_metadata,
 )
+from app.citizen_view import (
+    extract_facilities_from_hotspots,
+    get_bilingual_messages,
+    render_citizen_view,
+)
 
 __all__ = [
     "DEFAULT_CITY",
@@ -26,4 +31,7 @@ __all__ = [
     "get_system_metrics",
     "load_hotspots_data",
     "load_static_risk_metadata",
+    "extract_facilities_from_hotspots",
+    "get_bilingual_messages",
+    "render_citizen_view",
 ]

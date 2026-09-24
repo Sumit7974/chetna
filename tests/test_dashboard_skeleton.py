@@ -188,6 +188,14 @@ class TestDashboardSkeleton(unittest.TestCase):
         self.assertTrue(callable(app.get_logo_svg))
         self.assertTrue(callable(app.get_logo_asset_path))
 
+    def test_entrypoints_import_cleanly(self):
+        """Verify run_dashboard and app/app entrypoints import without shadowing errors."""
+        import run_dashboard
+        self.assertTrue(callable(run_dashboard.main))
+
+        import app.app
+        self.assertTrue(callable(app.app.main))
+
 
 if __name__ == "__main__":
     unittest.main()

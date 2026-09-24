@@ -124,14 +124,37 @@ Chetna provides an interactive Streamlit operations dashboard integrated with a 
   - *Static Risk Architecture Tab*: Summary of M1 Day 2 mathematical formulation and weights ready for F1 Day 2 layer rendering.
 
 ### Running the Dashboard
-From the repository root:
+From the repository root (recommended project-root entrypoint):
 ```powershell
-streamlit run app/dashboard.py
+python -m streamlit run run_dashboard.py
 ```
-or:
+or directly:
 ```powershell
-streamlit run app/app.py
+python -m streamlit run app/dashboard.py
 ```
+
+Toggle between **🏢 Operations Dashboard** (F1) and **👤 Citizen View** (F2) using the *Portal View* selector in the dark navy sidebar.
+
+## Citizen-Facing View Foundation & Wireframes (F2 Day 1)
+
+Chetna introduces an accessible, resident-oriented Citizen View (`app/citizen_view.py`) accessible via the sidebar navigation.
+
+### Components in F2 Day 1 Foundation:
+1. **Plain-Language Situational Awareness**:
+   - Prominent status banner informing residents of current conditions (`🟢 Conditions Normal • No Active Flood Warning`) in simple, reassuring language.
+2. **Neighborhood Risk Check Input Stub**:
+   - Area selector for 10 surveyed Chennai neighborhoods (Velachery, Madipakkam, Mudichur, etc.) and forecast horizons (`Current`, `+1h`, `+3h`, `+6h`). Prototype stub; dynamic prediction activates in Day 3 without browser GPS.
+3. **Community Base Map & Sourced At-Risk Facilities**:
+   - Folium base map centered on Chennai paired with an at-risk facilities and safe havens panel categorizing verified GCC infrastructure from `data/m1/hotspots.json`:
+     - **Hospitals**: MIOT International, Dr. Kamakshi Memorial, Prashanth Hospital, etc.
+     - **Schools & Institutions**: Madipakkam High School, Dr. Ambedkar Govt Arts College, etc.
+     - **Transit Shelters**: Velachery MRTS elevated station, CMBT Koyambedu, Vyasarpadi Jeeva, etc.
+4. **Safe-Route to High Ground Placeholder**:
+   - Explanatory wireframe card detailing upcoming Day 4 A* routing milestone with hazard avoidance over OpenStreetMap. Action button is disabled with explicit milestone disclaimer.
+5. **Bilingual Emergency Advisory Foundation**:
+   - Emergency advisories, situation summaries, and safety guidelines in **English** and **Hindi (हिंदी)** with a normal vs. simulated advisory toggle.
+6. **Emergency Helplines Footer**:
+   - Chennai-specific emergency contact numbers: GCC Helpline `1913`, National Emergency `112`, Disaster Response `1077`.
 
 ### Running Automated Checks
 ```powershell
