@@ -1,0 +1,2127 @@
+{
+  "version": "v1.0",
+  "computed_at": "2026-09-24T09:23:52Z",
+  "is_synthetic": true,
+  "cell_count": 38,
+  "formula": "V = 0.35 * norm(elev) + 0.25 * norm(log(flow_acc)) + 0.25 * norm(imperv) + 0.15 * norm(slope)",
+  "weights": {
+    "elevation": 0.35,
+    "flow_accumulation": 0.25,
+    "imperviousness": 0.25,
+    "slope": 0.15
+  },
+  "thresholds": {
+    "low": 0.4,
+    "medium": 0.7
+  },
+  "bounds": {
+    "elevation": [
+      3.8,
+      48.0
+    ],
+    "slope": [
+      0.1,
+      7.5
+    ],
+    "flow_accumulation": [
+      350.0,
+      190000.0
+    ],
+    "imperviousness": [
+      0.12,
+      0.96
+    ]
+  },
+  "cells": [
+    {
+      "cell_id": "CELL_VEL_01",
+      "vulnerability_score": 0.9208,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 6.5,
+        "slope": 0.2,
+        "flow_accumulation": 85000.0,
+        "imperviousness": 0.88
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9389,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 0.8722,
+        "norm_imperviousness": 0.9048
+      },
+      "feature_contributions": {
+        "elevation": 0.3286,
+        "flow_accumulation": 0.218,
+        "imperviousness": 0.2262,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2176,
+              12.9811
+            ],
+            [
+              80.2194,
+              12.9811
+            ],
+            [
+              80.2194,
+              12.9829
+            ],
+            [
+              80.2176,
+              12.9829
+            ],
+            [
+              80.2176,
+              12.9811
+            ]
+          ]
+        ]
+      },
+      "name": "Velachery Vijayanagar North",
+      "terrain_type": "marshland_basin_depression",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_VEL_02",
+      "vulnerability_score": 0.9243,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 5.8,
+        "slope": 0.1,
+        "flow_accumulation": 120000.0,
+        "imperviousness": 0.82
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9548,
+        "norm_slope": 1.0,
+        "norm_flow_accumulation": 0.927,
+        "norm_imperviousness": 0.8333
+      },
+      "feature_contributions": {
+        "elevation": 0.3342,
+        "flow_accumulation": 0.2318,
+        "imperviousness": 0.2083,
+        "slope": 0.15
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2201,
+              12.9781
+            ],
+            [
+              80.2219,
+              12.9781
+            ],
+            [
+              80.2219,
+              12.9799
+            ],
+            [
+              80.2201,
+              12.9799
+            ],
+            [
+              80.2201,
+              12.9781
+            ]
+          ]
+        ]
+      },
+      "name": "Velachery Lake Runoff Outfall",
+      "terrain_type": "lake_overflow_sink",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_MAD_01",
+      "vulnerability_score": 0.9187,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 6.2,
+        "slope": 0.2,
+        "flow_accumulation": 95000.0,
+        "imperviousness": 0.85
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9457,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 0.8899,
+        "norm_imperviousness": 0.869
+      },
+      "feature_contributions": {
+        "elevation": 0.331,
+        "flow_accumulation": 0.2225,
+        "imperviousness": 0.2172,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1971,
+              12.9641
+            ],
+            [
+              80.1989,
+              12.9641
+            ],
+            [
+              80.1989,
+              12.9659
+            ],
+            [
+              80.1971,
+              12.9659
+            ],
+            [
+              80.1971,
+              12.9641
+            ]
+          ]
+        ]
+      },
+      "name": "Madipakkam Ram Nagar East",
+      "terrain_type": "marsh_fringe_depression",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_MAD_02",
+      "vulnerability_score": 0.8844,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 7.0,
+        "slope": 0.3,
+        "flow_accumulation": 72000.0,
+        "imperviousness": 0.8
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9276,
+        "norm_slope": 0.973,
+        "norm_flow_accumulation": 0.8458,
+        "norm_imperviousness": 0.8095
+      },
+      "feature_contributions": {
+        "elevation": 0.3247,
+        "flow_accumulation": 0.2114,
+        "imperviousness": 0.2024,
+        "slope": 0.1459
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1931,
+              12.9621
+            ],
+            [
+              80.1949,
+              12.9621
+            ],
+            [
+              80.1949,
+              12.9639
+            ],
+            [
+              80.1931,
+              12.9639
+            ],
+            [
+              80.1931,
+              12.9621
+            ]
+          ]
+        ]
+      },
+      "name": "Madipakkam Kuberan Nagar",
+      "terrain_type": "low_lying_residential",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_MUD_01",
+      "vulnerability_score": 0.8656,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 11.5,
+        "slope": 0.3,
+        "flow_accumulation": 160000.0,
+        "imperviousness": 0.75
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8258,
+        "norm_slope": 0.973,
+        "norm_flow_accumulation": 0.9727,
+        "norm_imperviousness": 0.75
+      },
+      "feature_contributions": {
+        "elevation": 0.289,
+        "flow_accumulation": 0.2432,
+        "imperviousness": 0.1875,
+        "slope": 0.1459
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.0641,
+              12.9151
+            ],
+            [
+              80.0659,
+              12.9151
+            ],
+            [
+              80.0659,
+              12.9169
+            ],
+            [
+              80.0641,
+              12.9169
+            ],
+            [
+              80.0641,
+              12.9151
+            ]
+          ]
+        ]
+      },
+      "name": "Mudichur Varadharajapuram",
+      "terrain_type": "river_floodplain_meander",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_MUD_02",
+      "vulnerability_score": 0.8652,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 10.8,
+        "slope": 0.2,
+        "flow_accumulation": 190000.0,
+        "imperviousness": 0.7
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8416,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 1.0,
+        "norm_imperviousness": 0.6905
+      },
+      "feature_contributions": {
+        "elevation": 0.2946,
+        "flow_accumulation": 0.25,
+        "imperviousness": 0.1726,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.0611,
+              12.9121
+            ],
+            [
+              80.0629,
+              12.9121
+            ],
+            [
+              80.0629,
+              12.9139
+            ],
+            [
+              80.0611,
+              12.9139
+            ],
+            [
+              80.0611,
+              12.9121
+            ]
+          ]
+        ]
+      },
+      "name": "Mudichur Road Tributary Confluence",
+      "terrain_type": "tributary_chokepoint",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_TNG_01",
+      "vulnerability_score": 0.8888,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 10.2,
+        "slope": 0.3,
+        "flow_accumulation": 62000.0,
+        "imperviousness": 0.92
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8552,
+        "norm_slope": 0.973,
+        "norm_flow_accumulation": 0.8221,
+        "norm_imperviousness": 0.9524
+      },
+      "feature_contributions": {
+        "elevation": 0.2993,
+        "flow_accumulation": 0.2055,
+        "imperviousness": 0.2381,
+        "slope": 0.1459
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2341,
+              13.0421
+            ],
+            [
+              80.2359,
+              13.0421
+            ],
+            [
+              80.2359,
+              13.0439
+            ],
+            [
+              80.2341,
+              13.0439
+            ],
+            [
+              80.2341,
+              13.0421
+            ]
+          ]
+        ]
+      },
+      "name": "T Nagar Usman Road North",
+      "terrain_type": "dense_urban_canal_overflow",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_TNG_02",
+      "vulnerability_score": 0.9139,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 9.8,
+        "slope": 0.2,
+        "flow_accumulation": 88000.0,
+        "imperviousness": 0.94
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8643,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 0.8777,
+        "norm_imperviousness": 0.9762
+      },
+      "feature_contributions": {
+        "elevation": 0.3025,
+        "flow_accumulation": 0.2194,
+        "imperviousness": 0.244,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2311,
+              13.0391
+            ],
+            [
+              80.2329,
+              13.0391
+            ],
+            [
+              80.2329,
+              13.0409
+            ],
+            [
+              80.2311,
+              13.0409
+            ],
+            [
+              80.2311,
+              13.0391
+            ]
+          ]
+        ]
+      },
+      "name": "T Nagar Bazullah Road Mambalam Canal",
+      "terrain_type": "canal_corridor_urban",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_PUL_01",
+      "vulnerability_score": 0.9449,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 5.5,
+        "slope": 0.2,
+        "flow_accumulation": 110000.0,
+        "imperviousness": 0.9
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9615,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 0.9132,
+        "norm_imperviousness": 0.9286
+      },
+      "feature_contributions": {
+        "elevation": 0.3365,
+        "flow_accumulation": 0.2283,
+        "imperviousness": 0.2321,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2661,
+              13.0941
+            ],
+            [
+              80.2679,
+              13.0941
+            ],
+            [
+              80.2679,
+              13.0959
+            ],
+            [
+              80.2661,
+              13.0959
+            ],
+            [
+              80.2661,
+              13.0941
+            ]
+          ]
+        ]
+      },
+      "name": "Pulianthope Ambedkar College Road",
+      "terrain_type": "low_lying_canal_basin",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_PUL_02",
+      "vulnerability_score": 0.9604,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 5.2,
+        "slope": 0.1,
+        "flow_accumulation": 135000.0,
+        "imperviousness": 0.91
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9683,
+        "norm_slope": 1.0,
+        "norm_flow_accumulation": 0.9457,
+        "norm_imperviousness": 0.9405
+      },
+      "feature_contributions": {
+        "elevation": 0.3389,
+        "flow_accumulation": 0.2364,
+        "imperviousness": 0.2351,
+        "slope": 0.15
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2631,
+              13.0921
+            ],
+            [
+              80.2649,
+              13.0921
+            ],
+            [
+              80.2649,
+              13.0939
+            ],
+            [
+              80.2631,
+              13.0939
+            ],
+            [
+              80.2631,
+              13.0921
+            ]
+          ]
+        ]
+      },
+      "name": "Pulianthope Demellows Road Basin",
+      "terrain_type": "buckingham_backwater_sink",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_VYA_01",
+      "vulnerability_score": 0.9879,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 3.8,
+        "slope": 0.1,
+        "flow_accumulation": 140000.0,
+        "imperviousness": 0.96
+      },
+      "normalized_features": {
+        "norm_elevation": 1.0,
+        "norm_slope": 1.0,
+        "norm_flow_accumulation": 0.9515,
+        "norm_imperviousness": 1.0
+      },
+      "feature_contributions": {
+        "elevation": 0.35,
+        "flow_accumulation": 0.2379,
+        "imperviousness": 0.25,
+        "slope": 0.15
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2621,
+              13.1106
+            ],
+            [
+              80.2639,
+              13.1106
+            ],
+            [
+              80.2639,
+              13.1124
+            ],
+            [
+              80.2621,
+              13.1124
+            ],
+            [
+              80.2621,
+              13.1106
+            ]
+          ]
+        ]
+      },
+      "name": "Vyasarpadi Ganesapuram Subway Bowl",
+      "terrain_type": "railway_subway_depression",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_VYA_02",
+      "vulnerability_score": 0.966,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 4.2,
+        "slope": 0.2,
+        "flow_accumulation": 115000.0,
+        "imperviousness": 0.93
+      },
+      "normalized_features": {
+        "norm_elevation": 0.991,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 0.9202,
+        "norm_imperviousness": 0.9643
+      },
+      "feature_contributions": {
+        "elevation": 0.3468,
+        "flow_accumulation": 0.2301,
+        "imperviousness": 0.2411,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2601,
+              13.1091
+            ],
+            [
+              80.2619,
+              13.1091
+            ],
+            [
+              80.2619,
+              13.1109
+            ],
+            [
+              80.2601,
+              13.1109
+            ],
+            [
+              80.2601,
+              13.1091
+            ]
+          ]
+        ]
+      },
+      "name": "Vyasarpadi Jeeva Station Underpass",
+      "terrain_type": "railway_underpass_pocket",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_PER_01",
+      "vulnerability_score": 0.9239,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 5.8,
+        "slope": 0.3,
+        "flow_accumulation": 78000.0,
+        "imperviousness": 0.89
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9548,
+        "norm_slope": 0.973,
+        "norm_flow_accumulation": 0.8585,
+        "norm_imperviousness": 0.9167
+      },
+      "feature_contributions": {
+        "elevation": 0.3342,
+        "flow_accumulation": 0.2146,
+        "imperviousness": 0.2292,
+        "slope": 0.1459
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2451,
+              13.1066
+            ],
+            [
+              80.2469,
+              13.1066
+            ],
+            [
+              80.2469,
+              13.1084
+            ],
+            [
+              80.2451,
+              13.1084
+            ],
+            [
+              80.2451,
+              13.1066
+            ]
+          ]
+        ]
+      },
+      "name": "Perambur Stephenson Road Subway",
+      "terrain_type": "canal_corridor_underpass",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_PER_02",
+      "vulnerability_score": 0.8942,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 6.5,
+        "slope": 0.4,
+        "flow_accumulation": 65000.0,
+        "imperviousness": 0.84
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9389,
+        "norm_slope": 0.9595,
+        "norm_flow_accumulation": 0.8296,
+        "norm_imperviousness": 0.8571
+      },
+      "feature_contributions": {
+        "elevation": 0.3286,
+        "flow_accumulation": 0.2074,
+        "imperviousness": 0.2143,
+        "slope": 0.1439
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2421,
+              13.1041
+            ],
+            [
+              80.2439,
+              13.1041
+            ],
+            [
+              80.2439,
+              13.1059
+            ],
+            [
+              80.2421,
+              13.1059
+            ],
+            [
+              80.2421,
+              13.1041
+            ]
+          ]
+        ]
+      },
+      "name": "Perambur Otteri Nullah Embankment",
+      "terrain_type": "canal_overflow_edge",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_KOY_01",
+      "vulnerability_score": 0.9064,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 10.5,
+        "slope": 0.3,
+        "flow_accumulation": 82000.0,
+        "imperviousness": 0.95
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8484,
+        "norm_slope": 0.973,
+        "norm_flow_accumulation": 0.8665,
+        "norm_imperviousness": 0.9881
+      },
+      "feature_contributions": {
+        "elevation": 0.2969,
+        "flow_accumulation": 0.2166,
+        "imperviousness": 0.247,
+        "slope": 0.1459
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1951,
+              13.0691
+            ],
+            [
+              80.1969,
+              13.0691
+            ],
+            [
+              80.1969,
+              13.0709
+            ],
+            [
+              80.1951,
+              13.0709
+            ],
+            [
+              80.1951,
+              13.0691
+            ]
+          ]
+        ]
+      },
+      "name": "Koyambedu Wholesale Market Concourse",
+      "terrain_type": "river_meander_commercial",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_KOY_02",
+      "vulnerability_score": 0.9101,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 9.8,
+        "slope": 0.2,
+        "flow_accumulation": 125000.0,
+        "imperviousness": 0.88
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8643,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 0.9335,
+        "norm_imperviousness": 0.9048
+      },
+      "feature_contributions": {
+        "elevation": 0.3025,
+        "flow_accumulation": 0.2334,
+        "imperviousness": 0.2262,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1921,
+              13.0671
+            ],
+            [
+              80.1939,
+              13.0671
+            ],
+            [
+              80.1939,
+              13.0689
+            ],
+            [
+              80.1921,
+              13.0689
+            ],
+            [
+              80.1921,
+              13.0671
+            ]
+          ]
+        ]
+      },
+      "name": "Koyambedu Cooum River Bend Approach",
+      "terrain_type": "riverine_commercial_fringe",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_MAN_01",
+      "vulnerability_score": 0.9283,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 8.8,
+        "slope": 0.2,
+        "flow_accumulation": 175000.0,
+        "imperviousness": 0.87
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8869,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 0.9869,
+        "norm_imperviousness": 0.8929
+      },
+      "feature_contributions": {
+        "elevation": 0.3104,
+        "flow_accumulation": 0.2467,
+        "imperviousness": 0.2232,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1801,
+              13.0176
+            ],
+            [
+              80.1819,
+              13.0176
+            ],
+            [
+              80.1819,
+              13.0194
+            ],
+            [
+              80.1801,
+              13.0194
+            ],
+            [
+              80.1801,
+              13.0176
+            ]
+          ]
+        ]
+      },
+      "name": "Manapakkam MIOT Hospital River Bend",
+      "terrain_type": "river_floodplain_hospital",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_MAN_02",
+      "vulnerability_score": 0.8962,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 9.5,
+        "slope": 0.3,
+        "flow_accumulation": 110000.0,
+        "imperviousness": 0.85
+      },
+      "normalized_features": {
+        "norm_elevation": 0.871,
+        "norm_slope": 0.973,
+        "norm_flow_accumulation": 0.9132,
+        "norm_imperviousness": 0.869
+      },
+      "feature_contributions": {
+        "elevation": 0.3048,
+        "flow_accumulation": 0.2283,
+        "imperviousness": 0.2172,
+        "slope": 0.1459
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1771,
+              13.0151
+            ],
+            [
+              80.1789,
+              13.0151
+            ],
+            [
+              80.1789,
+              13.0169
+            ],
+            [
+              80.1771,
+              13.0169
+            ],
+            [
+              80.1771,
+              13.0151
+            ]
+          ]
+        ]
+      },
+      "name": "Manapakkam Trade Centre Highway Corridor",
+      "terrain_type": "highway_drainage_bottleneck",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_PAL_01",
+      "vulnerability_score": 0.9415,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 5.8,
+        "slope": 0.1,
+        "flow_accumulation": 185000.0,
+        "imperviousness": 0.82
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9548,
+        "norm_slope": 1.0,
+        "norm_flow_accumulation": 0.9958,
+        "norm_imperviousness": 0.8333
+      },
+      "feature_contributions": {
+        "elevation": 0.3342,
+        "flow_accumulation": 0.249,
+        "imperviousness": 0.2083,
+        "slope": 0.15
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2081,
+              12.9381
+            ],
+            [
+              80.2099,
+              12.9381
+            ],
+            [
+              80.2099,
+              12.9399
+            ],
+            [
+              80.2081,
+              12.9399
+            ],
+            [
+              80.2081,
+              12.9381
+            ]
+          ]
+        ]
+      },
+      "name": "Pallikaranai Radial Road Chokepoint",
+      "terrain_type": "wetland_corridor_chokepoint",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_PAL_02",
+      "vulnerability_score": 0.9147,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 6.2,
+        "slope": 0.2,
+        "flow_accumulation": 145000.0,
+        "imperviousness": 0.78
+      },
+      "normalized_features": {
+        "norm_elevation": 0.9457,
+        "norm_slope": 0.9865,
+        "norm_flow_accumulation": 0.9571,
+        "norm_imperviousness": 0.7857
+      },
+      "feature_contributions": {
+        "elevation": 0.331,
+        "flow_accumulation": 0.2393,
+        "imperviousness": 0.1964,
+        "slope": 0.148
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2061,
+              12.9351
+            ],
+            [
+              80.2079,
+              12.9351
+            ],
+            [
+              80.2079,
+              12.9369
+            ],
+            [
+              80.2061,
+              12.9369
+            ],
+            [
+              80.2061,
+              12.9351
+            ]
+          ]
+        ]
+      },
+      "name": "Pallikaranai Kamakshi Hospital Edge",
+      "terrain_type": "wetland_fringe_sink",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_ADY_01",
+      "vulnerability_score": 0.7123,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 13.2,
+        "slope": 1.1,
+        "flow_accumulation": 15000.0,
+        "imperviousness": 0.65
+      },
+      "normalized_features": {
+        "norm_elevation": 0.7873,
+        "norm_slope": 0.8649,
+        "norm_flow_accumulation": 0.5966,
+        "norm_imperviousness": 0.631
+      },
+      "feature_contributions": {
+        "elevation": 0.2756,
+        "flow_accumulation": 0.1492,
+        "imperviousness": 0.1578,
+        "slope": 0.1297
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2511,
+              13.0001
+            ],
+            [
+              80.2529,
+              13.0001
+            ],
+            [
+              80.2529,
+              13.0019
+            ],
+            [
+              80.2511,
+              13.0019
+            ],
+            [
+              80.2511,
+              13.0001
+            ]
+          ]
+        ]
+      },
+      "name": "Adyar Shastri Nagar Residential",
+      "terrain_type": "urban_residential",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_ADY_02",
+      "vulnerability_score": 0.7078,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 14.5,
+        "slope": 1.4,
+        "flow_accumulation": 12000.0,
+        "imperviousness": 0.72
+      },
+      "normalized_features": {
+        "norm_elevation": 0.7579,
+        "norm_slope": 0.8243,
+        "norm_flow_accumulation": 0.5612,
+        "norm_imperviousness": 0.7143
+      },
+      "feature_contributions": {
+        "elevation": 0.2653,
+        "flow_accumulation": 0.1403,
+        "imperviousness": 0.1786,
+        "slope": 0.1236
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2471,
+              13.0041
+            ],
+            [
+              80.2489,
+              13.0041
+            ],
+            [
+              80.2489,
+              13.0059
+            ],
+            [
+              80.2471,
+              13.0059
+            ],
+            [
+              80.2471,
+              13.0041
+            ]
+          ]
+        ]
+      },
+      "name": "Adyar Sardar Patel Road Corridor",
+      "terrain_type": "arterial_commercial_residential",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_MYL_01",
+      "vulnerability_score": 0.7783,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 12.8,
+        "slope": 0.9,
+        "flow_accumulation": 18500.0,
+        "imperviousness": 0.82
+      },
+      "normalized_features": {
+        "norm_elevation": 0.7964,
+        "norm_slope": 0.8919,
+        "norm_flow_accumulation": 0.6299,
+        "norm_imperviousness": 0.8333
+      },
+      "feature_contributions": {
+        "elevation": 0.2787,
+        "flow_accumulation": 0.1575,
+        "imperviousness": 0.2083,
+        "slope": 0.1338
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2641,
+              13.0371
+            ],
+            [
+              80.2659,
+              13.0371
+            ],
+            [
+              80.2659,
+              13.0389
+            ],
+            [
+              80.2641,
+              13.0389
+            ],
+            [
+              80.2641,
+              13.0371
+            ]
+          ]
+        ]
+      },
+      "name": "Mylapore Luz Corner Historic Ward",
+      "terrain_type": "dense_historical_residential",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_MYL_02",
+      "vulnerability_score": 0.7184,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 11.0,
+        "slope": 1.2,
+        "flow_accumulation": 9500.0,
+        "imperviousness": 0.68
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8371,
+        "norm_slope": 0.8514,
+        "norm_flow_accumulation": 0.524,
+        "norm_imperviousness": 0.6667
+      },
+      "feature_contributions": {
+        "elevation": 0.293,
+        "flow_accumulation": 0.131,
+        "imperviousness": 0.1667,
+        "slope": 0.1277
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2771,
+              13.0311
+            ],
+            [
+              80.2789,
+              13.0311
+            ],
+            [
+              80.2789,
+              13.0329
+            ],
+            [
+              80.2771,
+              13.0329
+            ],
+            [
+              80.2771,
+              13.0311
+            ]
+          ]
+        ]
+      },
+      "name": "Mylapore Santhome Coastal Avenue",
+      "terrain_type": "coastal_residential_fringe",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_ANN_01",
+      "vulnerability_score": 0.6785,
+      "risk_level": "medium",
+      "raw_features": {
+        "elevation": 16.0,
+        "slope": 1.5,
+        "flow_accumulation": 11000.0,
+        "imperviousness": 0.68
+      },
+      "normalized_features": {
+        "norm_elevation": 0.724,
+        "norm_slope": 0.8108,
+        "norm_flow_accumulation": 0.5473,
+        "norm_imperviousness": 0.6667
+      },
+      "feature_contributions": {
+        "elevation": 0.2534,
+        "flow_accumulation": 0.1368,
+        "imperviousness": 0.1667,
+        "slope": 0.1216
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2141,
+              13.0841
+            ],
+            [
+              80.2159,
+              13.0841
+            ],
+            [
+              80.2159,
+              13.0859
+            ],
+            [
+              80.2141,
+              13.0859
+            ],
+            [
+              80.2141,
+              13.0841
+            ]
+          ]
+        ]
+      },
+      "name": "Anna Nagar Shanthi Colony Central",
+      "terrain_type": "planned_residential_grid",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_ANN_02",
+      "vulnerability_score": 0.7064,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 15.2,
+        "slope": 1.2,
+        "flow_accumulation": 14000.0,
+        "imperviousness": 0.7
+      },
+      "normalized_features": {
+        "norm_elevation": 0.7421,
+        "norm_slope": 0.8514,
+        "norm_flow_accumulation": 0.5857,
+        "norm_imperviousness": 0.6905
+      },
+      "feature_contributions": {
+        "elevation": 0.2597,
+        "flow_accumulation": 0.1464,
+        "imperviousness": 0.1726,
+        "slope": 0.1277
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2001,
+              13.0881
+            ],
+            [
+              80.2019,
+              13.0881
+            ],
+            [
+              80.2019,
+              13.0899
+            ],
+            [
+              80.2001,
+              13.0899
+            ],
+            [
+              80.2001,
+              13.0881
+            ]
+          ]
+        ]
+      },
+      "name": "Anna Nagar West Extension Pocket",
+      "terrain_type": "planned_residential_secondary",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_KOD_01",
+      "vulnerability_score": 0.7599,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 13.5,
+        "slope": 1.0,
+        "flow_accumulation": 19000.0,
+        "imperviousness": 0.78
+      },
+      "normalized_features": {
+        "norm_elevation": 0.7805,
+        "norm_slope": 0.8784,
+        "norm_flow_accumulation": 0.6342,
+        "norm_imperviousness": 0.7857
+      },
+      "feature_contributions": {
+        "elevation": 0.2732,
+        "flow_accumulation": 0.1585,
+        "imperviousness": 0.1964,
+        "slope": 0.1318
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2271,
+              13.0511
+            ],
+            [
+              80.2289,
+              13.0511
+            ],
+            [
+              80.2289,
+              13.0529
+            ],
+            [
+              80.2271,
+              13.0529
+            ],
+            [
+              80.2271,
+              13.0511
+            ]
+          ]
+        ]
+      },
+      "name": "Kodambakkam Station Road Fringe",
+      "terrain_type": "railway_adjacent_residential",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_ALN_01",
+      "vulnerability_score": 0.6265,
+      "risk_level": "medium",
+      "raw_features": {
+        "elevation": 17.5,
+        "slope": 1.8,
+        "flow_accumulation": 8500.0,
+        "imperviousness": 0.6
+      },
+      "normalized_features": {
+        "norm_elevation": 0.69,
+        "norm_slope": 0.7703,
+        "norm_flow_accumulation": 0.5064,
+        "norm_imperviousness": 0.5714
+      },
+      "feature_contributions": {
+        "elevation": 0.2415,
+        "flow_accumulation": 0.1266,
+        "imperviousness": 0.1429,
+        "slope": 0.1155
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2001,
+              13.0021
+            ],
+            [
+              80.2019,
+              13.0021
+            ],
+            [
+              80.2019,
+              13.0039
+            ],
+            [
+              80.2001,
+              13.0039
+            ],
+            [
+              80.2001,
+              13.0021
+            ]
+          ]
+        ]
+      },
+      "name": "Alandur Cantonment Residential",
+      "terrain_type": "moderate_elevation_urban",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_AMB_01",
+      "vulnerability_score": 0.709,
+      "risk_level": "high",
+      "raw_features": {
+        "elevation": 18.0,
+        "slope": 1.6,
+        "flow_accumulation": 22000.0,
+        "imperviousness": 0.75
+      },
+      "normalized_features": {
+        "norm_elevation": 0.6787,
+        "norm_slope": 0.7973,
+        "norm_flow_accumulation": 0.6575,
+        "norm_imperviousness": 0.75
+      },
+      "feature_contributions": {
+        "elevation": 0.2375,
+        "flow_accumulation": 0.1644,
+        "imperviousness": 0.1875,
+        "slope": 0.1196
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1611,
+              13.0971
+            ],
+            [
+              80.1629,
+              13.0971
+            ],
+            [
+              80.1629,
+              13.0989
+            ],
+            [
+              80.1611,
+              13.0989
+            ],
+            [
+              80.1611,
+              13.0971
+            ]
+          ]
+        ]
+      },
+      "name": "Ambattur Industrial Estate North",
+      "terrain_type": "industrial_built_up",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_AMB_02",
+      "vulnerability_score": 0.6601,
+      "risk_level": "medium",
+      "raw_features": {
+        "elevation": 16.5,
+        "slope": 1.1,
+        "flow_accumulation": 35000.0,
+        "imperviousness": 0.45
+      },
+      "normalized_features": {
+        "norm_elevation": 0.7127,
+        "norm_slope": 0.8649,
+        "norm_flow_accumulation": 0.7312,
+        "norm_imperviousness": 0.3929
+      },
+      "feature_contributions": {
+        "elevation": 0.2494,
+        "flow_accumulation": 0.1828,
+        "imperviousness": 0.0982,
+        "slope": 0.1297
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1541,
+              13.1111
+            ],
+            [
+              80.1559,
+              13.1111
+            ],
+            [
+              80.1559,
+              13.1129
+            ],
+            [
+              80.1541,
+              13.1129
+            ],
+            [
+              80.1541,
+              13.1111
+            ]
+          ]
+        ]
+      },
+      "name": "Ambattur Lake Buffer Zone",
+      "terrain_type": "lake_catchment_semi_permeable",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_GUI_01",
+      "vulnerability_score": 0.3741,
+      "risk_level": "low",
+      "raw_features": {
+        "elevation": 22.0,
+        "slope": 2.8,
+        "flow_accumulation": 2200.0,
+        "imperviousness": 0.12
+      },
+      "normalized_features": {
+        "norm_elevation": 0.5882,
+        "norm_slope": 0.6351,
+        "norm_flow_accumulation": 0.2917,
+        "norm_imperviousness": 0.0
+      },
+      "feature_contributions": {
+        "elevation": 0.2059,
+        "flow_accumulation": 0.0729,
+        "imperviousness": 0.0,
+        "slope": 0.0953
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2211,
+              13.0061
+            ],
+            [
+              80.2229,
+              13.0061
+            ],
+            [
+              80.2229,
+              13.0079
+            ],
+            [
+              80.2211,
+              13.0079
+            ],
+            [
+              80.2211,
+              13.0061
+            ]
+          ]
+        ]
+      },
+      "name": "Guindy National Park Forest Core",
+      "terrain_type": "urban_forest_nature_reserve",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_GUI_02",
+      "vulnerability_score": 0.3561,
+      "risk_level": "low",
+      "raw_features": {
+        "elevation": 24.5,
+        "slope": 3.2,
+        "flow_accumulation": 1800.0,
+        "imperviousness": 0.18
+      },
+      "normalized_features": {
+        "norm_elevation": 0.5317,
+        "norm_slope": 0.5811,
+        "norm_flow_accumulation": 0.2598,
+        "norm_imperviousness": 0.0714
+      },
+      "feature_contributions": {
+        "elevation": 0.1861,
+        "flow_accumulation": 0.0649,
+        "imperviousness": 0.0179,
+        "slope": 0.0872
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2271,
+              13.0081
+            ],
+            [
+              80.2289,
+              13.0081
+            ],
+            [
+              80.2289,
+              13.0099
+            ],
+            [
+              80.2271,
+              13.0099
+            ],
+            [
+              80.2271,
+              13.0081
+            ]
+          ]
+        ]
+      },
+      "name": "Guindy Raj Bhavan Woodland Reserve",
+      "terrain_type": "protected_woodland_canopy",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_STM_01",
+      "vulnerability_score": 0.0387,
+      "risk_level": "low",
+      "raw_features": {
+        "elevation": 48.0,
+        "slope": 7.5,
+        "flow_accumulation": 350.0,
+        "imperviousness": 0.25
+      },
+      "normalized_features": {
+        "norm_elevation": 0.0,
+        "norm_slope": 0.0,
+        "norm_flow_accumulation": 0.0,
+        "norm_imperviousness": 0.1548
+      },
+      "feature_contributions": {
+        "elevation": 0.0,
+        "flow_accumulation": 0.0,
+        "imperviousness": 0.0387,
+        "slope": 0.0
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1921,
+              12.9981
+            ],
+            [
+              80.1939,
+              12.9981
+            ],
+            [
+              80.1939,
+              12.9999
+            ],
+            [
+              80.1921,
+              12.9999
+            ],
+            [
+              80.1921,
+              12.9981
+            ]
+          ]
+        ]
+      },
+      "name": "St Thomas Mount Hillcrest Summit",
+      "terrain_type": "granitic_ridge_crest",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_STM_02",
+      "vulnerability_score": 0.2242,
+      "risk_level": "low",
+      "raw_features": {
+        "elevation": 36.0,
+        "slope": 5.8,
+        "flow_accumulation": 850.0,
+        "imperviousness": 0.32
+      },
+      "normalized_features": {
+        "norm_elevation": 0.2715,
+        "norm_slope": 0.2297,
+        "norm_flow_accumulation": 0.1407,
+        "norm_imperviousness": 0.2381
+      },
+      "feature_contributions": {
+        "elevation": 0.095,
+        "flow_accumulation": 0.0352,
+        "imperviousness": 0.0595,
+        "slope": 0.0345
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1941,
+              12.9961
+            ],
+            [
+              80.1959,
+              12.9961
+            ],
+            [
+              80.1959,
+              12.9979
+            ],
+            [
+              80.1941,
+              12.9979
+            ],
+            [
+              80.1941,
+              12.9961
+            ]
+          ]
+        ]
+      },
+      "name": "St Thomas Mount Upper Slope",
+      "terrain_type": "rocky_escarpment_slope",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_SEM_01",
+      "vulnerability_score": 0.4345,
+      "risk_level": "medium",
+      "raw_features": {
+        "elevation": 18.5,
+        "slope": 2.1,
+        "flow_accumulation": 2800.0,
+        "imperviousness": 0.15
+      },
+      "normalized_features": {
+        "norm_elevation": 0.6674,
+        "norm_slope": 0.7297,
+        "norm_flow_accumulation": 0.33,
+        "norm_imperviousness": 0.0357
+      },
+      "feature_contributions": {
+        "elevation": 0.2336,
+        "flow_accumulation": 0.0825,
+        "imperviousness": 0.0089,
+        "slope": 0.1095
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2501,
+              13.0501
+            ],
+            [
+              80.2519,
+              13.0501
+            ],
+            [
+              80.2519,
+              13.0519
+            ],
+            [
+              80.2501,
+              13.0519
+            ],
+            [
+              80.2501,
+              13.0501
+            ]
+          ]
+        ]
+      },
+      "name": "Semmozhi Poonga Botanical Garden",
+      "terrain_type": "botanical_garden_permeable",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_THI_01",
+      "vulnerability_score": 0.4373,
+      "risk_level": "medium",
+      "raw_features": {
+        "elevation": 12.5,
+        "slope": 3.5,
+        "flow_accumulation": 1100.0,
+        "imperviousness": 0.22
+      },
+      "normalized_features": {
+        "norm_elevation": 0.8032,
+        "norm_slope": 0.5405,
+        "norm_flow_accumulation": 0.1816,
+        "norm_imperviousness": 0.119
+      },
+      "feature_contributions": {
+        "elevation": 0.2811,
+        "flow_accumulation": 0.0454,
+        "imperviousness": 0.0297,
+        "slope": 0.0811
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2641,
+              12.9821
+            ],
+            [
+              80.2659,
+              12.9821
+            ],
+            [
+              80.2659,
+              12.9839
+            ],
+            [
+              80.2641,
+              12.9839
+            ],
+            [
+              80.2641,
+              12.9821
+            ]
+          ]
+        ]
+      },
+      "name": "Thiruvanmiyur Beach Dune Ridge",
+      "terrain_type": "coastal_dune_permeable_sand",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_IIT_01",
+      "vulnerability_score": 0.4127,
+      "risk_level": "medium",
+      "raw_features": {
+        "elevation": 21.0,
+        "slope": 2.4,
+        "flow_accumulation": 3100.0,
+        "imperviousness": 0.15
+      },
+      "normalized_features": {
+        "norm_elevation": 0.6109,
+        "norm_slope": 0.6892,
+        "norm_flow_accumulation": 0.3462,
+        "norm_imperviousness": 0.0357
+      },
+      "feature_contributions": {
+        "elevation": 0.2138,
+        "flow_accumulation": 0.0866,
+        "imperviousness": 0.0089,
+        "slope": 0.1034
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.2321,
+              12.9901
+            ],
+            [
+              80.2339,
+              12.9901
+            ],
+            [
+              80.2339,
+              12.9919
+            ],
+            [
+              80.2321,
+              12.9919
+            ],
+            [
+              80.2321,
+              12.9901
+            ]
+          ]
+        ]
+      },
+      "name": "IIT Madras Campus Forest Grove",
+      "terrain_type": "institutional_campus_canopy",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    },
+    {
+      "cell_id": "CELL_POR_01",
+      "vulnerability_score": 0.4738,
+      "risk_level": "medium",
+      "raw_features": {
+        "elevation": 26.0,
+        "slope": 3.0,
+        "flow_accumulation": 4500.0,
+        "imperviousness": 0.48
+      },
+      "normalized_features": {
+        "norm_elevation": 0.4977,
+        "norm_slope": 0.6081,
+        "norm_flow_accumulation": 0.4053,
+        "norm_imperviousness": 0.4286
+      },
+      "feature_contributions": {
+        "elevation": 0.1742,
+        "flow_accumulation": 0.1013,
+        "imperviousness": 0.1071,
+        "slope": 0.0912
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.1571,
+              13.0351
+            ],
+            [
+              80.1589,
+              13.0351
+            ],
+            [
+              80.1589,
+              13.0369
+            ],
+            [
+              80.1571,
+              13.0369
+            ],
+            [
+              80.1571,
+              13.0351
+            ]
+          ]
+        ]
+      },
+      "name": "Porur Highland Ridge Residential",
+      "terrain_type": "elevated_suburban_terrace",
+      "is_synthetic": true,
+      "version": "v1.0",
+      "computed_at": "2026-09-24T09:23:52Z"
+    }
+  ]
+}

@@ -78,3 +78,36 @@ print(latest)
 # Output: {'id': 1, 'timestamp': '...', 'rain_1h': 4.5, 'rain_3h': 24.7, 'rain_6h': 78.4, 'created_at': '...'}
 ```
 
+## Static Flood Vulnerability Layer (M1 Day 2)
+
+Chetna computes a deterministic, explainable static flood vulnerability score ($V \in [0.0, 1.0]$) for every grid cell from terrain and environmental features without an ML black box.
+
+### Exact Formula and Weights
+$$V = 0.35 \cdot \text{norm}(elevation) + 0.25 \cdot \text{norm}(\log(flow\_acc)) + 0.25 \cdot \text{norm}(imperv) + 0.15 \cdot \text{norm}(slope)$$
+
+| Feature | Weight | Directional Hydrological Rationale | Normalization Strategy |
+| :--- | :--- | :--- | :--- |
+| **Elevation** | 0.35 | Lower elevation pools water; coastal/delta basins flood first. | Inverted min-max: $\frac{E_{max} - E}{E_{max} - E_{min}}$ |
+| **Flow Accumulation** | 0.25 | Higher upstream catchment area routes more water into the cell. | Log min-max: $\frac{\ln(1 + FA) - \ln(1 + FA_{min})}{\ln(1 + FA_{max}) - \ln(1 + FA_{min})}$ |
+| **Imperviousness** | 0.25 | Concrete and asphalt prevent infiltration, creating immediate runoff. | Direct scale: $\frac{I - I_{min}}{I_{max} - I_{min}}$ |
+| **Slope** | 0.15 | Flat ground causes water stagnation; steep ground drains away. | Inverted min-max: $\frac{S_{max} - S}{S_{max} - S_{min}}$ |
+
+### Risk Classification Thresholds
+- **Low**: $V < 0.40$
+- **Medium**: $0.40 \le V < 0.70$
+- **High**: $V \ge 0.70$
+
+### Computing Static Vulnerability
+```python
+from src.static_risk import compute_static_vulnerability
+
+# Computes scores, writes JSON/CSV, and stores into SQLite 'cells' table:
+result = compute_static_vulnerability(
+    source="data/m1/synthetic_grid_features.json",
+    save_json_path="data/m1/static_risk_scores.json",
+    save_csv_path="data/m1/static_risk_scores.csv",
+    save_db_path="data/chetna.db",
+)
+```
+
+

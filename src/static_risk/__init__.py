@@ -13,6 +13,20 @@ from src.static_risk.hotspots import (
     load_historical_rainfall,
     load_hotspots,
 )
+from src.static_risk.vulnerability import (
+    DEFAULT_THRESHOLDS,
+    DEFAULT_WEIGHTS,
+    CellStaticRisk,
+    StaticRiskGridResult,
+    calculate_cell_vulnerability,
+    classify_risk_score,
+    compute_static_vulnerability,
+    normalize_elevation,
+    normalize_flow_accumulation,
+    normalize_imperviousness,
+    normalize_slope,
+    process_static_risk_grid,
+)
 
 __all__ = [
     "DEFAULT_M1_DATA_DIR",
@@ -26,4 +40,16 @@ __all__ = [
     "get_backtest_event_by_id",
     "load_historical_rainfall",
     "fetch_archive_rainfall",
+    "DEFAULT_WEIGHTS",
+    "DEFAULT_THRESHOLDS",
+    "CellStaticRisk",
+    "StaticRiskGridResult",
+    "normalize_elevation",
+    "normalize_slope",
+    "normalize_flow_accumulation",
+    "normalize_imperviousness",
+    "classify_risk_score",
+    "calculate_cell_vulnerability",
+    "process_static_risk_grid",
+    "compute_static_vulnerability",
 ]

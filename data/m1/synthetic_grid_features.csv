@@ -1,0 +1,39 @@
+cell_id,name,latitude,longitude,elevation,slope,flow_accumulation,imperviousness,terrain_type,associated_hotspot_id,is_synthetic
+CELL_VEL_01,Velachery Vijayanagar North,12.982,80.2185,6.5,0.2,85000.0,0.88,marshland_basin_depression,HS01,True
+CELL_VEL_02,Velachery Lake Runoff Outfall,12.979,80.221,5.8,0.1,120000.0,0.82,lake_overflow_sink,HS01,True
+CELL_MAD_01,Madipakkam Ram Nagar East,12.965,80.198,6.2,0.2,95000.0,0.85,marsh_fringe_depression,HS02,True
+CELL_MAD_02,Madipakkam Kuberan Nagar,12.963,80.194,7.0,0.3,72000.0,0.8,low_lying_residential,HS02,True
+CELL_MUD_01,Mudichur Varadharajapuram,12.916,80.065,11.5,0.3,160000.0,0.75,river_floodplain_meander,HS03,True
+CELL_MUD_02,Mudichur Road Tributary Confluence,12.913,80.062,10.8,0.2,190000.0,0.7,tributary_chokepoint,HS03,True
+CELL_TNG_01,T Nagar Usman Road North,13.043,80.235,10.2,0.3,62000.0,0.92,dense_urban_canal_overflow,HS04,True
+CELL_TNG_02,T Nagar Bazullah Road Mambalam Canal,13.04,80.232,9.8,0.2,88000.0,0.94,canal_corridor_urban,HS04,True
+CELL_PUL_01,Pulianthope Ambedkar College Road,13.095,80.267,5.5,0.2,110000.0,0.9,low_lying_canal_basin,HS05,True
+CELL_PUL_02,Pulianthope Demellows Road Basin,13.093,80.264,5.2,0.1,135000.0,0.91,buckingham_backwater_sink,HS05,True
+CELL_VYA_01,Vyasarpadi Ganesapuram Subway Bowl,13.1115,80.263,3.8,0.1,140000.0,0.96,railway_subway_depression,HS06,True
+CELL_VYA_02,Vyasarpadi Jeeva Station Underpass,13.11,80.261,4.2,0.2,115000.0,0.93,railway_underpass_pocket,HS06,True
+CELL_PER_01,Perambur Stephenson Road Subway,13.1075,80.246,5.8,0.3,78000.0,0.89,canal_corridor_underpass,HS07,True
+CELL_PER_02,Perambur Otteri Nullah Embankment,13.105,80.243,6.5,0.4,65000.0,0.84,canal_overflow_edge,HS07,True
+CELL_KOY_01,Koyambedu Wholesale Market Concourse,13.07,80.196,10.5,0.3,82000.0,0.95,river_meander_commercial,HS08,True
+CELL_KOY_02,Koyambedu Cooum River Bend Approach,13.068,80.193,9.8,0.2,125000.0,0.88,riverine_commercial_fringe,HS08,True
+CELL_MAN_01,Manapakkam MIOT Hospital River Bend,13.0185,80.181,8.8,0.2,175000.0,0.87,river_floodplain_hospital,HS09,True
+CELL_MAN_02,Manapakkam Trade Centre Highway Corridor,13.016,80.178,9.5,0.3,110000.0,0.85,highway_drainage_bottleneck,HS09,True
+CELL_PAL_01,Pallikaranai Radial Road Chokepoint,12.939,80.209,5.8,0.1,185000.0,0.82,wetland_corridor_chokepoint,HS10,True
+CELL_PAL_02,Pallikaranai Kamakshi Hospital Edge,12.936,80.207,6.2,0.2,145000.0,0.78,wetland_fringe_sink,HS10,True
+CELL_ADY_01,Adyar Shastri Nagar Residential,13.001,80.252,13.2,1.1,15000.0,0.65,urban_residential,,True
+CELL_ADY_02,Adyar Sardar Patel Road Corridor,13.005,80.248,14.5,1.4,12000.0,0.72,arterial_commercial_residential,,True
+CELL_MYL_01,Mylapore Luz Corner Historic Ward,13.038,80.265,12.8,0.9,18500.0,0.82,dense_historical_residential,,True
+CELL_MYL_02,Mylapore Santhome Coastal Avenue,13.032,80.278,11.0,1.2,9500.0,0.68,coastal_residential_fringe,,True
+CELL_ANN_01,Anna Nagar Shanthi Colony Central,13.085,80.215,16.0,1.5,11000.0,0.68,planned_residential_grid,,True
+CELL_ANN_02,Anna Nagar West Extension Pocket,13.089,80.201,15.2,1.2,14000.0,0.7,planned_residential_secondary,,True
+CELL_KOD_01,Kodambakkam Station Road Fringe,13.052,80.228,13.5,1.0,19000.0,0.78,railway_adjacent_residential,,True
+CELL_ALN_01,Alandur Cantonment Residential,13.003,80.201,17.5,1.8,8500.0,0.6,moderate_elevation_urban,,True
+CELL_AMB_01,Ambattur Industrial Estate North,13.098,80.162,18.0,1.6,22000.0,0.75,industrial_built_up,,True
+CELL_AMB_02,Ambattur Lake Buffer Zone,13.112,80.155,16.5,1.1,35000.0,0.45,lake_catchment_semi_permeable,,True
+CELL_GUI_01,Guindy National Park Forest Core,13.007,80.222,22.0,2.8,2200.0,0.12,urban_forest_nature_reserve,,True
+CELL_GUI_02,Guindy Raj Bhavan Woodland Reserve,13.009,80.228,24.5,3.2,1800.0,0.18,protected_woodland_canopy,,True
+CELL_STM_01,St Thomas Mount Hillcrest Summit,12.999,80.193,48.0,7.5,350.0,0.25,granitic_ridge_crest,,True
+CELL_STM_02,St Thomas Mount Upper Slope,12.997,80.195,36.0,5.8,850.0,0.32,rocky_escarpment_slope,,True
+CELL_SEM_01,Semmozhi Poonga Botanical Garden,13.051,80.251,18.5,2.1,2800.0,0.15,botanical_garden_permeable,,True
+CELL_THI_01,Thiruvanmiyur Beach Dune Ridge,12.983,80.265,12.5,3.5,1100.0,0.22,coastal_dune_permeable_sand,,True
+CELL_IIT_01,IIT Madras Campus Forest Grove,12.991,80.233,21.0,2.4,3100.0,0.15,institutional_campus_canopy,,True
+CELL_POR_01,Porur Highland Ridge Residential,13.036,80.158,26.0,3.0,4500.0,0.48,elevated_suburban_terrace,,True
