@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="chetnaDropGrad" x1="15%" y1="5%" x2="85%" y2="95%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="45%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+    <linearGradient id="chetnaWaveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#a7f3d0" stop-opacity="0.9" />
+    </linearGradient>
+    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0369a1" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Droplet Background Body -->
+  <path d="M 60,14 C 60,14 98,54 98,76 A 38,38 0 1,1 22,76 C 22,54 60,14 60,14 Z"
+        fill="url(#chetnaDropGrad)"
+        filter="url(#subtleGlow)" />
+
+  <!-- Early Warning Radar Pulse Rings -->
+  <circle cx="60" cy="44" r="17" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.35" stroke-dasharray="3 3" />
+  <circle cx="60" cy="44" r="11" fill="none" stroke="#ffffff" stroke-width="2.2" opacity="0.6" stroke-dasharray="2 3" />
+  <circle cx="60" cy="44" r="4.5" fill="#ffffff" />
+
+  <!-- Fluid Flood Crest Waves -->
+  <path d="M 32,74 C 42,66 52,80 64,73 C 76,66 84,75 88,77"
+        fill="none" stroke="url(#chetnaWaveGrad)" stroke-width="4.2" stroke-linecap="round" />
+  <path d="M 36,87 C 45,81 53,91 65,86 C 75,81 81,87 84,89"
+        fill="none" stroke="url(#chetnaWaveGrad)" stroke-width="3.2" stroke-linecap="round" opacity="0.8" />
+</svg>

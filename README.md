@@ -110,4 +110,35 @@ result = compute_static_vulnerability(
 )
 ```
 
+## Streamlit Dashboard and Map Skeleton (F1 Day 1)
+
+Chetna provides an interactive Streamlit operations dashboard integrated with a Folium geospatial map centered on the pilot study city (Chennai, India: `[13.0827, 80.2707]`).
+
+### Components in Day 1 Skeleton:
+- **Header & System Status**: Real-time status metrics displaying pilot location, processed terrain vulnerability cells, monitored waterlogging hotspots, and forecast counts in the SQLite database.
+- **Folium Interactive Map**: Leaflet map viewport centered on Chennai with initial zoom level 11 and informational pilot center marker.
+- **Operations Sidebar**: Dedicated placeholder controls for forecast horizon switching (`+1h`, `+3h`, `+6h`), layer toggles (static vulnerability, hotspots, sensors), and simulation triggers.
+- **Risk & Alert Centre**:
+  - *Monitored Hotspots Tab*: GCC/TNSDMA chronic waterlogging hotspots preview table.
+  - *Alert Centre Tab*: Human-in-the-loop alert approval preview with draft advisories and approval gates.
+  - *Static Risk Architecture Tab*: Summary of M1 Day 2 mathematical formulation and weights ready for F1 Day 2 layer rendering.
+
+### Running the Dashboard
+From the repository root:
+```powershell
+streamlit run app/dashboard.py
+```
+or:
+```powershell
+streamlit run app/app.py
+```
+
+### Running Automated Checks
+```powershell
+python -m unittest discover -s tests -p "test_*.py" -v
+# or using pytest:
+pytest -v
+```
+
+
 

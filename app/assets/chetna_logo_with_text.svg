@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" width="100%" height="100%">
+  <defs>
+    <linearGradient id="logoDropGrad" x1="15%" y1="5%" x2="85%" y2="95%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="50%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+    <linearGradient id="logoWaveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#a7f3d0" stop-opacity="0.9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Logo Mark (Left) -->
+  <g transform="translate(4, 2) scale(0.5)">
+    <!-- Droplet Body -->
+    <path d="M 60,14 C 60,14 98,54 98,76 A 38,38 0 1,1 22,76 C 22,54 60,14 60,14 Z"
+          fill="url(#logoDropGrad)" />
+    <!-- Radar Pulse -->
+    <circle cx="60" cy="44" r="16" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.4" stroke-dasharray="3 3" />
+    <circle cx="60" cy="44" r="10" fill="none" stroke="#ffffff" stroke-width="2.2" opacity="0.7" stroke-dasharray="2 3" />
+    <circle cx="60" cy="44" r="4.5" fill="#ffffff" />
+    <!-- Crest Waves -->
+    <path d="M 32,74 C 42,66 52,80 64,73 C 76,66 84,75 88,77"
+          fill="none" stroke="url(#logoWaveGrad)" stroke-width="4.2" stroke-linecap="round" />
+    <path d="M 36,87 C 45,81 53,91 65,86 C 75,81 81,87 84,89"
+          fill="none" stroke="url(#logoWaveGrad)" stroke-width="3.2" stroke-linecap="round" opacity="0.8" />
+  </g>
+
+  <!-- Typography (Right) -->
+  <text x="68" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif"
+        font-size="22" font-weight="800" letter-spacing="2.5" fill="#ffffff">CHETNA</text>
+  <text x="68" y="47" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif"
+        font-size="8.5" font-weight="600" letter-spacing="1.2" fill="#38bdf8">FLOOD EARLY WARNING SYSTEM</text>
+</svg>
