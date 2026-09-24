@@ -129,6 +129,21 @@ class WeatherForecastResult:
         """Convenience helper returning SQLite forecasts table payload."""
         return self.summary.to_db_record()
 
+    @property
+    def next_6h_records(self) -> List[HourlyForecastRecord]:
+        """Returns the hourly forecast records for the next 6 hours starting from reference_time."""
+        for i, rec in enumerate(self.hourly_records):
+            if rec.timestamp == self.reference_time:
+                return self.hourly_records[i : i + 6]
+        return self.hourly_records[:6]
+
+    def save_to_db(self, db_path: Optional[Union[str, Path]] = None) -> int:
+        """Saves this forecast result to the SQLite database forecasts table."""
+        from src.db.forecasts import DEFAULT_DB_PATH, save_forecast
+
+        target_path = db_path if db_path is not None else DEFAULT_DB_PATH
+        return save_forecast(self, db_path=target_path)
+
 
 # ---------------------------------------------------------------------------
 # Ingestion Client
@@ -459,6 +474,32 @@ class OpenMeteoClient:
             from_cache=is_cache,
         )
 
+    def fetch_and_store_forecast(
+        self,
+        latitude: float,
+        longitude: float,
+        db_path: Optional[Union[str, Path]] = None,
+        reference_time: Optional[Union[datetime, str]] = None,
+        past_days: int = 1,
+        forecast_days: int = 2,
+        timezone_str: str = "auto",
+        cache_response: bool = True,
+        use_cache_on_failure: bool = True,
+    ) -> tuple[WeatherForecastResult, int]:
+        """Fetches forecast from Open-Meteo (or cache fallback) and stores it in SQLite."""
+        result = self.get_forecast(
+            latitude=latitude,
+            longitude=longitude,
+            reference_time=reference_time,
+            past_days=past_days,
+            forecast_days=forecast_days,
+            timezone_str=timezone_str,
+            cache_response=cache_response,
+            use_cache_on_failure=use_cache_on_failure,
+        )
+        row_id = result.save_to_db(db_path=db_path)
+        return result, row_id
+
 
 # ---------------------------------------------------------------------------
 # Convenience Functional API
@@ -523,3 +564,55 @@ def load_mock_forecast(
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return parse_weather_response(data, reference_time=reference_time)
+
+
+def fetch_and_store_forecast(
+    latitude: float,
+    longitude: float,
+    db_path: Optional[Union[str, Path]] = None,
+    reference_time: Optional[Union[datetime, str]] = None,
+    past_days: int = 1,
+    forecast_days: int = 2,
+    timezone_str: str = "auto",
+    cache_dir: Optional[Union[str, Path]] = "data/cache",
+    timeout: float = 10.0,
+    use_cache_on_failure: bool = True,
+) -> tuple[WeatherForecastResult, int]:
+    """Fetches Open-Meteo forecast, ensures response is cached, and stores 6-hour forecast in SQLite.
+    
+    Designed for direct integration by Day 3 B1 run_pipeline().
+    
+    Returns:
+        Tuple of (WeatherForecastResult, inserted_row_id).
+    """
+    client = OpenMeteoClient(cache_dir=cache_dir, timeout=timeout)
+    return client.fetch_and_store_forecast(
+        latitude=latitude,
+        longitude=longitude,
+        db_path=db_path,
+        reference_time=reference_time,
+        past_days=past_days,
+        forecast_days=forecast_days,
+        timezone_str=timezone_str,
+        use_cache_on_failure=use_cache_on_failure,
+    )
+
+
+def store_forecast_result(
+    result: WeatherForecastResult,
+    db_path: Optional[Union[str, Path]] = None,
+) -> int:
+    """Stores an existing WeatherForecastResult into the SQLite forecasts table."""
+    return result.save_to_db(db_path=db_path)
+
+
+def store_mock_forecast(
+    mock_filepath: Union[str, Path],
+    db_path: Optional[Union[str, Path]] = None,
+    reference_time: Optional[Union[datetime, str]] = None,
+) -> tuple[WeatherForecastResult, int]:
+    """Loads a mock forecast JSON file, parses it, and stores the 6-hour forecast in SQLite."""
+    result = load_mock_forecast(mock_filepath, reference_time=reference_time)
+    row_id = result.save_to_db(db_path=db_path)
+    return result, row_id
+

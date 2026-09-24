@@ -45,3 +45,36 @@ SQLite is available through Python's standard library, so it is not an additiona
 ## Initial technology choices
 
 Python, Open-Meteo, GeoPandas, Rasterio, OSMnx, Streamlit, and Folium. Day 1 should agree the pilot city, grid resolution and projected CRS, and shared data contract before adding pipelines or application behavior.
+
+## Forecast Ingestion and Database Storage (Day 2 B1)
+
+Chetna ingests Open-Meteo rainfall forecasts, aggregates +1h, +3h, and +6h cumulative horizons, caches raw responses as JSON (`data/cache/`), and stores structured forecast records in SQLite (`data/chetna.db`).
+
+### Running automated tests
+```powershell
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+### Running the forecast ingestion example
+```powershell
+# Run with offline mock data (no internet required):
+python tests/example_ingestion.py
+
+# Optional: Run with live Open-Meteo API:
+python tests/example_ingestion.py --live --lat 13.0827 --lon 80.2707
+```
+
+### Programmatic usage for pipeline integration
+```python
+from src.ingestion import fetch_and_store_forecast
+from src.db import get_latest_forecast
+
+# Fetches 6-hour forecast, caches JSON, and persists to SQLite:
+forecast_result, row_id = fetch_and_store_forecast(latitude=13.0827, longitude=80.2707)
+
+# Retrieve latest stored forecast record:
+latest = get_latest_forecast()
+print(latest)
+# Output: {'id': 1, 'timestamp': '...', 'rain_1h': 4.5, 'rain_3h': 24.7, 'rain_6h': 78.4, 'created_at': '...'}
+```
+
