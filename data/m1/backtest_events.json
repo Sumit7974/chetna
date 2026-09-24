@@ -1,0 +1,42 @@
+[
+  {
+    "event_id": "EVT_2023_MICHAUNG",
+    "name": "Cyclone Michaung Heavy Inundation",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "country": "India",
+    "start_date": "2023-12-03",
+    "end_date": "2023-12-05",
+    "timezone": "Asia/Kolkata",
+    "duration_hours": 72,
+    "total_rainfall_mm": 324.1,
+    "peak_hourly_rainfall_mm": 26.1,
+    "peak_hourly_timestamp": "2023-12-04T07:00",
+    "classification": "Extremely Severe Urban Flood Event",
+    "impact_summary": "Extensive neighborhood inundation across South and Central Chennai; water depths between 1.5m to 2.5m in Velachery, Madipakkam, and Tambaram; city paralyzed for over 72 hours.",
+    "affected_hotspots": ["HS01", "HS02", "HS03", "HS04", "HS05", "HS06", "HS07", "HS08", "HS09", "HS10"],
+    "rainfall_data_file": "michaung_2023_rainfall.json",
+    "is_real_sourced": true,
+    "source_reference": "Open-Meteo Historical Archive (ERA5 / Copernicus) & India Meteorological Department (IMD) Special Monsoon Bulletin"
+  },
+  {
+    "event_id": "EVT_2021_NOV_DEPRESSION",
+    "name": "November 2021 Deep Depression Inundation",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "country": "India",
+    "start_date": "2021-11-06",
+    "end_date": "2021-11-08",
+    "timezone": "Asia/Kolkata",
+    "duration_hours": 72,
+    "total_rainfall_mm": 89.0,
+    "peak_hourly_rainfall_mm": 7.0,
+    "peak_hourly_timestamp": "2021-11-07T03:00",
+    "classification": "Moderate to High Flash Inundation Event",
+    "impact_summary": "Sudden intense overnight rainfall caused severe flash waterlogging; all railway underpasses in North Chennai closed; over 500 arterial roads inundated.",
+    "affected_hotspots": ["HS04", "HS05", "HS06", "HS07"],
+    "rainfall_data_file": "nov_2021_rainfall.json",
+    "is_real_sourced": true,
+    "source_reference": "Open-Meteo Historical Archive (ERA5 / Copernicus) & GCC Monsoon Control Room Daily Situation Reports"
+  }
+]
