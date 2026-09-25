@@ -1,4 +1,4 @@
-"""Chetna sensors package bridging to sensor simulators."""
+"""Simulators package for Chetna flood early-warning system."""
 
 from simulators.sensor_simulator import (
     SensorReading,

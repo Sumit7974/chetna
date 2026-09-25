@@ -1,4 +1,4 @@
-"""Chetna alerts package bridging to core alerts notification system."""
+"""Alerts notification package for Chetna B2."""
 
 from alerts.dispatcher import AlertDispatcher, AlertSeverity
 from alerts.telegram_handler import TelegramAlertHandler, TelegramDispatchResult

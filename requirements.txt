@@ -1,6 +1,40 @@
-openmeteo-requests
-geopandas
-rasterio
-osmnx
-streamlit
-folium
+# ==============================================================================
+# Chetna - AI Flood Early-Warning System Prototype
+# Python Dependencies (Python >= 3.10)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# B2 Core Alerts & Telephony Handlers
+# ------------------------------------------------------------------------------
+requests>=2.31.0
+twilio>=9.0.0
+python-telegram-bot>=21.0
+python-dotenv>=1.0.0
+
+# ------------------------------------------------------------------------------
+# Data Processing & Storage
+# Note: sqlite3 is built into the Python 3 standard library (no pip package needed)
+# ------------------------------------------------------------------------------
+pandas>=2.0.0
+
+# ------------------------------------------------------------------------------
+# Testing & Quality Assurance
+# ------------------------------------------------------------------------------
+pytest>=8.0.0
+pytest-mock>=3.12.0
+
+# ------------------------------------------------------------------------------
+# Weather Ingestion & Visualization (Prototype Core)
+# ------------------------------------------------------------------------------
+openmeteo-requests>=1.2.0
+streamlit>=1.30.0
+folium>=0.16.0
+
+# ------------------------------------------------------------------------------
+# Geospatial / GIS Stack (Optional / Conda Recommended on Windows)
+# Install via conda-forge if wheels or native C/GDAL libraries fail in pure pip:
+# conda install -c conda-forge geopandas rasterio osmnx
+# ------------------------------------------------------------------------------
+# geopandas
+# rasterio
+# osmnx
