@@ -1,8 +1,7 @@
 # Chetna
 
-Chetna is a seven-day prototype for neighborhood-scale flood monitoring and early warnings. It combines rainfall forecasts, terrain and OpenStreetMap data, and simulated sensor readings to estimate flood risk, display it on a map, and support human-approved alerts and safe routing.
+Chetna is a seven-day prototype for neighborhood-scale flood monitoring and early warnings. It combines rainfall forecasts, terrain and OpenStreetMap data, simulated sensor readings, and a live alert pipeline to estimate flood risk, display it on a map, and send human-approved Telegram and Twilio SMS/Voice alerts.
 
-This repository is at the Day 1 setup stage. The project structure and Python environment are prepared; the ML model, routing, alert delivery, and sensor simulator are not implemented yet.
 
 ## Requirements
 
@@ -158,10 +157,109 @@ Chetna introduces an accessible, resident-oriented Citizen View (`app/citizen_vi
 
 ### Running Automated Checks
 ```powershell
-python -m unittest discover -s tests -p "test_*.py" -v
-# or using pytest:
-pytest -v
+# Using pytest (recommended):
+.venv\Scripts\python.exe -m pytest -v
+
+# Using unittest discovery:
+.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v
 ```
 
+## End-to-End Alert Pipeline (B2 Day 1)
 
+Chetna B2 Day 1 delivers a fully connected, dry-run-safe alert pipeline.
 
+### Architecture
+
+```text
+SensorSimulator
+    └─> SensorReading (water_level_cm, rainfall_rate_mm_h, is_anomaly)
+            └─> sensor_db_bridge.persist_reading()   → sensor_readings table
+            └─> AlertEvaluator.evaluate()             → EvaluationResult (severity, reason)
+                    └─> AlertCooldown.should_send()   → suppress / escalate
+                            └─> AlertDispatcher.dispatch()
+                                    ├─> TelegramAlertHandler  → Telegram
+                                    ├─> TwilioAlertHandler    → SMS
+                                    ├─> TwilioAlertHandler    → Voice (EMERGENCY only)
+                                    └─> database.db.log_alert_dispatch() → alert_logs
+                            └─> alerts table (lifecycle: generated → dispatched → acknowledged → resolved)
+```
+
+### Database Tables (Canonical: `data/chetna.db`)
+
+| Table | Purpose |
+|---|---|
+| `forecasts` | Open-Meteo rainfall forecast records (B1 contract) |
+| `sensor_nodes` | Registered sensor node metadata |
+| `sensor_readings` | Time-series sensor telemetry |
+| `alert_logs` | Full audit trail of every dispatch attempt |
+| `alerts` | Alert lifecycle state machine |
+| `cells` | M1 static vulnerability scores |
+| `risk_predictions` | Dynamic risk model predictions |
+| `sensor_table` | Legacy compatibility telemetry store |
+
+> **Database resolution**: `database/db.py` + `database/schema.sql` → `data/chetna.db` is the canonical B2 store.
+> `database/init_db.py` + its `sensor_table` / `risk_predictions` schema target `data/flood_warning.db` and remain
+> isolated for backward compatibility with the notifier test suite.
+
+### Alert Severity Flow
+
+| Severity | Water Level | Rainfall Rate | Anomaly | Channels |
+|---|---|---|---|---|
+| INFO | < 75 cm | < 30 mm/h | No | Telegram only |
+| WARNING | ≥ 75 cm | ≥ 30 mm/h | No | Telegram + SMS |
+| CRITICAL | ≥ 120 cm | ≥ 60 mm/h | No | Telegram + SMS |
+| EMERGENCY | ≥ 120 cm AND ≥ 60 mm/h | both critical | YES | Telegram + SMS + Voice |
+
+Thresholds are configurable via `.env`:
+```
+WATER_LEVEL_WARNING_THRESHOLD_CM=75.0
+WATER_LEVEL_CRITICAL_THRESHOLD_CM=120.0
+RAINFALL_HOURLY_WARNING_MM=30.0
+RAINFALL_HOURLY_CRITICAL_MM=60.0
+ALERT_COOLDOWN_SECONDS=300
+```
+
+### Alert Deduplication / Cooldown
+The `AlertCooldown` class suppresses repeated identical alerts within a configurable window
+(`ALERT_COOLDOWN_SECONDS`, default 300 s). Escalations to a higher severity always bypass the cooldown.
+
+### Dry-Run Safety
+`ALERT_DRY_RUN=true` (the default) causes all Telegram and Twilio handlers to log
+messages locally without making any real API calls. No real credentials are required
+for testing or CI.
+
+### Running the End-to-End Simulated Alert Flow
+```powershell
+# 1. Flash-flood simulation: sensor -> evaluator -> dispatcher (dry-run)
+.venv\Scripts\python.exe -c "
+from simulators.sensor_simulator import SensorSimulator, SimulationScenario
+from alerts.pipeline import AlertPipeline
+import sqlite3, logging
+logging.basicConfig(level=logging.INFO)
+pipeline = AlertPipeline()
+sim = SensorSimulator(node_id='NODE_DEMO')
+readings = sim.generate_batch(count=5, scenario=SimulationScenario.FLASH_FLOOD)
+for r in readings:
+    result = pipeline.process(r, affected_area='Velachery', persist=False)
+    print(f'{r.water_level_cm:.1f} cm -> {result.evaluation.severity.value}',
+          '(SUPPRESSED)' if result.suppressed else '(DISPATCHED)')
+"
+
+# 2. Run the full test suite:
+.venv\Scripts\python.exe -m pytest -v
+```
+
+### B2 Day 1 Module Index
+| Module | Description |
+|---|---|
+| `simulators/sensor_simulator.py` | IoT sensor emulator (NORMAL/RISING/FLASH_FLOOD/ANOMALY) |
+| `simulators/sensor_db_bridge.py` | Sensor → database persistence bridge |
+| `src/alerts/evaluator.py` | Threshold-based severity evaluator |
+| `alerts/cooldown.py` | Per-node deduplication / cooldown manager |
+| `alerts/pipeline.py` | Full pipeline orchestrator + lifecycle helpers |
+| `alerts/dispatcher.py` | Notification routing by severity |
+| `alerts/telegram_handler.py` | Telegram Bot HTTP handler |
+| `alerts/twilio_handler.py` | Twilio SMS + Voice handler |
+| `database/db.py` | Canonical B2 database API |
+| `database/schema.sql` | Complete unified SQLite schema |
+| `config/settings.py` | Centralized configuration from `.env` |

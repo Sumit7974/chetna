@@ -103,6 +103,11 @@ class Settings:
         )
     )
 
+    # Alert Deduplication Cooldown
+    alert_cooldown_seconds: int = field(
+        default_factory=lambda: _int_from_env("ALERT_COOLDOWN_SECONDS", default=300)
+    )
+
     # Emergency Broadcast Phone Numbers
     emergency_broadcast_numbers: List[str] = field(default_factory=list)
 

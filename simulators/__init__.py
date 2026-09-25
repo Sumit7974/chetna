@@ -5,5 +5,12 @@ from simulators.sensor_simulator import (
     SensorSimulator,
     SimulationScenario,
 )
+from simulators.sensor_db_bridge import persist_reading, persist_batch
 
-__all__ = ["SensorReading", "SensorSimulator", "SimulationScenario"]
+__all__ = [
+    "SensorReading",
+    "SensorSimulator",
+    "SimulationScenario",
+    "persist_reading",
+    "persist_batch",
+]
