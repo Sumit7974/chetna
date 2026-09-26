@@ -452,8 +452,8 @@ def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]])
     )
 
 
-def render_citizen_safe_route_placeholder() -> None:
-    """Render the safe-route placeholder stub (wireframe for Day 4)."""
+def render_citizen_safe_route(folium_map: folium.Map, hotspots: List[Dict[str, Any]]) -> None:
+    """Render the safe-route routing interface and integrate with A* API."""
     st.markdown(
         """
         <div class="chetna-card">
@@ -466,43 +466,89 @@ def render_citizen_safe_route_placeholder() -> None:
                         Intelligent pedestrian and vehicle routing avoiding waterlogged streets.
                     </div>
                 </div>
-                <span class="chetna-pill chetna-pill-slate">Milestone: Day 4</span>
-            </div>
-            <div style="background:#f1f5f9; border-radius:6px; padding:12px 14px; margin-bottom:0.85rem;">
-                <div style="font-weight:600; font-size:0.84rem; color:#334155; margin-bottom:4px;">
-                    ℹ️ Route Calculation Available in a Later Milestone
-                </div>
-                <p style="margin:0; font-size:0.8rem; color:#64748b; line-height:1.45;">
-                    The Chetna routing engine will penalize roads with high water depth or static vulnerability
-                    and use A* pathfinding over OpenStreetMap networks to guide residents to the nearest safe shelter.
-                </p>
-            </div>
-            <!-- Wireframe preview of future route steps -->
-            <div style="background:#ffffff; border:1px dashed #cbd5e1; border-radius:6px; padding:10px 12px; margin-bottom:0.85rem;">
-                <div style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:#94a3b8; margin-bottom:6px;">
-                    PREVIEW OF FUTURE ROUTE GUIDANCE:
-                </div>
-                <div style="display:flex; flex-direction:column; gap:6px; font-size:0.78rem; color:#475569;">
-                    <div><b>1. Current Location:</b> User-selected neighborhood origin</div>
-                    <div><b>2. Hazard Avoidance:</b> Automatically bypasses submerged underpasses and canal bottlenecks</div>
-                    <div><b>3. Destination:</b> Nearest elevated shelter / MRTS transit concourse</div>
-                </div>
+                <span class="chetna-pill chetna-pill-teal">Milestone: Day 4</span>
             </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.button("🚶 Calculate Safe Route (Unlocks in Day 4)", disabled=True, use_container_width=True)
+    neighborhood_coords = {
+        "Velachery (Zone 13 - Adyar)": (12.980, 80.223),
+        "Madipakkam (Zone 14 - Perungudi)": (12.964, 80.198),
+        "Mudichur / Varadharajapuram": (12.915, 80.076),
+        "T. Nagar (Zone 10 - Kodambakkam)": (13.041, 80.233),
+        "Pulianthope (Zone 6 - Thiru Vi Ka Nagar)": (13.099, 80.260),
+    }
 
-    st.markdown(
-        """
-            <div style="margin-top:0.5rem; font-size:0.73rem; color:#94a3b8; text-align:center;">
-                🔒 Safe-route planning logic scheduled for Day 4. No routing calculations performed in Day 1.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    # Extract shelters
+    from app.citizen_view import extract_facilities_from_hotspots
+    facilities = extract_facilities_from_hotspots(hotspots)
+    shelters = facilities.get("shelters", [])
+    shelter_options = [s["name"] for s in shelters] if shelters else ["Nearest Elevated Shelter (Default)"]
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        start_loc = st.selectbox("Current Location:", options=list(neighborhood_coords.keys()), key="route_start")
+    with col2:
+        dest_loc = st.selectbox("Safe Destination:", options=shelter_options, key="route_dest")
+
+    if st.button("🚶 Calculate Safe Route", use_container_width=True):
+        try:
+            from src.api.routing_api import get_safe_route
+            
+            start_lat, start_lon = neighborhood_coords[start_loc]
+            
+            # Destination logic
+            dest_lat, dest_lon = (12.9815, 80.2180) # Default Velachery MRTS if we can't find coords
+            # Try to lookup from hotspots if available (simplification for prototype)
+            for h in hotspots:
+                for inf in h.get("critical_infrastructure_nearby", []):
+                    if inf == dest_loc:
+                        dest_lat = h.get("latitude", dest_lat)
+                        dest_lon = h.get("longitude", dest_lon)
+            
+            # Use hotspots as hazard zones for routing
+            hazard_zones = []
+            for h in hotspots:
+                lat = h.get("latitude")
+                lon = h.get("longitude")
+                if lat and lon:
+                    hazard_zones.append({
+                        "lat": lat,
+                        "lon": lon,
+                        "radius_m": 500,
+                        "risk_level": "HIGH" if h.get("severity_tier") == "Severe" else "MEDIUM"
+                    })
+                    
+            with st.spinner("Calculating safe route with A*..."):
+                res = get_safe_route(start_lat, start_lon, dest_lat, dest_lon, hazard_zones)
+            
+            if res.get("status") == "success":
+                route = res.get("route", [])
+                st.success(f"Safe route found! Distance: {res.get('distance_m', 0)/1000:.1f} km, Est. Time: {res.get('estimated_time_min', 0):.0f} mins")
+                
+                # Draw route on map
+                if route:
+                    points = [(r["lat"], r["lon"]) for r in route]
+                    folium.PolyLine(
+                        points,
+                        color="#0284c7",
+                        weight=5,
+                        opacity=0.8,
+                        tooltip="Safe Route"
+                    ).add_to(folium_map)
+                    
+                    folium.Marker(points[0], icon=folium.Icon(color="green", icon="play")).add_to(folium_map)
+                    folium.Marker(points[-1], icon=folium.Icon(color="red", icon="stop")).add_to(folium_map)
+                    
+                    # Store in session state so it persists if needed, or rely on rerun
+            else:
+                st.error(res.get("message", "Failed to find route."))
+                
+        except Exception as e:
+            st.error(f"Routing error: {e}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_citizen_advisory_section() -> None:
@@ -611,7 +657,7 @@ def render_citizen_view(
     # 5. Safe Route Placeholder & Bilingual Advisory Section
     col_route, col_advisory = st.columns([40, 60])
     with col_route:
-        render_citizen_safe_route_placeholder()
+        render_citizen_safe_route(folium_map, hotspots)
     with col_advisory:
         render_citizen_advisory_section()
 

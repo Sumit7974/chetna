@@ -130,7 +130,7 @@ class TestCitizenView(unittest.TestCase):
         self.assertTrue(callable(cv.render_citizen_input_stub))
         self.assertTrue(callable(cv.render_citizen_map))
         self.assertTrue(callable(cv.render_citizen_facilities_panel))
-        self.assertTrue(callable(cv.render_citizen_safe_route_placeholder))
+        self.assertTrue(callable(cv.render_citizen_safe_route))
         self.assertTrue(callable(cv.render_citizen_advisory_section))
         self.assertTrue(callable(cv.render_citizen_footer))
         self.assertTrue(callable(cv.render_citizen_view))
