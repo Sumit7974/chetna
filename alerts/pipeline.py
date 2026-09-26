@@ -35,6 +35,7 @@ from database.db import DEFAULT_DB_PATH, get_db_connection, init_db
 from simulators.sensor_db_bridge import persist_reading
 from simulators.sensor_simulator import SensorReading
 from src.alerts.evaluator import AlertEvaluator, EvaluationResult
+from src.model.predictor import FloodRiskPredictor
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,7 @@ class AlertPipeline:
         self.cooldown = cooldown or AlertCooldown(cooldown_seconds=cooldown_seconds)
         self.db_path = db_path
         self.sms_recipients = sms_recipients or []
+        self.predictor = FloodRiskPredictor(db_path=db_path)
 
         # Ensure schema is ready
         if not isinstance(db_path, sqlite3.Connection):
@@ -106,10 +108,18 @@ class AlertPipeline:
         if persist and not isinstance(self.db_path, sqlite3.Connection):
             persist_reading(reading, db_path=self.db_path)
 
-        # Step 2: evaluate
+        # Step 2: evaluate (with risk prediction)
         if affected_area:
             self.evaluator.affected_area = affected_area
-        evaluation = self.evaluator.evaluate(reading)
+            
+        pred = self.predictor.predict(
+            water_level_cm=reading.water_level_cm,
+            rainfall_rate_mm_h=reading.rainfall_rate_mm_h,
+            cell_id=reading.node_id,
+            persist=persist
+        )
+        
+        evaluation = self.evaluator.evaluate(reading, risk_level=pred.level)
 
         # Step 3: write lifecycle record
         alert_id = f"ALT-{uuid.uuid4().hex[:8].upper()}"

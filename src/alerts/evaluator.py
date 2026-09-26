@@ -95,7 +95,7 @@ class AlertEvaluator:
         self.warning_rain_mm = warning_rain_mm or settings.rainfall_hourly_warning_mm
         self.critical_rain_mm = critical_rain_mm or settings.rainfall_hourly_critical_mm
 
-    def evaluate(self, reading: SensorReading) -> EvaluationResult:
+    def evaluate(self, reading: SensorReading, risk_level: Optional[str] = None) -> EvaluationResult:
         """Evaluate a single sensor reading and return a structured result."""
         wl = reading.water_level_cm
         rr = reading.rainfall_rate_mm_h
@@ -190,6 +190,20 @@ class AlertEvaluator:
                 reason=(
                     f"Rainfall rate elevated: {rr:.1f} mm/h >= {self.warning_rain_mm} mm/h "
                     f"on node {reading.node_id}."
+                ),
+                node_id=reading.node_id,
+                timestamp=reading.timestamp,
+                affected_area=self.affected_area,
+                water_level_cm=wl,
+                rainfall_rate_mm_h=rr,
+            )
+
+        # Risk Model Integration: if risk is HIGH, bump to WARNING if currently INFO
+        if risk_level == "HIGH":
+            return EvaluationResult(
+                severity=AlertSeverity.WARNING,
+                reason=(
+                    f"Node {reading.node_id}: AI Risk Prediction is HIGH based on current features."
                 ),
                 node_id=reading.node_id,
                 timestamp=reading.timestamp,
