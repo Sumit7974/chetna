@@ -23,7 +23,7 @@ def test_get_current_risk_valid_data(monkeypatch, test_db_conn, mock_weather):
     monkeypatch.setattr("database.db.get_db_connection", lambda *args, **kwargs: test_db_conn)
 
     # Use simulation=True to simulate flash flood conditions.
-    result = get_current_risk("Velachery (Zone 13 - Adyar)", "+1h", simulation=True)
+    result = get_current_risk("Velachery (Zone 13 - Adyar)", "+1h", latitude=12.98, longitude=80.22, simulation=True)
     
     assert "location" in result
     assert "risk_level" in result
@@ -70,10 +70,9 @@ def test_missing_coordinates(monkeypatch, test_db_conn, mock_weather):
     monkeypatch.setattr("src.model.predictor.get_db_connection", lambda *args, **kwargs: test_db_conn)
     monkeypatch.setattr("database.db.get_db_connection", lambda *args, **kwargs: test_db_conn)
     
-    # Missing lat/lon should trigger warning but proceed with Chennai fallback
-    result = get_current_risk("Missing Coords Area", "+1h", simulation=False)
-    assert result["persisted"] is True
-    assert result["location"] == "Missing Coords Area"
+    # Missing lat/lon should trigger ValueError
+    with pytest.raises(ValueError, match="Latitude and longitude must be explicitly provided"):
+        get_current_risk("Missing Coords Area", "+1h", simulation=False)
 
 def test_invalid_coordinates():
     with pytest.raises(ValueError, match="Invalid latitude"):

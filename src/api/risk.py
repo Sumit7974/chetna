@@ -13,9 +13,7 @@ def get_current_risk(location_name: str, horizon: str = "Current Conditions", la
     from alerts.pipeline import AlertPipeline
 
     if latitude is None or longitude is None:
-        logging.warning("Coordinates not provided for get_current_risk, using Chennai fallback (13.0827, 80.2707)")
-        latitude = 13.0827
-        longitude = 80.2707
+        raise ValueError("Latitude and longitude must be explicitly provided")
 
     if not (-90.0 <= latitude <= 90.0):
         raise ValueError(f"Invalid latitude: {latitude}")
