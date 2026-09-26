@@ -28,10 +28,10 @@ data/                 Local input and processed data (do not commit datasets)
 src/
   ingestion/          Forecast and geospatial data ingestion
   static_risk/        Terrain and static vulnerability processing
-  model/              Risk prediction (future work)
-  sensors/            Sensor ingestion and simulation (future work)
+  model/              Risk prediction (heuristic model)
+  sensors/            Sensor ingestion and simulation
   routing/            Safe-route planning (future work)
-  alerts/             Human-approved notifications (future work)
+  alerts/             Human-approved notifications
   db/                 Database setup and access
 app/                  Streamlit dashboard
 notebooks/            Exploration and backtesting notebooks

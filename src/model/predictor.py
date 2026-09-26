@@ -1,4 +1,4 @@
-"""Flood-risk prediction model simulating an ML heuristic."""
+"""Heuristic flood-risk prediction model."""
 
 import datetime
 import logging
@@ -29,8 +29,8 @@ class FloodRiskPredictor:
         persist: bool = True
     ) -> RiskPrediction:
         """
-        Simulate an ML flood-risk prediction based on available features.
-        In a real application, this would load a trained model (e.g. Scikit-learn, PyTorch).
+        Heuristic flood-risk prediction based on available features.
+        This provides rule-based outputs (LOW, MEDIUM, HIGH) and scores.
         """
         wl = water_level_cm or 0.0
         rr = rainfall_rate_mm_h or 0.0
@@ -72,4 +72,5 @@ class FloodRiskPredictor:
                     (pred.cell_id, pred.timestamp, pred.horizon, pred.level, pred.probability)
                 )
         except Exception as exc:
-            logger.warning("Could not write risk prediction for cell %s: %s", pred.cell_id, exc)
+            logger.error("Could not write risk prediction for cell %s: %s", pred.cell_id, exc)
+            raise RuntimeError(f"Database persistence failed: {exc}") from exc
