@@ -57,6 +57,14 @@ def init_db(
 
     with get_db_connection(db_path) as conn:
         conn.executescript(schema_sql)
+        try:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(risk_predictions);")
+            cols = [row["name"] for row in cursor.fetchall()]
+            if cols and "explanation" not in cols:
+                conn.execute("ALTER TABLE risk_predictions ADD COLUMN explanation TEXT;")
+        except Exception as exc:
+            logger.debug("Column migration check for risk_predictions: %s", exc)
 
     logger.info("Database schema initialized successfully at %s", db_path)
 

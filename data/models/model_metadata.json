@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "model_type": "xgboost",
+  "random_state": 42,
+  "feature_columns": [
+    "rainfall_mm",
+    "rain_past_24h",
+    "elevation",
+    "slope",
+    "flow_accumulation",
+    "imperviousness",
+    "vulnerability_score",
+    "trigger_rain_threshold",
+    "is_hotspot"
+  ],
+  "horizons": [
+    1,
+    3,
+    6
+  ],
+  "trained_at": "2026-09-26T19:43:02.050172+00:00",
+  "horizon_metrics": {
+    "1": {
+      "horizon": 1,
+      "sample_count": 1095,
+      "positive_count": 56,
+      "negative_count": 1039,
+      "accuracy": 0.9991,
+      "precision": 1.0,
+      "recall": 0.9821,
+      "f1_score": 0.991,
+      "roc_auc": 0.9999,
+      "brier_score": 0.0013,
+      "tp": 55,
+      "fp": 0,
+      "tn": 1039,
+      "fn": 1,
+      "is_proxy_evaluation": true,
+      "disclaimer": "Evaluated on calibrated proxy development dataset (GCC hotspot triggers + M1 Day 2 vulnerability). Not physical ground-truth sensor measurements."
+    },
+    "3": {
+      "horizon": 3,
+      "sample_count": 1095,
+      "positive_count": 123,
+      "negative_count": 972,
+      "accuracy": 0.9909,
+      "precision": 0.9593,
+      "recall": 0.9593,
+      "f1_score": 0.9593,
+      "roc_auc": 0.9995,
+      "brier_score": 0.0054,
+      "tp": 118,
+      "fp": 5,
+      "tn": 967,
+      "fn": 5,
+      "is_proxy_evaluation": true,
+      "disclaimer": "Evaluated on calibrated proxy development dataset (GCC hotspot triggers + M1 Day 2 vulnerability). Not physical ground-truth sensor measurements."
+    },
+    "6": {
+      "horizon": 6,
+      "sample_count": 1095,
+      "positive_count": 160,
+      "negative_count": 935,
+      "accuracy": 0.9963,
+      "precision": 1.0,
+      "recall": 0.975,
+      "f1_score": 0.9873,
+      "roc_auc": 0.9998,
+      "brier_score": 0.0041,
+      "tp": 156,
+      "fp": 0,
+      "tn": 935,
+      "fn": 4,
+      "is_proxy_evaluation": true,
+      "disclaimer": "Evaluated on calibrated proxy development dataset (GCC hotspot triggers + M1 Day 2 vulnerability). Not physical ground-truth sensor measurements."
+    }
+  }
+}

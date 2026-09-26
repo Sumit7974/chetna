@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "computed_at": "2026-09-24T09:23:52Z",
+  "computed_at": "2026-09-26T19:29:09Z",
   "is_synthetic": true,
   "cell_count": 38,
   "formula": "V = 0.35 * norm(elev) + 0.25 * norm(log(flow_acc)) + 0.25 * norm(imperv) + 0.15 * norm(slope)",
@@ -86,7 +86,7 @@
       "terrain_type": "marshland_basin_depression",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_VEL_02",
@@ -141,7 +141,7 @@
       "terrain_type": "lake_overflow_sink",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_MAD_01",
@@ -196,7 +196,7 @@
       "terrain_type": "marsh_fringe_depression",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_MAD_02",
@@ -251,7 +251,7 @@
       "terrain_type": "low_lying_residential",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_MUD_01",
@@ -306,7 +306,7 @@
       "terrain_type": "river_floodplain_meander",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_MUD_02",
@@ -361,7 +361,7 @@
       "terrain_type": "tributary_chokepoint",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_TNG_01",
@@ -416,7 +416,7 @@
       "terrain_type": "dense_urban_canal_overflow",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_TNG_02",
@@ -471,7 +471,7 @@
       "terrain_type": "canal_corridor_urban",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_PUL_01",
@@ -526,7 +526,7 @@
       "terrain_type": "low_lying_canal_basin",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_PUL_02",
@@ -581,7 +581,7 @@
       "terrain_type": "buckingham_backwater_sink",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_VYA_01",
@@ -636,7 +636,7 @@
       "terrain_type": "railway_subway_depression",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_VYA_02",
@@ -691,7 +691,7 @@
       "terrain_type": "railway_underpass_pocket",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_PER_01",
@@ -746,7 +746,7 @@
       "terrain_type": "canal_corridor_underpass",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_PER_02",
@@ -801,7 +801,7 @@
       "terrain_type": "canal_overflow_edge",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_KOY_01",
@@ -856,7 +856,7 @@
       "terrain_type": "river_meander_commercial",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_KOY_02",
@@ -911,7 +911,7 @@
       "terrain_type": "riverine_commercial_fringe",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_MAN_01",
@@ -966,7 +966,7 @@
       "terrain_type": "river_floodplain_hospital",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_MAN_02",
@@ -1021,7 +1021,7 @@
       "terrain_type": "highway_drainage_bottleneck",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_PAL_01",
@@ -1076,7 +1076,7 @@
       "terrain_type": "wetland_corridor_chokepoint",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_PAL_02",
@@ -1131,7 +1131,7 @@
       "terrain_type": "wetland_fringe_sink",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_ADY_01",
@@ -1186,7 +1186,7 @@
       "terrain_type": "urban_residential",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_ADY_02",
@@ -1241,7 +1241,7 @@
       "terrain_type": "arterial_commercial_residential",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_MYL_01",
@@ -1296,7 +1296,7 @@
       "terrain_type": "dense_historical_residential",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_MYL_02",
@@ -1351,7 +1351,7 @@
       "terrain_type": "coastal_residential_fringe",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_ANN_01",
@@ -1406,7 +1406,7 @@
       "terrain_type": "planned_residential_grid",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_ANN_02",
@@ -1461,7 +1461,7 @@
       "terrain_type": "planned_residential_secondary",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_KOD_01",
@@ -1516,7 +1516,7 @@
       "terrain_type": "railway_adjacent_residential",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_ALN_01",
@@ -1571,7 +1571,7 @@
       "terrain_type": "moderate_elevation_urban",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_AMB_01",
@@ -1626,7 +1626,7 @@
       "terrain_type": "industrial_built_up",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_AMB_02",
@@ -1681,7 +1681,7 @@
       "terrain_type": "lake_catchment_semi_permeable",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_GUI_01",
@@ -1736,7 +1736,7 @@
       "terrain_type": "urban_forest_nature_reserve",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_GUI_02",
@@ -1791,7 +1791,7 @@
       "terrain_type": "protected_woodland_canopy",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_STM_01",
@@ -1846,7 +1846,7 @@
       "terrain_type": "granitic_ridge_crest",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_STM_02",
@@ -1901,7 +1901,7 @@
       "terrain_type": "rocky_escarpment_slope",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_SEM_01",
@@ -1956,7 +1956,7 @@
       "terrain_type": "botanical_garden_permeable",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_THI_01",
@@ -2011,7 +2011,7 @@
       "terrain_type": "coastal_dune_permeable_sand",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_IIT_01",
@@ -2066,7 +2066,7 @@
       "terrain_type": "institutional_campus_canopy",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     },
     {
       "cell_id": "CELL_POR_01",
@@ -2121,7 +2121,7 @@
       "terrain_type": "elevated_suburban_terrace",
       "is_synthetic": true,
       "version": "v1.0",
-      "computed_at": "2026-09-24T09:23:52Z"
+      "computed_at": "2026-09-26T19:29:09Z"
     }
   ]
 }

@@ -1,6 +1,8 @@
 """Automated tests for Chetna M1 Day 1: flood hotspots and historical backtesting events."""
 
 import json
+import sqlite3
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -9,12 +11,21 @@ from src.static_risk.hotspots import (
     BacktestEvent,
     HistoricalRainfallSeries,
     Hotspot,
+    HotspotEventObservation,
+    M1DevelopmentDataset,
+    generate_m1_development_dataset,
     get_backtest_event_by_id,
     get_hotspot_by_id,
     load_backtest_events,
+    load_backtest_events_from_db,
     load_historical_rainfall,
+    load_hotspot_observations_from_db,
     load_hotspots,
+    load_hotspots_from_db,
+    load_m1_development_dataset,
+    save_m1_dataset_to_db,
 )
+
 
 
 class TestM1HotspotsAndEvents(unittest.TestCase):
@@ -163,6 +174,132 @@ class TestM1HotspotsAndEvents(unittest.TestCase):
         # Non-existent timestamp should raise KeyError
         with self.assertRaises(KeyError):
             series_m.get_horizon_rain("1999-01-01T00:00")
+
+    def test_generate_and_load_m1_development_dataset(self) -> None:
+        """Verify M1 development dataset generation and subsequent reload from disk."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            dataset = generate_m1_development_dataset(output_dir=tmp_path)
+
+            self.assertIsInstance(dataset, M1DevelopmentDataset)
+            self.assertEqual(len(dataset.hotspots), 10)
+            self.assertEqual(len(dataset.events), 2)
+            self.assertGreater(len(dataset.observations), 500)
+            self.assertEqual(len(dataset.observations), 1008)
+
+            # Check that files were written
+            self.assertTrue((tmp_path / "hotspots.json").is_file())
+            self.assertTrue((tmp_path / "hotspots.csv").is_file())
+            self.assertTrue((tmp_path / "hotspot_event_observations.json").is_file())
+            self.assertTrue((tmp_path / "hotspot_event_observations.csv").is_file())
+
+            # Check reload
+            reloaded = load_m1_development_dataset(data_dir=tmp_path)
+            self.assertEqual(len(reloaded.hotspots), 10)
+            self.assertEqual(len(reloaded.events), 2)
+            self.assertEqual(len(reloaded.observations), 1008)
+
+    def test_hotspot_cell_id_mapping(self) -> None:
+        """Verify all hotspots are associated with valid ~200 m metric grid cells."""
+        hotspots = load_hotspots()
+        for h in hotspots:
+            self.assertIsNotNone(h.cell_id)
+            self.assertTrue(h.cell_id.startswith("CELL_"))  # type: ignore
+
+    def test_observation_required_fields_and_types(self) -> None:
+        """Verify every observation record adheres to the agreed M1 schema."""
+        dataset = load_m1_development_dataset()
+        for obs in dataset.observations:
+            self.assertIsInstance(obs, HotspotEventObservation)
+            self.assertTrue(obs.event_id.startswith("EVT_"))
+            self.assertTrue(obs.hotspot_id.startswith("HS"))
+            self.assertTrue(obs.cell_id.startswith("CELL_"))  # type: ignore
+            self.assertIn("T", obs.timestamp)
+            self.assertGreaterEqual(obs.rain_1h, 0.0)
+            self.assertGreaterEqual(obs.rain_3h, 0.0)
+            self.assertGreaterEqual(obs.rain_6h, 0.0)
+            self.assertGreaterEqual(obs.rain_past_24h, 0.0)
+            self.assertIsInstance(obs.waterlogged_proxy, bool)
+            self.assertGreaterEqual(obs.inundation_depth_proxy_m, 0.0)
+            self.assertIn(obs.proxy_risk_tier, ["Low", "Moderate", "High", "Severe"])
+            self.assertTrue(obs.is_proxy)
+            self.assertTrue(len(obs.data_source) > 0)
+
+    def test_rainfall_horizon_monotonicity(self) -> None:
+        """Verify cumulative rainfall values follow logical non-decreasing properties."""
+        dataset = load_m1_development_dataset()
+        for obs in dataset.observations:
+            self.assertGreaterEqual(obs.rain_3h, obs.rain_1h)
+            self.assertGreaterEqual(obs.rain_6h, obs.rain_3h)
+
+    def test_deterministic_reproducible_output(self) -> None:
+        """Verify generating the dataset across separate runs produces byte-identical values."""
+        with tempfile.TemporaryDirectory() as dir1, tempfile.TemporaryDirectory() as dir2:
+            ds1 = generate_m1_development_dataset(output_dir=dir1)
+            ds2 = generate_m1_development_dataset(output_dir=dir2)
+
+            self.assertEqual(len(ds1.observations), len(ds2.observations))
+            for o1, o2 in zip(ds1.observations, ds2.observations):
+                self.assertEqual(o1.event_id, o2.event_id)
+                self.assertEqual(o1.hotspot_id, o2.hotspot_id)
+                self.assertEqual(o1.timestamp, o2.timestamp)
+                self.assertEqual(o1.rain_1h, o2.rain_1h)
+                self.assertEqual(o1.rain_6h, o2.rain_6h)
+                self.assertEqual(o1.waterlogged_proxy, o2.waterlogged_proxy)
+                self.assertEqual(o1.inundation_depth_proxy_m, o2.inundation_depth_proxy_m)
+
+    def test_explicit_proxy_and_provenance_labeling(self) -> None:
+        """Verify synthetic observations are never disguised as raw physical observations."""
+        dataset = load_m1_development_dataset()
+        self.assertTrue(dataset.metadata.get("is_proxy_observations", False))
+
+        for obs in dataset.observations:
+            self.assertTrue(obs.is_proxy)
+            self.assertIn("Proxy", obs.data_source)
+
+        for h in dataset.hotspots:
+            self.assertTrue(h.is_real_sourced)
+            self.assertTrue(len(h.source_reference) > 0)
+
+    def test_sqlite_persistence_and_querying(self) -> None:
+        """Verify round-trip storage and query of M1 Day 1 dataset in SQLite database."""
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+            tmp_db = tmp.name
+
+        try:
+            dataset = load_m1_development_dataset()
+            counts = save_m1_dataset_to_db(dataset, db_path=tmp_db)
+            self.assertEqual(counts["hotspots"], 10)
+            self.assertEqual(counts["events"], 2)
+            self.assertEqual(counts["observations"], 1008)
+
+            # Query back from DB
+            db_hotspots = load_hotspots_from_db(db_path=tmp_db)
+            self.assertEqual(len(db_hotspots), 10)
+            hs01 = next(h for h in db_hotspots if h.hotspot_id == "HS01")
+            self.assertEqual(hs01.name, "Velachery Vijayanagar Junction")
+            self.assertEqual(hs01.cell_id, "CELL_VEL_01")
+            self.assertTrue(hs01.is_real_sourced)
+
+            db_events = load_backtest_events_from_db(db_path=tmp_db)
+            self.assertEqual(len(db_events), 2)
+            michaung = next(e for e in db_events if e.event_id == "EVT_2023_MICHAUNG")
+            self.assertEqual(michaung.duration_hours, 72)
+
+            # Query observations with filtering
+            obs_all = load_hotspot_observations_from_db(db_path=tmp_db)
+            self.assertEqual(len(obs_all), 1008)
+
+            obs_hs01 = load_hotspot_observations_from_db(hotspot_id="HS01", db_path=tmp_db)
+            self.assertEqual(len(obs_hs01), 72)  # 72 hours for Michaung
+            for o in obs_hs01:
+                self.assertEqual(o.hotspot_id, "HS01")
+                self.assertTrue(o.is_proxy)
+
+            obs_michaung = load_hotspot_observations_from_db(event_id="EVT_2023_MICHAUNG", db_path=tmp_db)
+            self.assertEqual(len(obs_michaung), 720)  # 10 spots * 72 hours
+        finally:
+            Path(tmp_db).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

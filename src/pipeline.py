@@ -65,8 +65,15 @@ class ForecastUnavailableError(PipelineError, RuntimeError):
 
 
 # ---------------------------------------------------------------------------
-# Data Models
+# Data Models & Failure Reporting (M1 Day 6)
 # ---------------------------------------------------------------------------
+
+from src.model.failure_isolation import (
+    CellFailureRecord,
+    validate_risk_prediction_contract,
+    validate_sensor_reading_contract,
+)
+
 
 class PipelineResult(dict):
     """Structured summary of pipeline execution supporting both dict and attribute access."""
@@ -83,8 +90,11 @@ class PipelineResult(dict):
         forecast_rain_3h: float = 0.0,
         forecast_rain_6h: float = 0.0,
         predictions: Optional[List[RiskPrediction]] = None,
+        failed_cells: Optional[List[Dict[str, Any]]] = None,
+        failed_cell_count: int = 0,
         **kwargs: Any,
     ) -> None:
+        failed_list = failed_cells or []
         super().__init__(
             forecast_timestamp=forecast_timestamp,
             cells_processed=cells_processed,
@@ -95,9 +105,13 @@ class PipelineResult(dict):
             forecast_rain_1h=forecast_rain_1h,
             forecast_rain_3h=forecast_rain_3h,
             forecast_rain_6h=forecast_rain_6h,
+            failed_cells=failed_list,
+            failed_cell_count=failed_cell_count or len(failed_list),
             **kwargs,
         )
         self.predictions: List[RiskPrediction] = predictions or []
+        self.failed_cells: List[Dict[str, Any]] = failed_list
+        self.failed_cell_count: int = failed_cell_count or len(failed_list)
 
     def __getattr__(self, name: str) -> Any:
         if name in self:
@@ -105,7 +119,7 @@ class PipelineResult(dict):
         raise AttributeError(f"'PipelineResult' object has no attribute '{name}'")
 
     def __setattr__(self, name: str, value: Any) -> None:
-        if name == "predictions":
+        if name in ("predictions", "failed_cells", "failed_cell_count"):
             super().__setattr__(name, value)
         else:
             self[name] = value
@@ -143,6 +157,9 @@ def run_pipeline(
     cache_dir: Optional[Union[str, Path]] = "data/cache",
     use_cache_on_failure: bool = True,
     persist: bool = True,
+    predictor_mode: str = "heuristic",
+    model_dir: Optional[Union[str, Path]] = None,
+    include_explanations: bool = False,
 ) -> PipelineResult:
     """Execute the end-to-end B1 Day 3 forecast-to-risk prediction pipeline.
 
@@ -226,24 +243,41 @@ def run_pipeline(
         6: rain_6h,
     }
 
-    predictor = FloodRiskPredictor(db_path=db_path)
+    predictor = FloodRiskPredictor(db_path=db_path, mode=predictor_mode, model_dir=model_dir)
     all_predictions: List[RiskPrediction] = []
+    failed_cells: List[Dict[str, Any]] = []
 
     for horizon in target_horizons:
         rainfall = horizon_rainfall_map.get(horizon, rain_1h)
         for cell in cells:
-            cell_id = str(cell.get("id") or cell.get("cell_id"))
+            cell_id = str(cell.get("id") or cell.get("cell_id") or "UNKNOWN_CELL")
             vuln = cell.get("vulnerability")
 
-            pred = predictor.predict_from_forecast(
-                rainfall_mm=rainfall,
-                cell_id=cell_id,
-                horizon=horizon,
-                vulnerability=vuln,
-                timestamp=forecast_ts,
-                persist=False,
-            )
-            all_predictions.append(pred)
+            try:
+                pred = predictor.predict_from_forecast(
+                    rainfall_mm=rainfall,
+                    cell_id=cell_id,
+                    horizon=horizon,
+                    vulnerability=vuln,
+                    timestamp=forecast_ts,
+                    persist=False,
+                    explain=include_explanations,
+                )
+                all_predictions.append(pred)
+            except Exception as cell_err:
+                logger.warning(
+                    "Isolated failure for cell %s at horizon +%dh: %s",
+                    cell_id, horizon, cell_err
+                )
+                fail_rec = CellFailureRecord(
+                    cell_id=cell_id,
+                    stage="prediction",
+                    error_type=type(cell_err).__name__,
+                    message=str(cell_err),
+                    recoverable=True,
+                    horizon=horizon,
+                )
+                failed_cells.append(fail_rec.to_dict())
 
     # 5. Persist Predictions to SQLite
     if persist and all_predictions:
@@ -262,6 +296,8 @@ def run_pipeline(
         forecast_rain_3h=rain_3h,
         forecast_rain_6h=rain_6h,
         predictions=all_predictions,
+        failed_cells=failed_cells,
+        failed_cell_count=len(failed_cells),
     )
     logger.info("Pipeline run complete: %d predictions across %s horizons", len(all_predictions), target_horizons)
     return result

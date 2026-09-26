@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS risk_predictions (
     horizon INTEGER NOT NULL,
     level TEXT NOT NULL,
     probability REAL NOT NULL,
+    explanation TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -157,3 +158,83 @@ CREATE TABLE IF NOT EXISTS sensor_table (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sensor_table_sensor_time ON sensor_table (sensor_id, timestamp);
+
+-- ------------------------------------------------------------------------------
+-- Table: hotspots (Documented urban flood / waterlogging locations - M1 Day 1)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS hotspots (
+    hotspot_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT 'Tamil Nadu',
+    zone TEXT NOT NULL,
+    ward INTEGER,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    elevation_m REAL,
+    hotspot_type TEXT,
+    severity_tier TEXT,
+    typical_trigger_rain_1h_mm REAL,
+    typical_trigger_rain_6h_mm REAL,
+    historical_inundation_depth_m REAL,
+    primary_vulnerability_cause TEXT,
+    source_reference TEXT,
+    cell_id TEXT,
+    is_real_sourced BOOLEAN NOT NULL DEFAULT 1,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_hotspots_coords ON hotspots (latitude, longitude);
+CREATE INDEX IF NOT EXISTS idx_hotspots_severity ON hotspots (severity_tier);
+
+-- ------------------------------------------------------------------------------
+-- Table: backtest_events (Historical heavy-rainfall events for model validation - M1 Day 1)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS backtest_events (
+    event_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT 'Tamil Nadu',
+    country TEXT NOT NULL DEFAULT 'India',
+    start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
+    duration_hours INTEGER NOT NULL,
+    total_rainfall_mm REAL NOT NULL,
+    peak_hourly_rainfall_mm REAL NOT NULL,
+    peak_hourly_timestamp TEXT NOT NULL,
+    classification TEXT,
+    impact_summary TEXT,
+    rainfall_data_file TEXT,
+    source_reference TEXT,
+    is_real_sourced BOOLEAN NOT NULL DEFAULT 1,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_backtest_events_dates ON backtest_events (start_date, end_date);
+
+-- ------------------------------------------------------------------------------
+-- Table: hotspot_observations (Hourly rainfall & proxy flood status per hotspot - M1 Day 1)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS hotspot_observations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id TEXT NOT NULL,
+    hotspot_id TEXT NOT NULL,
+    cell_id TEXT,
+    timestamp TEXT NOT NULL,
+    rain_1h REAL NOT NULL,
+    rain_3h REAL NOT NULL,
+    rain_6h REAL NOT NULL,
+    rain_past_24h REAL NOT NULL,
+    waterlogged_proxy BOOLEAN NOT NULL,
+    inundation_depth_proxy_m REAL NOT NULL,
+    proxy_risk_tier TEXT NOT NULL,
+    is_proxy BOOLEAN NOT NULL DEFAULT 1,
+    data_source TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hotspot_id) REFERENCES hotspots(hotspot_id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES backtest_events(event_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hotspot_obs_event_spot ON hotspot_observations (event_id, hotspot_id);
+CREATE INDEX IF NOT EXISTS idx_hotspot_obs_time ON hotspot_observations (timestamp);
+CREATE INDEX IF NOT EXISTS idx_hotspot_obs_proxy ON hotspot_observations (is_proxy);

@@ -1,0 +1,164 @@
+{
+  "EVT_2021_NOV_DEPRESSION_H1_ml": {
+    "tp": 6,
+    "tn": 2730,
+    "fp": 0,
+    "fn": 0
+  },
+  "EVT_2021_NOV_DEPRESSION_H1_heuristic": {
+    "tp": 0,
+    "tn": 2730,
+    "fp": 0,
+    "fn": 6
+  },
+  "EVT_2021_NOV_DEPRESSION_H1_rainfall_threshold": {
+    "tp": 0,
+    "tn": 2730,
+    "fp": 0,
+    "fn": 6
+  },
+  "EVT_2021_NOV_DEPRESSION_H3_ml": {
+    "tp": 24,
+    "tn": 2712,
+    "fp": 0,
+    "fn": 0
+  },
+  "EVT_2021_NOV_DEPRESSION_H3_heuristic": {
+    "tp": 0,
+    "tn": 2712,
+    "fp": 0,
+    "fn": 24
+  },
+  "EVT_2021_NOV_DEPRESSION_H3_rainfall_threshold": {
+    "tp": 0,
+    "tn": 2712,
+    "fp": 0,
+    "fn": 24
+  },
+  "EVT_2021_NOV_DEPRESSION_H6_ml": {
+    "tp": 44,
+    "tn": 2692,
+    "fp": 0,
+    "fn": 0
+  },
+  "EVT_2021_NOV_DEPRESSION_H6_heuristic": {
+    "tp": 0,
+    "tn": 2692,
+    "fp": 0,
+    "fn": 44
+  },
+  "EVT_2021_NOV_DEPRESSION_H6_rainfall_threshold": {
+    "tp": 0,
+    "tn": 2692,
+    "fp": 0,
+    "fn": 44
+  },
+  "EVT_2023_MICHAUNG_H1_ml": {
+    "tp": 275,
+    "tn": 2460,
+    "fp": 0,
+    "fn": 1
+  },
+  "EVT_2023_MICHAUNG_H1_heuristic": {
+    "tp": 196,
+    "tn": 2460,
+    "fp": 0,
+    "fn": 80
+  },
+  "EVT_2023_MICHAUNG_H1_rainfall_threshold": {
+    "tp": 0,
+    "tn": 2460,
+    "fp": 0,
+    "fn": 276
+  },
+  "EVT_2023_MICHAUNG_H3_ml": {
+    "tp": 588,
+    "tn": 2137,
+    "fp": 6,
+    "fn": 5
+  },
+  "EVT_2023_MICHAUNG_H3_heuristic": {
+    "tp": 498,
+    "tn": 2142,
+    "fp": 1,
+    "fn": 95
+  },
+  "EVT_2023_MICHAUNG_H3_rainfall_threshold": {
+    "tp": 75,
+    "tn": 2142,
+    "fp": 1,
+    "fn": 518
+  },
+  "EVT_2023_MICHAUNG_H6_ml": {
+    "tp": 754,
+    "tn": 1978,
+    "fp": 0,
+    "fn": 4
+  },
+  "EVT_2023_MICHAUNG_H6_heuristic": {
+    "tp": 683,
+    "tn": 1978,
+    "fp": 0,
+    "fn": 75
+  },
+  "EVT_2023_MICHAUNG_H6_rainfall_threshold": {
+    "tp": 262,
+    "tn": 1974,
+    "fp": 4,
+    "fn": 496
+  },
+  "ALL_H1_ml": {
+    "tp": 281,
+    "tn": 5190,
+    "fp": 0,
+    "fn": 1
+  },
+  "ALL_H1_heuristic": {
+    "tp": 196,
+    "tn": 5190,
+    "fp": 0,
+    "fn": 86
+  },
+  "ALL_H1_rainfall_threshold": {
+    "tp": 0,
+    "tn": 5190,
+    "fp": 0,
+    "fn": 282
+  },
+  "ALL_H3_ml": {
+    "tp": 612,
+    "tn": 4849,
+    "fp": 6,
+    "fn": 5
+  },
+  "ALL_H3_heuristic": {
+    "tp": 498,
+    "tn": 4854,
+    "fp": 1,
+    "fn": 119
+  },
+  "ALL_H3_rainfall_threshold": {
+    "tp": 75,
+    "tn": 4854,
+    "fp": 1,
+    "fn": 542
+  },
+  "ALL_H6_ml": {
+    "tp": 798,
+    "tn": 4670,
+    "fp": 0,
+    "fn": 4
+  },
+  "ALL_H6_heuristic": {
+    "tp": 683,
+    "tn": 4670,
+    "fp": 0,
+    "fn": 119
+  },
+  "ALL_H6_rainfall_threshold": {
+    "tp": 262,
+    "tn": 4666,
+    "fp": 4,
+    "fn": 540
+  }
+}
