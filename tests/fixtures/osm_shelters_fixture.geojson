@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "osm_shelters_fixture",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "osm_id": "mock_shl_01", "name": "Velachery MRTS Elevated Concourse", "amenity": "shelter", "latitude": 12.981, "longitude": 80.2185, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2185, 12.981 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_shl_02", "name": "CMBT Koyambedu Transit Hub", "amenity": "shelter", "latitude": 13.069, "longitude": 80.195, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.195, 13.069 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_shl_03", "name": "Vyasarpadi Community Relief Centre", "amenity": "community_centre", "latitude": 13.1105, "longitude": 80.262, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.262, 13.1105 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_shl_04", "name": "T. Nagar Relief Transit Complex", "amenity": "shelter", "latitude": 13.0415, "longitude": 80.2338, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2338, 13.0415 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_shl_05", "name": "Alandur Metro Elevated Concourse", "amenity": "shelter", "latitude": 13.0035, "longitude": 80.2012, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2012, 13.0035 ] } }
+]
+}

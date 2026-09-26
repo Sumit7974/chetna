@@ -1,1 +1,5 @@
-"""Flood-risk prediction package; implementation is planned for a later day."""
+"""Flood-risk prediction package for Chetna."""
+
+from src.model.predictor import FloodRiskPredictor, RiskPrediction
+
+__all__ = ["FloodRiskPredictor", "RiskPrediction"]

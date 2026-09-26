@@ -109,6 +109,123 @@ result = compute_static_vulnerability(
 )
 ```
 
+## Geospatial Data Ingestion & Pilot Grid (B1 Day 1)
+
+Chetna establishes the core spatial foundation for the Chennai flood early-warning pilot area, implementing a uniform ~200 m metric grid, digital elevation model (DEM) ingestion and preprocessing, OpenStreetMap (OSM) infrastructure ingestion, and an extended SQLite spatial schema.
+
+### Pilot Area & Spatial Configuration
+- **Pilot Bounds**: Chennai Metropolitan pilot area covering:
+  - Latitude: `12.9150° N – 13.1110° N`
+  - Longitude: `80.0640° E – 80.2660° E`
+  - Pilot Center: `[13.0827, 80.2707]` (matches dashboard default)
+- **Authoritative CRS**:
+  - **Geographic CRS**: `EPSG:4326` (WGS 84) — Used for interchange, API calls, Folium maps, and GeoJSON export.
+  - **Projected Metric CRS**: `EPSG:32644` (WGS 84 / UTM Zone 44N) — Authoritative metric projection for Chennai (~80.27° E). Metric grid generation, distance measurements, and road lengths are computed in this projected space.
+- **Grid Resolution**: Uniform `200 m x 200 m` metric cells (`40,000 m²` nominal area per cell).
+  - Generates 11,990 regular cells covering the pilot area.
+  - Deterministic cell ID format: `CELL_R{row:03d}_C{col:03d}`.
+  - Each cell contains: `cell_id`, `row`, `col`, `centroid_lat`, `centroid_lon`, `elevation_m`, `geometry` (Polygon in EPSG:4326), `resolution_m`, `crs`, and `projected_crs`.
+
+### Data Ingestion & Sources
+1. **Digital Elevation Model (DEM)**:
+   - **Source**: Copernicus DEM GLO-30 (30m resolution) / SRTM 30m.
+   - **Downloader**: `src/ingestion/dem.py` supports download via OpenTopography API (`download_dem_opentopography`).
+   - **Preprocessing**: `attach_elevation_to_grid` samples DEM raster values at cell centroids using `rasterio`, validates CRS alignments, handles nodata values, and populates `elevation_m` for every grid cell.
+   - **Local Cache**: Saved to `data/dem/chennai_dem_30m.tif`.
+2. **OpenStreetMap (OSM) Critical Infrastructure**:
+   - **Source**: OpenStreetMap via Overpass API / OSMnx 2.1.1.
+   - **Layers Ingested**:
+     - *Roads*: Arterial and collector transit network (`highway` motorway, trunk, primary, secondary, tertiary, residential). Metric lengths computed in UTM 44N.
+     - *Hospitals*: Healthcare and emergency trauma centers (`amenity=hospital`).
+     - *Schools*: Educational institutions and potential relief staging sites (`amenity=school, college, university`).
+     - *Shelters*: Designated flood relief and community shelters (`amenity=shelter, community_centre, social_facility`).
+   - **Local Cache**: Saved to `data/osm/chennai_{layer}.geojson`.
+
+### Distinction: Real Data vs. Synthetic Fixtures
+| Asset | Production / Real Path | Synthetic Test Fixture | Notes |
+| :--- | :--- | :--- | :--- |
+| **Grid** | `data/b1/grid_200m.geojson` | N/A (deterministic algorithm) | 11,990 cells generated deterministically from UTM 44N bounds. |
+| **DEM Raster** | `data/dem/chennai_dem_30m.tif` | `tests/fixtures/chennai_dem_fixture.tif` | Fixture is a procedural gradient tagged with `is_synthetic: "true"`. |
+| **OSM Roads** | `data/osm/chennai_roads.geojson` | `tests/fixtures/osm_roads_fixture.geojson` | Fixture contains 5 major Chennai corridors; tagged with `is_synthetic: true`. |
+| **Hospitals** | `data/osm/chennai_hospitals.geojson` | `tests/fixtures/osm_hospitals_fixture.geojson` | Fixture contains 5 verified Chennai medical centers; tagged with `is_synthetic: true`. |
+| **Schools** | `data/osm/chennai_schools.geojson` | `tests/fixtures/osm_schools_fixture.geojson` | Fixture contains 5 verified institutions; tagged with `is_synthetic: true`. |
+| **Shelters** | `data/osm/chennai_shelters.geojson` | `tests/fixtures/osm_shelters_fixture.geojson` | Fixture contains 5 elevated transit/community hubs; tagged with `is_synthetic: true`. |
+
+*Note: The 38-cell synthetic M1 grid (`data/m1/synthetic_grid_features.json`) remains isolated for M1 static risk test coverage and is not conflated with the B1 Day 1 pilot grid.*
+
+### SQLite Spatial Schema
+Extends `data/chetna.db` without altering the existing `forecasts` table:
+- `grid_cells`: Stores all 200m cells (`cell_id`, `row`, `col`, `centroid_lat`, `centroid_lon`, `elevation_m`, `geometry_geojson`, `crs`, `projected_crs`, `resolution_m`).
+- `roads`: Stores road segments (`osm_id`, `name`, `highway`, `length_m`, `geometry_geojson`, `source`, `is_synthetic`).
+- `hospitals`: Stores hospital locations (`osm_id`, `name`, `latitude`, `longitude`, `geometry_geojson`, `source`, `is_synthetic`).
+- `schools`: Stores school locations (`osm_id`, `name`, `latitude`, `longitude`, `geometry_geojson`, `source`, `is_synthetic`).
+- `shelters`: Stores emergency shelter locations (`osm_id`, `name`, `latitude`, `longitude`, `geometry_geojson`, `source`, `is_synthetic`).
+- `spatial_metadata`: Records dataset provenance, source, CRS, and record counts.
+
+### Running Ingestion & Tests Locally
+```powershell
+# 1. Run full B1 Day 1 ingestion pipeline (offline mode using verified fixtures):
+python scripts/ingest_b1_data.py
+
+# 2. Run with live OSM download (requires active network):
+python scripts/ingest_b1_data.py --live-osm
+
+# 3. Run with live DEM download (requires OPENTOPOGRAPHY_API_KEY environment variable):
+python scripts/ingest_b1_data.py --live-dem
+
+# 4. Run automated tests offline:
+pytest tests/test_b1_spatial_data.py -v
+pytest -v
+```
+
+## Forecast-to-Risk Pipeline (B1 Day 3)
+
+Chetna B1 Day 3 connects weather ingestion, stored forecasts, spatial vulnerability cells, and heuristic risk modeling into an automated risk prediction pipeline.
+
+### Pipeline Flow
+```text
+Open-Meteo Weather Forecast API
+             ↓
+fetch_and_store_forecast() & JSON caching
+             ↓
+SQLite forecasts table (rain_1h, rain_3h, rain_6h)
+             ↓
+SQLite cells table (elevation, slope, flow_acc, vulnerability)
+             ↓
+FloodRiskPredictor.predict_from_forecast()
+  • rain_1h → Horizon 1 (+1h)
+  • rain_3h → Horizon 3 (+3h)
+  • rain_6h → Horizon 6 (+6h)
+  • Dynamic Probability: P = 0.65 * S_rain + 0.35 * Vulnerability
+             ↓
+SQLite risk_predictions table (cell_id, timestamp, horizon, level, probability)
+```
+
+### Heuristic Risk Scoring Formula
+- **Horizon Critical Rainfall**:
+  - Horizon 1 (+1h): $R_{crit} = 50.0\text{ mm}$
+  - Horizon 3 (+3h): $R_{crit} = 80.0\text{ mm}$
+  - Horizon 6 (+6h): $R_{crit} = 120.0\text{ mm}$
+- **Rainfall Factor**: $S_{rain} = \min(1.0, \frac{\text{rainfall\_mm}}{R_{crit}})$
+- **Static Vulnerability Factor**: $V = \text{clamp}(vulnerability, 0.0, 1.0)$ (defaults to 0.50 if unspecified)
+- **Combined Probability**: $P = 0.65 \cdot S_{rain} + 0.35 \cdot V$ (bounded $0.0 \le P \le 1.0$)
+- **Classification**:
+  - **HIGH**: $P \ge 0.70$
+  - **MEDIUM**: $0.40 \le P < 0.70$
+  - **LOW**: $P < 0.40$
+
+### Running the Pipeline
+```powershell
+# Run programmatically
+python -c "from src.pipeline import run_pipeline; res = run_pipeline(); print(res)"
+
+# Run via CLI module
+python -m src.pipeline
+
+# Run via scripts wrapper
+python scripts/run_pipeline.py
+```
+
 ## Streamlit Dashboard and Map Skeleton (F1 Day 1)
 
 Chetna provides an interactive Streamlit operations dashboard integrated with a Folium geospatial map centered on the pilot study city (Chennai, India: `[13.0827, 80.2707]`).

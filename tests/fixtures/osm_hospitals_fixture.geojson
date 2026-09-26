@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "osm_hospitals_fixture",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "osm_id": "mock_hosp_01", "name": "MIOT International Hospital", "amenity": "hospital", "latitude": 13.0185, "longitude": 80.1812, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.1812, 13.0185 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_hosp_02", "name": "Dr. Kamakshi Memorial Hospital", "amenity": "hospital", "latitude": 12.939, "longitude": 80.2091, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2091, 12.939 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_hosp_03", "name": "Prashanth Super Speciality Hospital", "amenity": "hospital", "latitude": 12.9818, "longitude": 80.2195, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2195, 12.9818 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_hosp_04", "name": "Government Peripheral Hospital", "amenity": "hospital", "latitude": 13.1075, "longitude": 80.2458, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2458, 13.1075 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_hosp_05", "name": "SIMS Hospital Vadapalani", "amenity": "hospital", "latitude": 13.0512, "longitude": 80.2115, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2115, 13.0512 ] } }
+]
+}

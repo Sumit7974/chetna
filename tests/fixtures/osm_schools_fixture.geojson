@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "osm_schools_fixture",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "osm_id": "mock_sch_01", "name": "Madipakkam Government High School", "amenity": "school", "latitude": 12.9652, "longitude": 80.1965, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.1965, 12.9652 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_sch_02", "name": "Dr. Ambedkar Government Arts College", "amenity": "college", "latitude": 13.1118, "longitude": 80.263, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.263, 13.1118 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_sch_03", "name": "Velachery Higher Secondary School", "amenity": "school", "latitude": 12.9805, "longitude": 80.2201, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2201, 12.9805 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_sch_04", "name": "Mudichur Primary School", "amenity": "school", "latitude": 12.9155, "longitude": 80.0642, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.0642, 12.9155 ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_sch_05", "name": "Perambur Railway Higher Secondary School", "amenity": "school", "latitude": 13.1068, "longitude": 80.2445, "source": "Synthetic OSM Test Fixture", "is_synthetic": true }, "geometry": { "type": "Point", "coordinates": [ 80.2445, 13.1068 ] } }
+]
+}

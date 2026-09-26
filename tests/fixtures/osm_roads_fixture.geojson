@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "osm_roads_fixture",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "osm_id": "mock_road_01", "name": "GST Road (NH 45)", "highway": "trunk", "source": "Synthetic OSM Test Fixture", "is_synthetic": true, "length_m": 7406.78 }, "geometry": { "type": "LineString", "coordinates": [ [ 80.18, 12.98 ], [ 80.195, 13.005 ], [ 80.21, 13.04 ] ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_road_02", "name": "Jawaharlal Nehru Road (100 Feet Road)", "highway": "primary", "source": "Synthetic OSM Test Fixture", "is_synthetic": true, "length_m": 9561.1 }, "geometry": { "type": "LineString", "coordinates": [ [ 80.215, 12.985 ], [ 80.21, 13.03 ], [ 80.2, 13.07 ] ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_road_03", "name": "Velachery Bypass Road", "highway": "primary", "source": "Synthetic OSM Test Fixture", "is_synthetic": true, "length_m": 2689.78 }, "geometry": { "type": "LineString", "coordinates": [ [ 80.218, 12.975 ], [ 80.222, 12.985 ], [ 80.226, 12.998 ] ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_road_04", "name": "Poonamallee High Road", "highway": "primary", "source": "Synthetic OSM Test Fixture", "is_synthetic": true, "length_m": 8707.84 }, "geometry": { "type": "LineString", "coordinates": [ [ 80.18, 13.075 ], [ 80.215, 13.078 ], [ 80.26, 13.082 ] ] } },
+{ "type": "Feature", "properties": { "osm_id": "mock_road_05", "name": "Rajiv Gandhi Salai (OMR)", "highway": "trunk", "source": "Synthetic OSM Test Fixture", "is_synthetic": true, "length_m": 8574.8 }, "geometry": { "type": "LineString", "coordinates": [ [ 80.245, 12.99 ], [ 80.235, 12.95 ], [ 80.225, 12.915 ] ] } }
+]
+}
