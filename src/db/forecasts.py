@@ -2,7 +2,7 @@
 
 Follows the Chetna Framework data contract:
 Table: forecasts
-Columns: timestamp, rain_1h, rain_3h, rain_6h
+Columns: timestamp, rain_1h, rain_3h, rain_6h, location, source, retrieval_timestamp, created_at
 
 Provides safe, idempotent initialization and storage functions
 reusable by downstream pipeline components.
@@ -10,6 +10,7 @@ reusable by downstream pipeline components.
 
 from __future__ import annotations
 
+import datetime
 import logging
 import sqlite3
 from contextlib import contextmanager
@@ -28,7 +29,10 @@ CREATE TABLE IF NOT EXISTS forecasts (
     rain_1h REAL NOT NULL,
     rain_3h REAL NOT NULL,
     rain_6h REAL NOT NULL,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    location TEXT DEFAULT 'Chennai Pilot Area',
+    source TEXT DEFAULT 'Open-Meteo',
+    retrieval_timestamp TEXT
 );
 """
 
@@ -42,7 +46,7 @@ def get_db_connection(
     db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
 ) -> Generator[sqlite3.Connection, None, None]:
     """Context manager for SQLite database connection.
-    
+
     If an existing sqlite3.Connection is passed (e.g., in unit tests), it yields it
     without closing it. If a file path or string is passed, it creates any necessary
     parent directories, opens the connection, and closes it upon exit.
@@ -64,13 +68,34 @@ def get_db_connection(
 
 def init_db(db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH) -> None:
     """Initializes the Chetna SQLite database schema idempotently.
-    
+
     Safe to run repeatedly. Will not alter or drop existing tables or delete existing rows.
     """
     with get_db_connection(db_path) as conn:
         with conn:
             conn.execute(CREATE_FORECASTS_TABLE_SQL)
             conn.execute(CREATE_FORECASTS_INDEX_SQL)
+
+            # Idempotently ensure extended metadata columns exist for B1 Day 2 contract
+            cursor = conn.execute("PRAGMA table_info(forecasts);")
+            existing_cols = {row["name"] for row in cursor.fetchall()}
+
+            if "location" not in existing_cols:
+                try:
+                    conn.execute("ALTER TABLE forecasts ADD COLUMN location TEXT DEFAULT 'Chennai Pilot Area';")
+                except sqlite3.OperationalError:
+                    pass
+            if "source" not in existing_cols:
+                try:
+                    conn.execute("ALTER TABLE forecasts ADD COLUMN source TEXT DEFAULT 'Open-Meteo';")
+                except sqlite3.OperationalError:
+                    pass
+            if "retrieval_timestamp" not in existing_cols:
+                try:
+                    conn.execute("ALTER TABLE forecasts ADD COLUMN retrieval_timestamp TEXT;")
+                except sqlite3.OperationalError:
+                    pass
+
     logger.debug("Initialized Chetna database schema at %s", db_path)
 
 
@@ -110,30 +135,67 @@ def _extract_forecast_record(
 def save_forecast(
     record: Union[Dict[str, Any], Any],
     db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+    location: Optional[str] = None,
+    source: Optional[str] = None,
+    retrieval_timestamp: Optional[str] = None,
 ) -> int:
     """Saves a structured forecast record into the SQLite database.
-    
+
     Args:
         record: Dict with keys ('timestamp', 'rain_1h', 'rain_3h', 'rain_6h'),
                 or a RainfallSummary / WeatherForecastResult instance.
         db_path: Target SQLite database file path or connection.
-        
+        location: Optional location name or grid ID string.
+        source: Optional data source identifier (default: Open-Meteo).
+        retrieval_timestamp: Optional ISO timestamp when retrieved.
+
     Returns:
         The inserted row ID.
     """
     init_db(db_path)
     timestamp, rain_1h, rain_3h, rain_6h = _extract_forecast_record(record)
 
+    loc = (
+        location
+        or getattr(record, "location_name", None)
+        or (record.get("location") if isinstance(record, dict) else None)
+        or "Chennai Pilot Area"
+    )
+    src = (
+        source
+        or getattr(record, "source", None)
+        or (record.get("source") if isinstance(record, dict) else None)
+        or "Open-Meteo"
+    )
+    retrieval_ts = (
+        retrieval_timestamp
+        or getattr(record, "retrieval_timestamp", None)
+        or (record.get("retrieval_timestamp") if isinstance(record, dict) else None)
+        or datetime.datetime.now(datetime.timezone.utc).isoformat()
+    )
+
     with get_db_connection(db_path) as conn:
         with conn:
-            cursor = conn.execute(
-                """
-                INSERT INTO forecasts (timestamp, rain_1h, rain_3h, rain_6h)
-                VALUES (?, ?, ?, ?);
-                """,
-                (timestamp, rain_1h, rain_3h, rain_6h),
-            )
-            inserted_id = cursor.lastrowid
+            cursor = conn.execute("PRAGMA table_info(forecasts);")
+            cols = {row["name"] for row in cursor.fetchall()}
+
+            if "location" in cols and "source" in cols:
+                cur = conn.execute(
+                    """
+                    INSERT INTO forecasts (timestamp, rain_1h, rain_3h, rain_6h, location, source, retrieval_timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    (timestamp, rain_1h, rain_3h, rain_6h, loc, src, retrieval_ts),
+                )
+            else:
+                cur = conn.execute(
+                    """
+                    INSERT INTO forecasts (timestamp, rain_1h, rain_3h, rain_6h)
+                    VALUES (?, ?, ?, ?);
+                    """,
+                    (timestamp, rain_1h, rain_3h, rain_6h),
+                )
+            inserted_id = cur.lastrowid
 
     logger.debug(
         "Saved forecast for %s (rain_1h=%.2f, rain_3h=%.2f, rain_6h=%.2f) with id=%d",
@@ -150,16 +212,16 @@ def get_latest_forecast(
     db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
 ) -> Optional[Dict[str, Any]]:
     """Retrieves the most recent forecast record from the database.
-    
+
     Returns:
-        Dict with keys ('id', 'timestamp', 'rain_1h', 'rain_3h', 'rain_6h', 'created_at')
+        Dict with keys ('id', 'timestamp', 'rain_1h', 'rain_3h', 'rain_6h', 'created_at', ...)
         or None if no records exist.
     """
     init_db(db_path)
     with get_db_connection(db_path) as conn:
         cursor = conn.execute(
             """
-            SELECT id, timestamp, rain_1h, rain_3h, rain_6h, created_at
+            SELECT *
             FROM forecasts
             ORDER BY id DESC
             LIMIT 1;
@@ -180,7 +242,7 @@ def get_forecast_history(
     with get_db_connection(db_path) as conn:
         cursor = conn.execute(
             """
-            SELECT id, timestamp, rain_1h, rain_3h, rain_6h, created_at
+            SELECT *
             FROM forecasts
             ORDER BY id DESC
             LIMIT ?;
@@ -199,7 +261,7 @@ def get_forecast_by_timestamp(
     with get_db_connection(db_path) as conn:
         cursor = conn.execute(
             """
-            SELECT id, timestamp, rain_1h, rain_3h, rain_6h, created_at
+            SELECT *
             FROM forecasts
             WHERE timestamp = ?
             ORDER BY id DESC

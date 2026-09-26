@@ -20,6 +20,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from src.ingestion.pilot_config import (
+    PILOT_BBOX,
+    PILOT_CENTER_LAT,
+    PILOT_CENTER_LON,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -70,7 +76,7 @@ class HourlyForecastRecord:
 @dataclass
 class RainfallSummary:
     """Aggregated rainfall windows for Chetna flood risk predictions.
-    
+
     Attributes:
         timestamp: Reference timestamp (ISO-8601) for this assessment window.
         rain_1h: Cumulative rainfall forecast for the next 1 hour (mm).
@@ -111,18 +117,30 @@ class WeatherForecastResult:
     hourly_records: List[HourlyForecastRecord] = field(default_factory=list)
     raw_response: Optional[Dict[str, Any]] = None
     from_cache: bool = False
+    location_name: str = "Chennai Pilot Area"
+    source: str = "Open-Meteo"
+    retrieval_timestamp: Optional[str] = None
+
+    @property
+    def used_cached_data(self) -> bool:
+        """Alias for from_cache for pipeline consistency."""
+        return self.from_cache
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to serializable dictionary."""
         return {
             "latitude": self.latitude,
             "longitude": self.longitude,
+            "location_name": self.location_name,
+            "source": self.source,
             "timezone": self.timezone,
             "elevation": self.elevation,
             "reference_time": self.reference_time,
+            "retrieval_timestamp": self.retrieval_timestamp,
             "summary": self.summary.to_dict(),
             "hourly_records": [record.to_dict() for record in self.hourly_records],
             "from_cache": self.from_cache,
+            "used_cached_data": self.used_cached_data,
         }
 
     def to_db_record(self) -> Dict[str, Any]:
@@ -137,12 +155,30 @@ class WeatherForecastResult:
                 return self.hourly_records[i : i + 6]
         return self.hourly_records[:6]
 
+    def get_horizon_rain(self, horizon: int) -> float:
+        """Returns cumulative rainfall for requested horizon (1, 3, or 6 hours)."""
+        if horizon == 1:
+            return self.summary.rain_1h
+        elif horizon == 3:
+            return self.summary.rain_3h
+        elif horizon == 6:
+            return self.summary.rain_6h
+        else:
+            recs = self.next_6h_records[:horizon]
+            return round(sum(r.rain_mm for r in recs), 2)
+
     def save_to_db(self, db_path: Optional[Union[str, Path]] = None) -> int:
         """Saves this forecast result to the SQLite database forecasts table."""
         from src.db.forecasts import DEFAULT_DB_PATH, save_forecast
 
         target_path = db_path if db_path is not None else DEFAULT_DB_PATH
-        return save_forecast(self, db_path=target_path)
+        return save_forecast(
+            self,
+            db_path=target_path,
+            location=self.location_name,
+            source=self.source,
+            retrieval_timestamp=self.retrieval_timestamp,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -163,6 +199,9 @@ class OpenMeteoClient:
         cache_dir: Optional[Union[str, Path]] = None,
         user_agent: str = DEFAULT_USER_AGENT,
     ) -> None:
+        if timeout <= 0:
+            raise ValueError(f"Timeout must be positive, got {timeout}")
+
         self.base_url = base_url
         self.timeout = timeout
         self.cache_dir = Path(cache_dir) if cache_dir else None
@@ -171,15 +210,27 @@ class OpenMeteoClient:
         if self.cache_dir:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def _get_cache_filepath(self, latitude: float, longitude: float) -> Optional[Path]:
-        """Generates standard cache path for a coordinate pair."""
+    def _get_cache_filepath(
+        self,
+        latitude: float,
+        longitude: float,
+        timestamp: Optional[str] = None,
+    ) -> Optional[Path]:
+        """Generates standard deterministic cache path for a coordinate pair and optional timestamp."""
         if not self.cache_dir:
             return None
         safe_lat = f"{latitude:.4f}".replace(".", "_").replace("-", "neg_")
         safe_lon = f"{longitude:.4f}".replace(".", "_").replace("-", "neg_")
+        if timestamp:
+            safe_ts = str(timestamp).replace(":", "-").replace(" ", "_")
+            return self.cache_dir / f"forecast_{safe_lat}_{safe_lon}_{safe_ts}.json"
         return self.cache_dir / f"forecast_{safe_lat}_{safe_lon}_latest.json"
 
-    def _save_cache(self, filepath: Path, data: Dict[str, Any]) -> None:
+    def _save_cache(
+        self,
+        filepath: Path,
+        data: Dict[str, Any],
+    ) -> None:
         """Saves response dictionary to JSON cache file."""
         try:
             filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -197,6 +248,24 @@ class OpenMeteoClient:
         except (OSError, json.JSONDecodeError) as e:
             raise WeatherIngestionError(f"Failed to read cache file {filepath}: {e}") from e
 
+    def _find_cached_file(self, latitude: float, longitude: float) -> Optional[Path]:
+        """Finds the latest valid cached file for given coordinates."""
+        if not self.cache_dir or not self.cache_dir.exists():
+            return None
+
+        latest_file = self._get_cache_filepath(latitude, longitude)
+        if latest_file and latest_file.exists():
+            return latest_file
+
+        safe_lat = f"{latitude:.4f}".replace(".", "_").replace("-", "neg_")
+        safe_lon = f"{longitude:.4f}".replace(".", "_").replace("-", "neg_")
+        pattern = f"forecast_{safe_lat}_{safe_lon}_*.json"
+        matches = sorted(self.cache_dir.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
+        if matches:
+            return matches[0]
+
+        return None
+
     def fetch_raw_forecast(
         self,
         latitude: float,
@@ -208,34 +277,40 @@ class OpenMeteoClient:
         use_cache_on_failure: bool = True,
     ) -> tuple[Dict[str, Any], bool]:
         """Fetches raw JSON response from Open-Meteo API.
-        
+
         Args:
-            latitude: Latitude of target location (-90 to 90).
-            longitude: Longitude of target location (-180 to 180).
+            latitude: Latitude of target location.
+            longitude: Longitude of target location.
             past_days: Number of past days of hourly weather data (default: 1 for past 24h rain).
             forecast_days: Number of forecast days (default: 2).
             timezone_str: Timezone string (default: 'auto').
             cache_response: If True and cache_dir configured, write response to cache.
             use_cache_on_failure: If True and network request fails, fall back to cached response.
-            
+
         Returns:
             Tuple of (raw_json_dict, is_from_cache_flag).
-            
+
         Raises:
             OpenMeteoConnectionError: On network/DNS/timeout failures.
             OpenMeteoAPIError: On HTTP error status responses from Open-Meteo.
             DataParsingError: On malformed JSON responses.
         """
+        try:
+            lat_f = float(latitude)
+            lon_f = float(longitude)
+        except (TypeError, ValueError) as err:
+            raise ValueError(f"Latitude and longitude must be numeric: {err}") from err
+
         params = {
-            "latitude": str(latitude),
-            "longitude": str(longitude),
+            "latitude": str(lat_f),
+            "longitude": str(lon_f),
             "hourly": "precipitation,rain",
             "past_days": str(past_days),
             "forecast_days": str(forecast_days),
             "timezone": timezone_str,
         }
         url = f"{self.base_url}?{urllib.parse.urlencode(params)}"
-        cache_file = self._get_cache_filepath(latitude, longitude)
+        cache_file = self._get_cache_filepath(lat_f, lon_f)
 
         req = urllib.request.Request(
             url,
@@ -263,7 +338,6 @@ class OpenMeteoClient:
                 except json.JSONDecodeError as err:
                     raise DataParsingError(f"Failed to decode Open-Meteo JSON: {err}") from err
 
-                # Cache fresh response if requested
                 if cache_response and cache_file:
                     self._save_cache(cache_file, data)
 
@@ -275,15 +349,15 @@ class OpenMeteoClient:
                 body = http_err.read().decode("utf-8", errors="replace")
             except Exception:
                 pass
-            
-            # Check for fallback
-            if use_cache_on_failure and cache_file and cache_file.exists():
+
+            fallback_file = self._find_cached_file(lat_f, lon_f)
+            if use_cache_on_failure and fallback_file and fallback_file.exists():
                 logger.warning(
                     "HTTP %d from Open-Meteo; falling back to cache file %s",
                     http_err.code,
-                    cache_file,
+                    fallback_file,
                 )
-                return self._load_cache(cache_file), True
+                return self._load_cache(fallback_file), True
 
             raise OpenMeteoAPIError(
                 status_code=http_err.code,
@@ -292,13 +366,14 @@ class OpenMeteoClient:
             ) from http_err
 
         except (urllib.error.URLError, TimeoutError, OSError) as net_err:
-            if use_cache_on_failure and cache_file and cache_file.exists():
+            fallback_file = self._find_cached_file(lat_f, lon_f)
+            if use_cache_on_failure and fallback_file and fallback_file.exists():
                 logger.warning(
                     "Network error (%s); falling back to cache file %s",
                     net_err,
-                    cache_file,
+                    fallback_file,
                 )
-                return self._load_cache(cache_file), True
+                return self._load_cache(fallback_file), True
 
             raise OpenMeteoConnectionError(
                 f"Failed to connect to Open-Meteo at {self.base_url}: {net_err}"
@@ -309,22 +384,24 @@ class OpenMeteoClient:
         raw_data: Dict[str, Any],
         reference_time: Optional[Union[datetime, str]] = None,
         from_cache: bool = False,
+        location_name: str = "Chennai Pilot Area",
+        source: str = "Open-Meteo",
     ) -> WeatherForecastResult:
         """Parses raw Open-Meteo JSON payload into structured WeatherForecastResult.
-        
+
         Args:
             raw_data: Open-Meteo JSON dictionary.
             reference_time: Time of prediction (str 'YYYY-MM-DDTHH:MM' or datetime).
-                            If None, selects the current hour from timestamps or defaults
-                            to the transition point where past data ends.
             from_cache: Flag indicating if data was loaded from offline cache.
-            
+            location_name: Descriptive name of the pilot location.
+            source: Source of the data.
+
         Returns:
             Structured WeatherForecastResult with computed rain_1h, rain_3h, rain_6h,
             and rain_past_24h.
-            
+
         Raises:
-            DataParsingError: If expected schema fields are missing.
+            DataParsingError: If expected schema fields are missing or empty.
         """
         if not isinstance(raw_data, dict):
             raise DataParsingError(f"Expected dict from Open-Meteo, got {type(raw_data).__name__}")
@@ -339,12 +416,14 @@ class OpenMeteoClient:
             raise DataParsingError(f"Expected 'hourly' to be a dict, got {type(hourly).__name__}")
 
         times: List[str] = hourly.get("time", [])
-        if not times:
+        if not times or len(times) == 0:
             raise DataParsingError("No hourly timestamps found in response")
 
-        # Open-Meteo provides both 'precipitation' and 'rain'
         precip_list: List[Optional[float]] = hourly.get("precipitation") or hourly.get("rain") or []
         rain_list: List[Optional[float]] = hourly.get("rain") or precip_list
+
+        if not precip_list or len(precip_list) == 0:
+            raise DataParsingError("Empty forecast: no precipitation data found in response")
 
         if len(times) != len(precip_list):
             raise DataParsingError(
@@ -371,13 +450,7 @@ class OpenMeteoClient:
         ref_idx = self._find_reference_index(times, reference_time)
         selected_ref_time = times[ref_idx]
 
-        # Calculate horizons from ref_idx
-        # rain_1h: cumulative rainfall over next 1 hour [ref_idx : ref_idx + 1]
-        # rain_3h: cumulative rainfall over next 3 hours [ref_idx : ref_idx + 3]
-        # rain_6h: cumulative rainfall over next 6 hours [ref_idx : ref_idx + 6]
-        # rain_past_24h: cumulative rainfall over preceding 24 hours [ref_idx - 24 : ref_idx]
         total_len = len(clean_rain_values)
-        
         rain_1h = round(sum(clean_rain_values[ref_idx : min(total_len, ref_idx + 1)]), 2)
         rain_3h = round(sum(clean_rain_values[ref_idx : min(total_len, ref_idx + 3)]), 2)
         rain_6h = round(sum(clean_rain_values[ref_idx : min(total_len, ref_idx + 6)]), 2)
@@ -393,6 +466,8 @@ class OpenMeteoClient:
             rain_past_24h=rain_past_24h,
         )
 
+        retrieval_ts = datetime.now(timezone.utc).isoformat()
+
         return WeatherForecastResult(
             latitude=float(raw_data.get("latitude", 0.0)),
             longitude=float(raw_data.get("longitude", 0.0)),
@@ -403,6 +478,9 @@ class OpenMeteoClient:
             hourly_records=hourly_records,
             raw_response=raw_data,
             from_cache=from_cache,
+            location_name=location_name,
+            source=source,
+            retrieval_timestamp=retrieval_ts,
         )
 
     def _find_reference_index(
@@ -413,38 +491,29 @@ class OpenMeteoClient:
         """Finds closest array index matching the reference time."""
         if reference_time is not None:
             if isinstance(reference_time, datetime):
-                # Format to 'YYYY-MM-DDTHH:00'
                 ref_str = reference_time.strftime("%Y-%m-%dT%H:00")
             else:
                 ref_str = str(reference_time)
-                # Normalize minutes if present
                 if len(ref_str) > 13 and ref_str[13] == ":":
                     ref_str = ref_str[:13] + ":00"
 
-            # Check exact match
             if ref_str in times:
                 return times.index(ref_str)
 
-            # Find first timestamp greater than or equal to ref_str
             for i, t in enumerate(times):
                 if t >= ref_str:
                     return i
-            
-            # If all are earlier, return last index
+
             return len(times) - 1
 
-        # When no reference time specified:
-        # Check if current local/UTC hour matches any timestamp in times
         now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:00")
         for i, t in enumerate(times):
             if t == now_utc:
                 return i
 
-        # If data has past_days=1 (typically 24 hours past), index 24 is current hour
         if len(times) >= 48:
             return 24
-        
-        # Default to index 0
+
         return 0
 
     def get_forecast(
@@ -457,6 +526,8 @@ class OpenMeteoClient:
         timezone_str: str = "auto",
         cache_response: bool = True,
         use_cache_on_failure: bool = True,
+        location_name: str = "Chennai Pilot Area",
+        source: str = "Open-Meteo",
     ) -> WeatherForecastResult:
         """High-level method: fetches from Open-Meteo and returns structured forecast result."""
         raw_data, is_cache = self.fetch_raw_forecast(
@@ -472,6 +543,8 @@ class OpenMeteoClient:
             raw_data=raw_data,
             reference_time=reference_time,
             from_cache=is_cache,
+            location_name=location_name,
+            source=source,
         )
 
     def fetch_and_store_forecast(
@@ -485,6 +558,8 @@ class OpenMeteoClient:
         timezone_str: str = "auto",
         cache_response: bool = True,
         use_cache_on_failure: bool = True,
+        location_name: str = "Chennai Pilot Area",
+        source: str = "Open-Meteo",
     ) -> tuple[WeatherForecastResult, int]:
         """Fetches forecast from Open-Meteo (or cache fallback) and stores it in SQLite."""
         result = self.get_forecast(
@@ -496,6 +571,8 @@ class OpenMeteoClient:
             timezone_str=timezone_str,
             cache_response=cache_response,
             use_cache_on_failure=use_cache_on_failure,
+            location_name=location_name,
+            source=source,
         )
         row_id = result.save_to_db(db_path=db_path)
         return result, row_id
@@ -506,8 +583,8 @@ class OpenMeteoClient:
 # ---------------------------------------------------------------------------
 
 def fetch_weather_forecast(
-    latitude: float,
-    longitude: float,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
     reference_time: Optional[Union[datetime, str]] = None,
     past_days: int = 1,
     forecast_days: int = 2,
@@ -515,47 +592,49 @@ def fetch_weather_forecast(
     cache_dir: Optional[Union[str, Path]] = "data/cache",
     timeout: float = 10.0,
     use_cache_on_failure: bool = True,
+    location_name: str = "Chennai Pilot Area",
 ) -> WeatherForecastResult:
     """Convenience function to fetch and parse weather forecast from Open-Meteo.
-    
-    Args:
-        latitude: Latitude of location.
-        longitude: Longitude of location.
-        reference_time: Optional reference time for forecast horizons.
-        past_days: Days of historical hourly data to include (default: 1).
-        forecast_days: Days of forecast hourly data (default: 2).
-        timezone_str: Timezone (default: 'auto').
-        cache_dir: Directory for storing JSON cache files.
-        timeout: HTTP timeout in seconds.
-        use_cache_on_failure: Whether to fallback to cache when API fails.
-        
-    Returns:
-        Structured WeatherForecastResult.
+
+    Defaults to the Chennai pilot center if coordinates are omitted.
     """
+    lat = PILOT_CENTER_LAT if latitude is None else latitude
+    lon = PILOT_CENTER_LON if longitude is None else longitude
+
     client = OpenMeteoClient(cache_dir=cache_dir, timeout=timeout)
     return client.get_forecast(
-        latitude=latitude,
-        longitude=longitude,
+        latitude=lat,
+        longitude=lon,
         reference_time=reference_time,
         past_days=past_days,
         forecast_days=forecast_days,
         timezone_str=timezone_str,
         use_cache_on_failure=use_cache_on_failure,
+        location_name=location_name,
     )
 
 
 def parse_weather_response(
     raw_data: Dict[str, Any],
     reference_time: Optional[Union[datetime, str]] = None,
+    location_name: str = "Chennai Pilot Area",
+    source: str = "Open-Meteo",
 ) -> WeatherForecastResult:
     """Parses an in-memory dictionary or mock response without making network calls."""
     client = OpenMeteoClient()
-    return client.parse_forecast(raw_data=raw_data, reference_time=reference_time)
+    return client.parse_forecast(
+        raw_data=raw_data,
+        reference_time=reference_time,
+        location_name=location_name,
+        source=source,
+    )
 
 
 def load_mock_forecast(
     mock_filepath: Union[str, Path],
     reference_time: Optional[Union[datetime, str]] = None,
+    location_name: str = "Chennai Pilot Area",
+    source: str = "Mock Open-Meteo Fixture",
 ) -> WeatherForecastResult:
     """Loads a mock JSON file and returns structured WeatherForecastResult."""
     path = Path(mock_filepath)
@@ -563,12 +642,17 @@ def load_mock_forecast(
         raise FileNotFoundError(f"Mock file not found: {mock_filepath}")
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    return parse_weather_response(data, reference_time=reference_time)
+    return parse_weather_response(
+        data,
+        reference_time=reference_time,
+        location_name=location_name,
+        source=source,
+    )
 
 
 def fetch_and_store_forecast(
-    latitude: float,
-    longitude: float,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
     db_path: Optional[Union[str, Path]] = None,
     reference_time: Optional[Union[datetime, str]] = None,
     past_days: int = 1,
@@ -577,24 +661,26 @@ def fetch_and_store_forecast(
     cache_dir: Optional[Union[str, Path]] = "data/cache",
     timeout: float = 10.0,
     use_cache_on_failure: bool = True,
+    location_name: str = "Chennai Pilot Area",
 ) -> tuple[WeatherForecastResult, int]:
     """Fetches Open-Meteo forecast, ensures response is cached, and stores 6-hour forecast in SQLite.
-    
+
     Designed for direct integration by Day 3 B1 run_pipeline().
-    
-    Returns:
-        Tuple of (WeatherForecastResult, inserted_row_id).
     """
+    lat = PILOT_CENTER_LAT if latitude is None else latitude
+    lon = PILOT_CENTER_LON if longitude is None else longitude
+
     client = OpenMeteoClient(cache_dir=cache_dir, timeout=timeout)
     return client.fetch_and_store_forecast(
-        latitude=latitude,
-        longitude=longitude,
+        latitude=lat,
+        longitude=lon,
         db_path=db_path,
         reference_time=reference_time,
         past_days=past_days,
         forecast_days=forecast_days,
         timezone_str=timezone_str,
         use_cache_on_failure=use_cache_on_failure,
+        location_name=location_name,
     )
 
 
@@ -615,4 +701,3 @@ def store_mock_forecast(
     result = load_mock_forecast(mock_filepath, reference_time=reference_time)
     row_id = result.save_to_db(db_path=db_path)
     return result, row_id
-
