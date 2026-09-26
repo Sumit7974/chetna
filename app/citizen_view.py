@@ -270,23 +270,40 @@ def render_citizen_input_stub(hotspots: List[Dict[str, Any]]) -> Tuple[str, str]
         check_clicked = st.button("Check Risk", use_container_width=True)
 
     if check_clicked:
-        st.markdown(
-            f"""
-            <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:10px 14px; margin-top:0.75rem;">
-                <div style="font-weight:700; font-size:0.85rem; color:#1e40af;">
-                    📍 Area Assessment: {selected_area} &bull; {selected_horizon}
+        try:
+            from src.api.risk import get_current_risk
+            risk_data = get_current_risk(selected_area, selected_horizon)
+            
+            risk_level = risk_data["risk_level"]
+            risk_score = risk_data["risk_score"]
+            water_level = risk_data["water_level_cm"]
+            rain_rate = risk_data["rainfall_rate_mm_h"]
+            updated_at = risk_data["updated_at"]
+            
+            color = "#22c55e" if risk_level == "LOW" else "#eab308" if risk_level == "MEDIUM" else "#ef4444"
+            bg_color = "#f0fdf4" if risk_level == "LOW" else "#fefce8" if risk_level == "MEDIUM" else "#fef2f2"
+            
+            st.markdown(
+                f"""
+                <div style="background:{bg_color}; border:1px solid {color}; border-radius:6px; padding:10px 14px; margin-top:0.75rem;">
+                    <div style="font-weight:700; font-size:0.85rem; color:#1e40af;">
+                        📍 Area Assessment: {selected_area} &bull; {selected_horizon}
+                    </div>
+                    <div style="font-size:0.85rem; font-weight: 600; color:{color}; margin-top:3px;">
+                        Current Flood Risk: {risk_level} (Score: {risk_score:.2f})
+                    </div>
+                    <div style="font-size:0.8rem; color:#1e3a8a; margin-top:3px;">
+                        Prediction based on dynamic sensor water levels ({water_level:.1f} cm) and weather rainfall ({rain_rate:.1f} mm/h).
+                    </div>
+                    <div style="font-size:0.72rem; color:#60a5fa; margin-top:4px;">
+                        Last Updated: {updated_at}
+                    </div>
                 </div>
-                <div style="font-size:0.8rem; color:#1e3a8a; margin-top:3px;">
-                    Current rainfall forecast shows no immediate overflow risk.
-                    Terrain slope and drainage channels are in monitored standby.
-                </div>
-                <div style="font-size:0.72rem; color:#60a5fa; margin-top:4px;">
-                    ℹ️ Day 1 Prototype UI Stub &bull; Dynamic prediction and live sensor correction activate in Day 3. No browser GPS is used.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
+        except Exception as e:
+            st.error(f"Could not retrieve dynamic risk assessment. Please try again later. ({e})")
 
     st.markdown("</div>", unsafe_allow_html=True)
     return selected_area, selected_horizon
