@@ -16,6 +16,7 @@ class RiskPrediction:
     horizon: int
     level: str
     probability: float
+    persisted: bool = False
 
 class FloodRiskPredictor:
     def __init__(self, db_path=DEFAULT_DB_PATH):
@@ -51,7 +52,8 @@ class FloodRiskPredictor:
             timestamp=now,
             horizon=1,
             level=level,
-            probability=probability
+            probability=probability,
+            persisted=False
         )
         
         if persist:
@@ -71,6 +73,8 @@ class FloodRiskPredictor:
                     sql,
                     (pred.cell_id, pred.timestamp, pred.horizon, pred.level, pred.probability)
                 )
+            pred.persisted = True
         except Exception as exc:
             logger.error("Could not write risk prediction for cell %s: %s", pred.cell_id, exc)
-            raise RuntimeError(f"Database persistence failed: {exc}") from exc
+            pred.persisted = False
+

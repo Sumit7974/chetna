@@ -4,13 +4,23 @@ import logging
 import datetime
 from typing import Dict, Any
 
-def get_current_risk(location_name: str, horizon: str = "Current Conditions", latitude: float = 13.0827, longitude: float = 80.2707, simulation: bool = False) -> Dict[str, Any]:
+def get_current_risk(location_name: str, horizon: str = "Current Conditions", latitude: float = None, longitude: float = None, simulation: bool = False) -> Dict[str, Any]:
     """Retrieve dynamic flood risk prediction for a location based on weather and sensor data."""
     from src.ingestion.weather import fetch_weather_forecast
     from src.sensors.interface import SimulatedSensorBackend
     from simulators.sensor_simulator import SimulationScenario, SensorReading
     from src.model.predictor import FloodRiskPredictor
     from alerts.pipeline import AlertPipeline
+
+    if latitude is None or longitude is None:
+        logging.warning("Coordinates not provided for get_current_risk, using Chennai fallback (13.0827, 80.2707)")
+        latitude = 13.0827
+        longitude = 80.2707
+
+    if not (-90.0 <= latitude <= 90.0):
+        raise ValueError(f"Invalid latitude: {latitude}")
+    if not (-180.0 <= longitude <= 180.0):
+        raise ValueError(f"Invalid longitude: {longitude}")
 
     try:
         weather = fetch_weather_forecast(latitude, longitude, timeout=3.0, use_cache_on_failure=True)
@@ -54,11 +64,13 @@ def get_current_risk(location_name: str, horizon: str = "Current Conditions", la
         risk_level = pred.level
         risk_score = pred.probability
         updated_at = pred.timestamp
+        persisted = pred.persisted
     except Exception as e:
         logging.error(f"Prediction failed: {e}")
         risk_level = "UNKNOWN"
         risk_score = 0.0
         updated_at = "N/A"
+        persisted = False
 
     try:
         pipeline = AlertPipeline()
@@ -72,6 +84,7 @@ def get_current_risk(location_name: str, horizon: str = "Current Conditions", la
         "risk_score": risk_score,
         "updated_at": updated_at,
         "water_level_cm": water_level,
-        "rainfall_rate_mm_h": rain_rate
+        "rainfall_rate_mm_h": rain_rate,
+        "persisted": persisted
     }
 

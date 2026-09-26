@@ -222,18 +222,18 @@ def render_citizen_status_card() -> None:
 
 def render_citizen_input_stub(hotspots: List[Dict[str, Any]]) -> Tuple[str, str]:
     """Render the citizen location input and forecast horizon selector stub."""
-    neighborhood_names = [
-        "Velachery (Zone 13 - Adyar)",
-        "Madipakkam (Zone 14 - Perungudi)",
-        "Mudichur / Varadharajapuram",
-        "T. Nagar (Zone 10 - Kodambakkam)",
-        "Pulianthope (Zone 6 - Thiru Vi Ka Nagar)",
-        "Vyasarpadi (Zone 4 - Tondiarpet)",
-        "Perambur (Zone 6 - Stephenson Road)",
-        "Koyambedu (Zone 8 - Anna Nagar)",
-        "Manapakkam (Zone 12 - Alandur)",
-        "Pallikaranai (Zone 14 - IT Corridor)",
-    ]
+    neighborhood_coords = {
+        "Velachery (Zone 13 - Adyar)": (12.980, 80.223),
+        "Madipakkam (Zone 14 - Perungudi)": (12.964, 80.198),
+        "Mudichur / Varadharajapuram": (12.915, 80.076),
+        "T. Nagar (Zone 10 - Kodambakkam)": (13.041, 80.233),
+        "Pulianthope (Zone 6 - Thiru Vi Ka Nagar)": (13.099, 80.260),
+        "Vyasarpadi (Zone 4 - Tondiarpet)": (13.118, 80.252),
+        "Perambur (Zone 6 - Stephenson Road)": (13.109, 80.244),
+        "Koyambedu (Zone 8 - Anna Nagar)": (13.073, 80.194),
+        "Manapakkam (Zone 12 - Alandur)": (13.018, 80.170),
+        "Pallikaranai (Zone 14 - IT Corridor)": (12.937, 80.211),
+    }
 
     st.markdown(
         """
@@ -253,7 +253,7 @@ def render_citizen_input_stub(hotspots: List[Dict[str, Any]]) -> Tuple[str, str]
     with col_area:
         selected_area = st.selectbox(
             "Select Your Area / Neighborhood:",
-            options=neighborhood_names,
+            options=list(neighborhood_coords.keys()),
             index=0,
             help="Select one of the 10 monitored Chennai study areas.",
         )
@@ -272,7 +272,13 @@ def render_citizen_input_stub(hotspots: List[Dict[str, Any]]) -> Tuple[str, str]
     if check_clicked:
         try:
             from src.api.risk import get_current_risk
-            risk_data = get_current_risk(selected_area, selected_horizon)
+            
+            # Retrieve specific coordinates for the selected area
+            lat, lon = neighborhood_coords[selected_area]
+            
+            # We assume a flash flood scenario purely for demonstration if they select Velachery in the F2 stub
+            is_simulation = ("Velachery" in selected_area)
+            risk_data = get_current_risk(selected_area, selected_horizon, latitude=lat, longitude=lon, simulation=is_simulation)
             
             risk_level = risk_data["risk_level"]
             risk_score = risk_data["risk_score"]

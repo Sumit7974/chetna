@@ -46,9 +46,10 @@ def test_missing_weather_handled(monkeypatch, test_db_conn):
         raise Exception("Weather API Error")
     monkeypatch.setattr("src.ingestion.weather.fetch_weather_forecast", mock_fetch)
     
-    result = get_current_risk("TestArea", "+1h")
+    result = get_current_risk("TestArea", "+1h", latitude=13.0, longitude=80.0)
     assert result["rainfall_rate_mm_h"] == 0.0
     assert result["risk_level"] in ["LOW", "MEDIUM", "HIGH"]
+    assert result["persisted"] is True
     
     # Verify it still persists despite missing weather
     row = test_db_conn.execute("SELECT * FROM risk_predictions WHERE cell_id=?", ("TestArea",)).fetchone()
@@ -59,7 +60,38 @@ def test_invalid_location_handled(monkeypatch, test_db_conn, mock_weather):
     monkeypatch.setattr("database.db.get_db_connection", lambda *args, **kwargs: test_db_conn)
     
     # Just an arbitrary location name, should default to NORMAL scenario
-    result = get_current_risk("Unknown Area", "+3h", simulation=False)
+    result = get_current_risk("Unknown Area", "+3h", latitude=13.0, longitude=80.0, simulation=False)
     assert result["location"] == "Unknown Area"
+    assert result["persisted"] is True
     row = test_db_conn.execute("SELECT * FROM risk_predictions WHERE cell_id=?", ("Unknown Area",)).fetchone()
     assert row is not None
+
+def test_missing_coordinates(monkeypatch, test_db_conn, mock_weather):
+    monkeypatch.setattr("src.model.predictor.get_db_connection", lambda *args, **kwargs: test_db_conn)
+    monkeypatch.setattr("database.db.get_db_connection", lambda *args, **kwargs: test_db_conn)
+    
+    # Missing lat/lon should trigger warning but proceed with Chennai fallback
+    result = get_current_risk("Missing Coords Area", "+1h", simulation=False)
+    assert result["persisted"] is True
+    assert result["location"] == "Missing Coords Area"
+
+def test_invalid_coordinates():
+    with pytest.raises(ValueError, match="Invalid latitude"):
+        get_current_risk("Bad Lat", latitude=100.0, longitude=80.0)
+    
+    with pytest.raises(ValueError, match="Invalid longitude"):
+        get_current_risk("Bad Lon", latitude=13.0, longitude=200.0)
+
+def test_database_persistence_failure(monkeypatch, test_db_conn, mock_weather):
+    monkeypatch.setattr("src.model.predictor.get_db_connection", lambda *args, **kwargs: test_db_conn)
+    monkeypatch.setattr("database.db.get_db_connection", lambda *args, **kwargs: test_db_conn)
+    
+    # Drop the table to force a persistence error
+    test_db_conn.execute("DROP TABLE risk_predictions")
+    
+    result = get_current_risk("Failing DB Area", "+1h", latitude=13.0, longitude=80.0, simulation=False)
+    assert result["location"] == "Failing DB Area"
+    assert result["risk_level"] in ["LOW", "MEDIUM", "HIGH"]
+    # The API should explicitly indicate that persistence failed
+    assert result["persisted"] is False
+
