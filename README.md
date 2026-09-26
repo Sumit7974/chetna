@@ -226,6 +226,50 @@ python -m src.pipeline
 python scripts/run_pipeline.py
 ```
 
+## Safe-Routing and Safest-Location Engine (B1 Day 4)
+
+Chetna B1 Day 4 implements the safest-location engine that connects road networks, ~200 m flood-risk predictions, and emergency shelters using an A* pathfinding algorithm.
+
+### Architecture & Routing Engine
+```text
+Origin Location (lat, lon)
+           ↓
+Candidate Shelters (B1 OSM Shelters / DB)
+           ↓
+Proximity Ranking & Flood Safety Pre-Filter
+           ↓
+Road Network Graph (B1 Spatial Roads / OSMnx)
+           ↓
+Connect Graph Nodes to 200m Risk Grid (cells / risk_predictions)
+           ↓
+A* Pathfinding with Dynamic Hazard Penalties
+  • HIGH Risk Cells: Blocked / Heavily Penalized (+100,000 m)
+  • MEDIUM Risk Cells: Moderately Penalized (+500 m)
+           ↓
+Safe Route to Nearest Reachable Safe Shelter
+```
+
+### Key Functions
+- `safe_route(lat, lon, horizon=1, db_path=DEFAULT_DB_PATH, ...)`: Framework function to calculate a safe route from origin to the nearest reachable shelter.
+- `build_road_graph_from_roads(roads_gdf)`: Converts road LineStrings into a bidirectional NetworkX `MultiDiGraph`.
+- `connect_graph_to_grid(graph, grid_cells)`: Maps graph nodes to ~200 m metric grid cells.
+- `apply_risk_predictions_to_graph(graph, risk_predictions)`: Applies multi-horizon dynamic flood predictions to graph nodes.
+
+### Usage
+```python
+from src.routing import safe_route
+
+# Find safe route from current location
+result = safe_route(13.0, 80.0)
+if result["found"]:
+    print(f"Safe route found to {result['destination']['name']} ({result['distance_m']} m)")
+    for pt in result["route"]:
+        print(f" -> {pt['lat']}, {pt['lon']}")
+else:
+    print(result["message"])
+```
+
+
 ## Streamlit Dashboard and Map Skeleton (F1 Day 1)
 
 Chetna provides an interactive Streamlit operations dashboard integrated with a Folium geospatial map centered on the pilot study city (Chennai, India: `[13.0827, 80.2707]`).
