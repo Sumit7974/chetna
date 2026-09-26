@@ -95,3 +95,31 @@ def test_database_persistence_failure(monkeypatch, test_db_conn, mock_weather):
     # The API should explicitly indicate that persistence failed
     assert result["persisted"] is False
 
+def test_velachery_does_not_force_flash_flood(monkeypatch, test_db_conn):
+    """
+    Test proving that the string 'Velachery' in location_name does not 
+    automatically trigger a flash flood simulation when simulation=False.
+    """
+    monkeypatch.setattr("src.model.predictor.get_db_connection", lambda *args, **kwargs: test_db_conn)
+    monkeypatch.setattr("database.db.get_db_connection", lambda *args, **kwargs: test_db_conn)
+
+    # Use a weather mock that returns 0 rainfall
+    class MockSummary:
+        rain_1h = 0.0
+        rain_3h = 0.0
+        rain_6h = 0.0
+        rain_past_24h = 0.0
+    class MockWeather:
+        summary = MockSummary()
+    monkeypatch.setattr("src.ingestion.weather.fetch_weather_forecast", lambda *args, **kwargs: MockWeather())
+
+    result = get_current_risk("Velachery (Zone 13 - Adyar)", "+1h", latitude=12.98, longitude=80.22, simulation=False)
+    
+    # If it was a simulation, water level or rainfall would be overridden high
+    # Since it's normal and there is no rain/water, risk should be LOW
+    assert result["risk_level"] == "LOW"
+    # Normal simulation still has ambient noise, but it shouldn't hit flash flood levels (>60)
+    assert result["water_level_cm"] < 60.0
+    assert result["rainfall_rate_mm_h"] == 0.0
+
+

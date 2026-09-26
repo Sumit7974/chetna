@@ -276,9 +276,8 @@ def render_citizen_input_stub(hotspots: List[Dict[str, Any]]) -> Tuple[str, str]
             # Retrieve specific coordinates for the selected area
             lat, lon = neighborhood_coords[selected_area]
             
-            # We assume a flash flood scenario purely for demonstration if they select Velachery in the F2 stub
-            is_simulation = ("Velachery" in selected_area)
-            risk_data = get_current_risk(selected_area, selected_horizon, latitude=lat, longitude=lon, simulation=is_simulation)
+            # Simulation is strictly false in citizen view, avoiding name-based triggers
+            risk_data = get_current_risk(selected_area, selected_horizon, latitude=lat, longitude=lon, simulation=False)
             
             risk_level = risk_data["risk_level"]
             risk_score = risk_data["risk_score"]
