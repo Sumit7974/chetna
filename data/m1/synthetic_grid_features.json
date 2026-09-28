@@ -1,1490 +1,1490 @@
 {
-  "grid_id": "CHETNA_GRID_CHENNAI_200M_SYNTHETIC",
-  "version": "1.0",
+  "grid_id": "CHETNA_GRID_PATNA_200M_SYNTHETIC",
+  "version": "2.0",
   "is_synthetic": true,
   "cell_count": 38,
   "grid_resolution_m": 200,
   "crs": "EPSG:4326",
-  "projected_crs": "EPSG:32644",
-  "description": "Clearly labelled synthetic grid feature dataset matching Chetna Day 1 data contract for M1 Day 2 pipeline development. Replaced by real rasters when Copernicus DEM and ESA WorldCover GIS processing completes.",
+  "projected_crs": "EPSG:32645",
+  "description": "Deterministic spatial grid covering Patna urban early-warning pilot study area (lat 25.565-25.655, lon 85.065-85.235).",
   "cells": [
     {
-      "cell_id": "CELL_VEL_01",
-      "name": "Velachery Vijayanagar North",
-      "latitude": 12.982,
-      "longitude": 80.2185,
-      "elevation": 6.5,
-      "slope": 0.2,
-      "flow_accumulation": 85000.0,
-      "imperviousness": 0.88,
-      "terrain_type": "marshland_basin_depression",
-      "associated_hotspot_id": "HS01",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2176,
-              12.9811
-            ],
-            [
-              80.2194,
-              12.9811
-            ],
-            [
-              80.2194,
-              12.9829
-            ],
-            [
-              80.2176,
-              12.9829
-            ],
-            [
-              80.2176,
-              12.9811
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_VEL_02",
-      "name": "Velachery Lake Runoff Outfall",
-      "latitude": 12.979,
-      "longitude": 80.221,
-      "elevation": 5.8,
-      "slope": 0.1,
-      "flow_accumulation": 120000.0,
-      "imperviousness": 0.82,
-      "terrain_type": "lake_overflow_sink",
-      "associated_hotspot_id": "HS01",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2201,
-              12.9781
-            ],
-            [
-              80.2219,
-              12.9781
-            ],
-            [
-              80.2219,
-              12.9799
-            ],
-            [
-              80.2201,
-              12.9799
-            ],
-            [
-              80.2201,
-              12.9781
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_MAD_01",
-      "name": "Madipakkam Ram Nagar East",
-      "latitude": 12.965,
-      "longitude": 80.198,
-      "elevation": 6.2,
-      "slope": 0.2,
-      "flow_accumulation": 95000.0,
-      "imperviousness": 0.85,
-      "terrain_type": "marsh_fringe_depression",
-      "associated_hotspot_id": "HS02",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.1971,
-              12.9641
-            ],
-            [
-              80.1989,
-              12.9641
-            ],
-            [
-              80.1989,
-              12.9659
-            ],
-            [
-              80.1971,
-              12.9659
-            ],
-            [
-              80.1971,
-              12.9641
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_MAD_02",
-      "name": "Madipakkam Kuberan Nagar",
-      "latitude": 12.963,
-      "longitude": 80.194,
-      "elevation": 7.0,
-      "slope": 0.3,
-      "flow_accumulation": 72000.0,
-      "imperviousness": 0.8,
-      "terrain_type": "low_lying_residential",
-      "associated_hotspot_id": "HS02",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.1931,
-              12.9621
-            ],
-            [
-              80.1949,
-              12.9621
-            ],
-            [
-              80.1949,
-              12.9639
-            ],
-            [
-              80.1931,
-              12.9639
-            ],
-            [
-              80.1931,
-              12.9621
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_MUD_01",
-      "name": "Mudichur Varadharajapuram",
-      "latitude": 12.916,
-      "longitude": 80.065,
-      "elevation": 11.5,
-      "slope": 0.3,
-      "flow_accumulation": 160000.0,
-      "imperviousness": 0.75,
-      "terrain_type": "river_floodplain_meander",
-      "associated_hotspot_id": "HS03",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.0641,
-              12.9151
-            ],
-            [
-              80.0659,
-              12.9151
-            ],
-            [
-              80.0659,
-              12.9169
-            ],
-            [
-              80.0641,
-              12.9169
-            ],
-            [
-              80.0641,
-              12.9151
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_MUD_02",
-      "name": "Mudichur Road Tributary Confluence",
-      "latitude": 12.913,
-      "longitude": 80.062,
-      "elevation": 10.8,
-      "slope": 0.2,
-      "flow_accumulation": 190000.0,
-      "imperviousness": 0.7,
-      "terrain_type": "tributary_chokepoint",
-      "associated_hotspot_id": "HS03",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.0611,
-              12.9121
-            ],
-            [
-              80.0629,
-              12.9121
-            ],
-            [
-              80.0629,
-              12.9139
-            ],
-            [
-              80.0611,
-              12.9139
-            ],
-            [
-              80.0611,
-              12.9121
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_TNG_01",
-      "name": "T Nagar Usman Road North",
-      "latitude": 13.043,
-      "longitude": 80.235,
-      "elevation": 10.2,
-      "slope": 0.3,
-      "flow_accumulation": 62000.0,
-      "imperviousness": 0.92,
-      "terrain_type": "dense_urban_canal_overflow",
-      "associated_hotspot_id": "HS04",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2341,
-              13.0421
-            ],
-            [
-              80.2359,
-              13.0421
-            ],
-            [
-              80.2359,
-              13.0439
-            ],
-            [
-              80.2341,
-              13.0439
-            ],
-            [
-              80.2341,
-              13.0421
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_TNG_02",
-      "name": "T Nagar Bazullah Road Mambalam Canal",
-      "latitude": 13.04,
-      "longitude": 80.232,
-      "elevation": 9.8,
-      "slope": 0.2,
-      "flow_accumulation": 88000.0,
-      "imperviousness": 0.94,
-      "terrain_type": "canal_corridor_urban",
-      "associated_hotspot_id": "HS04",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2311,
-              13.0391
-            ],
-            [
-              80.2329,
-              13.0391
-            ],
-            [
-              80.2329,
-              13.0409
-            ],
-            [
-              80.2311,
-              13.0409
-            ],
-            [
-              80.2311,
-              13.0391
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_PUL_01",
-      "name": "Pulianthope Ambedkar College Road",
-      "latitude": 13.095,
-      "longitude": 80.267,
-      "elevation": 5.5,
-      "slope": 0.2,
-      "flow_accumulation": 110000.0,
-      "imperviousness": 0.9,
-      "terrain_type": "low_lying_canal_basin",
-      "associated_hotspot_id": "HS05",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2661,
-              13.0941
-            ],
-            [
-              80.2679,
-              13.0941
-            ],
-            [
-              80.2679,
-              13.0959
-            ],
-            [
-              80.2661,
-              13.0959
-            ],
-            [
-              80.2661,
-              13.0941
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_PUL_02",
-      "name": "Pulianthope Demellows Road Basin",
-      "latitude": 13.093,
-      "longitude": 80.264,
-      "elevation": 5.2,
-      "slope": 0.1,
-      "flow_accumulation": 135000.0,
-      "imperviousness": 0.91,
-      "terrain_type": "buckingham_backwater_sink",
-      "associated_hotspot_id": "HS05",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2631,
-              13.0921
-            ],
-            [
-              80.2649,
-              13.0921
-            ],
-            [
-              80.2649,
-              13.0939
-            ],
-            [
-              80.2631,
-              13.0939
-            ],
-            [
-              80.2631,
-              13.0921
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_VYA_01",
-      "name": "Vyasarpadi Ganesapuram Subway Bowl",
-      "latitude": 13.1115,
-      "longitude": 80.263,
-      "elevation": 3.8,
-      "slope": 0.1,
-      "flow_accumulation": 140000.0,
-      "imperviousness": 0.96,
-      "terrain_type": "railway_subway_depression",
-      "associated_hotspot_id": "HS06",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2621,
-              13.1106
-            ],
-            [
-              80.2639,
-              13.1106
-            ],
-            [
-              80.2639,
-              13.1124
-            ],
-            [
-              80.2621,
-              13.1124
-            ],
-            [
-              80.2621,
-              13.1106
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_VYA_02",
-      "name": "Vyasarpadi Jeeva Station Underpass",
-      "latitude": 13.11,
-      "longitude": 80.261,
-      "elevation": 4.2,
-      "slope": 0.2,
-      "flow_accumulation": 115000.0,
-      "imperviousness": 0.93,
-      "terrain_type": "railway_underpass_pocket",
-      "associated_hotspot_id": "HS06",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2601,
-              13.1091
-            ],
-            [
-              80.2619,
-              13.1091
-            ],
-            [
-              80.2619,
-              13.1109
-            ],
-            [
-              80.2601,
-              13.1109
-            ],
-            [
-              80.2601,
-              13.1091
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_PER_01",
-      "name": "Perambur Stephenson Road Subway",
-      "latitude": 13.1075,
-      "longitude": 80.246,
-      "elevation": 5.8,
-      "slope": 0.3,
-      "flow_accumulation": 78000.0,
-      "imperviousness": 0.89,
-      "terrain_type": "canal_corridor_underpass",
-      "associated_hotspot_id": "HS07",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2451,
-              13.1066
-            ],
-            [
-              80.2469,
-              13.1066
-            ],
-            [
-              80.2469,
-              13.1084
-            ],
-            [
-              80.2451,
-              13.1084
-            ],
-            [
-              80.2451,
-              13.1066
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_PER_02",
-      "name": "Perambur Otteri Nullah Embankment",
-      "latitude": 13.105,
-      "longitude": 80.243,
-      "elevation": 6.5,
-      "slope": 0.4,
-      "flow_accumulation": 65000.0,
-      "imperviousness": 0.84,
-      "terrain_type": "canal_overflow_edge",
-      "associated_hotspot_id": "HS07",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2421,
-              13.1041
-            ],
-            [
-              80.2439,
-              13.1041
-            ],
-            [
-              80.2439,
-              13.1059
-            ],
-            [
-              80.2421,
-              13.1059
-            ],
-            [
-              80.2421,
-              13.1041
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_KOY_01",
-      "name": "Koyambedu Wholesale Market Concourse",
-      "latitude": 13.07,
-      "longitude": 80.196,
-      "elevation": 10.5,
-      "slope": 0.3,
-      "flow_accumulation": 82000.0,
-      "imperviousness": 0.95,
-      "terrain_type": "river_meander_commercial",
-      "associated_hotspot_id": "HS08",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.1951,
-              13.0691
-            ],
-            [
-              80.1969,
-              13.0691
-            ],
-            [
-              80.1969,
-              13.0709
-            ],
-            [
-              80.1951,
-              13.0709
-            ],
-            [
-              80.1951,
-              13.0691
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_KOY_02",
-      "name": "Koyambedu Cooum River Bend Approach",
-      "latitude": 13.068,
-      "longitude": 80.193,
-      "elevation": 9.8,
+      "cell_id": "CELL_RAJ_01",
+      "name": "Rajendra Nagar Sump Basin Center",
+      "latitude": 25.6012,
+      "longitude": 85.1634,
+      "elevation": 48.8,
       "slope": 0.2,
       "flow_accumulation": 125000.0,
+      "imperviousness": 0.9,
+      "terrain_type": "saucer_depression_basin",
+      "associated_hotspot_id": "HS01",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1625,
+              25.6003
+            ],
+            [
+              85.1643,
+              25.6003
+            ],
+            [
+              85.1643,
+              25.6021
+            ],
+            [
+              85.1625,
+              25.6021
+            ],
+            [
+              85.1625,
+              25.6003
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_RAJ_02",
+      "name": "Rajendra Nagar Stadium Corridor",
+      "latitude": 25.6045,
+      "longitude": 85.1668,
+      "elevation": 49.1,
+      "slope": 0.3,
+      "flow_accumulation": 98000.0,
       "imperviousness": 0.88,
-      "terrain_type": "riverine_commercial_fringe",
+      "terrain_type": "stadium_depression",
+      "associated_hotspot_id": "HS01",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1659,
+              25.6036
+            ],
+            [
+              85.1677,
+              25.6036
+            ],
+            [
+              85.1677,
+              25.6054
+            ],
+            [
+              85.1659,
+              25.6054
+            ],
+            [
+              85.1659,
+              25.6036
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_RAJ_03",
+      "name": "Rajendra Nagar Terminal Underpass",
+      "latitude": 25.599,
+      "longitude": 85.161,
+      "elevation": 48.6,
+      "slope": 0.2,
+      "flow_accumulation": 110000.0,
+      "imperviousness": 0.92,
+      "terrain_type": "railway_underpass_dip",
+      "associated_hotspot_id": "HS01",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1601,
+              25.5981
+            ],
+            [
+              85.1619,
+              25.5981
+            ],
+            [
+              85.1619,
+              25.5999
+            ],
+            [
+              85.1601,
+              25.5999
+            ],
+            [
+              85.1601,
+              25.5981
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_RAJ_04",
+      "name": "Premchand Rangshala Basin",
+      "latitude": 25.603,
+      "longitude": 85.159,
+      "elevation": 49.3,
+      "slope": 0.3,
+      "flow_accumulation": 85000.0,
+      "imperviousness": 0.85,
+      "terrain_type": "urban_basin",
+      "associated_hotspot_id": "HS01",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1581,
+              25.6021
+            ],
+            [
+              85.1599,
+              25.6021
+            ],
+            [
+              85.1599,
+              25.6039
+            ],
+            [
+              85.1581,
+              25.6039
+            ],
+            [
+              85.1581,
+              25.6021
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_KAN_01",
+      "name": "Kankarbagh Malahi Pakri Saucer Basin",
+      "latitude": 25.5945,
+      "longitude": 85.1582,
+      "elevation": 49.2,
+      "slope": 0.2,
+      "flow_accumulation": 115000.0,
+      "imperviousness": 0.89,
+      "terrain_type": "saucer_depression_basin",
+      "associated_hotspot_id": "HS02",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1573,
+              25.5936
+            ],
+            [
+              85.1591,
+              25.5936
+            ],
+            [
+              85.1591,
+              25.5954
+            ],
+            [
+              85.1573,
+              25.5954
+            ],
+            [
+              85.1573,
+              25.5936
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_KAN_02",
+      "name": "Kankarbagh Tempo Stand Junction",
+      "latitude": 25.596,
+      "longitude": 85.152,
+      "elevation": 49.4,
+      "slope": 0.3,
+      "flow_accumulation": 92000.0,
+      "imperviousness": 0.87,
+      "terrain_type": "road_confluence_depression",
+      "associated_hotspot_id": "HS02",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1511,
+              25.5951
+            ],
+            [
+              85.1529,
+              25.5951
+            ],
+            [
+              85.1529,
+              25.5969
+            ],
+            [
+              85.1511,
+              25.5969
+            ],
+            [
+              85.1511,
+              25.5951
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_KAN_03",
+      "name": "Kankarbagh Housing Board Colony",
+      "latitude": 25.591,
+      "longitude": 85.162,
+      "elevation": 49.0,
+      "slope": 0.2,
+      "flow_accumulation": 105000.0,
+      "imperviousness": 0.86,
+      "terrain_type": "residential_bowl",
+      "associated_hotspot_id": "HS02",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1611,
+              25.5901
+            ],
+            [
+              85.1629,
+              25.5901
+            ],
+            [
+              85.1629,
+              25.5919
+            ],
+            [
+              85.1611,
+              25.5919
+            ],
+            [
+              85.1611,
+              25.5901
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_KAN_04",
+      "name": "Old Bypass Kankarbagh Outfall",
+      "latitude": 25.588,
+      "longitude": 85.155,
+      "elevation": 49.5,
+      "slope": 0.3,
+      "flow_accumulation": 88000.0,
+      "imperviousness": 0.84,
+      "terrain_type": "bypass_culvert_toe",
+      "associated_hotspot_id": "HS02",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1541,
+              25.5871
+            ],
+            [
+              85.1559,
+              25.5871
+            ],
+            [
+              85.1559,
+              25.5889
+            ],
+            [
+              85.1541,
+              25.5889
+            ],
+            [
+              85.1541,
+              25.5871
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_SAI_01",
+      "name": "Saidpur Nullah Drainage Channel",
+      "latitude": 25.6121,
+      "longitude": 85.1754,
+      "elevation": 49.5,
+      "slope": 0.2,
+      "flow_accumulation": 145000.0,
+      "imperviousness": 0.85,
+      "terrain_type": "canal_confluence_bottleneck",
+      "associated_hotspot_id": "HS03",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1745,
+              25.6112
+            ],
+            [
+              85.1763,
+              25.6112
+            ],
+            [
+              85.1763,
+              25.613
+            ],
+            [
+              85.1745,
+              25.613
+            ],
+            [
+              85.1745,
+              25.6112
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_SAI_02",
+      "name": "Saidpur Pumping Station Outfall",
+      "latitude": 25.615,
+      "longitude": 85.178,
+      "elevation": 49.3,
+      "slope": 0.2,
+      "flow_accumulation": 160000.0,
+      "imperviousness": 0.82,
+      "terrain_type": "pumping_station_basin",
+      "associated_hotspot_id": "HS03",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1771,
+              25.6141
+            ],
+            [
+              85.1789,
+              25.6141
+            ],
+            [
+              85.1789,
+              25.6159
+            ],
+            [
+              85.1771,
+              25.6159
+            ],
+            [
+              85.1771,
+              25.6141
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_SAI_03",
+      "name": "Saidpur Canal Bridge Confluence",
+      "latitude": 25.609,
+      "longitude": 85.172,
+      "elevation": 49.8,
+      "slope": 0.3,
+      "flow_accumulation": 120000.0,
+      "imperviousness": 0.86,
+      "terrain_type": "canal_bridge_dip",
+      "associated_hotspot_id": "HS03",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1711,
+              25.6081
+            ],
+            [
+              85.1729,
+              25.6081
+            ],
+            [
+              85.1729,
+              25.6099
+            ],
+            [
+              85.1711,
+              25.6099
+            ],
+            [
+              85.1711,
+              25.6081
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_SAI_04",
+      "name": "Rampur Saidpur Catchment",
+      "latitude": 25.606,
+      "longitude": 85.176,
+      "elevation": 49.6,
+      "slope": 0.3,
+      "flow_accumulation": 102000.0,
+      "imperviousness": 0.8,
+      "terrain_type": "agricultural_runoff_basin",
+      "associated_hotspot_id": "HS03",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1751,
+              25.6051
+            ],
+            [
+              85.1769,
+              25.6051
+            ],
+            [
+              85.1769,
+              25.6069
+            ],
+            [
+              85.1751,
+              25.6069
+            ],
+            [
+              85.1751,
+              25.6051
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BOR_01",
+      "name": "Boring Canal Road Lowland",
+      "latitude": 25.6183,
+      "longitude": 85.1221,
+      "elevation": 51.2,
+      "slope": 0.5,
+      "flow_accumulation": 68000.0,
+      "imperviousness": 0.9,
+      "terrain_type": "canal_corridor_depression",
+      "associated_hotspot_id": "HS04",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1212,
+              25.6174
+            ],
+            [
+              85.123,
+              25.6174
+            ],
+            [
+              85.123,
+              25.6192
+            ],
+            [
+              85.1212,
+              25.6192
+            ],
+            [
+              85.1212,
+              25.6174
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BOR_02",
+      "name": "Boring Road Chauraha Corridor",
+      "latitude": 25.621,
+      "longitude": 85.125,
+      "elevation": 51.5,
+      "slope": 0.6,
+      "flow_accumulation": 52000.0,
+      "imperviousness": 0.92,
+      "terrain_type": "commercial_arterial",
+      "associated_hotspot_id": "HS04",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1241,
+              25.6201
+            ],
+            [
+              85.1259,
+              25.6201
+            ],
+            [
+              85.1259,
+              25.6219
+            ],
+            [
+              85.1241,
+              25.6219
+            ],
+            [
+              85.1241,
+              25.6201
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BOR_03",
+      "name": "Anandpuri Drainage Pocket",
+      "latitude": 25.616,
+      "longitude": 85.118,
+      "elevation": 50.9,
+      "slope": 0.4,
+      "flow_accumulation": 75000.0,
+      "imperviousness": 0.88,
+      "terrain_type": "residential_pocket",
+      "associated_hotspot_id": "HS04",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1171,
+              25.6151
+            ],
+            [
+              85.1189,
+              25.6151
+            ],
+            [
+              85.1189,
+              25.6169
+            ],
+            [
+              85.1171,
+              25.6169
+            ],
+            [
+              85.1171,
+              25.6151
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BOR_04",
+      "name": "S.K. Puri Depression Basin",
+      "latitude": 25.624,
+      "longitude": 85.119,
+      "elevation": 51.0,
+      "slope": 0.5,
+      "flow_accumulation": 60000.0,
+      "imperviousness": 0.86,
+      "terrain_type": "park_periphery_bowl",
+      "associated_hotspot_id": "HS04",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1181,
+              25.6231
+            ],
+            [
+              85.1199,
+              25.6231
+            ],
+            [
+              85.1199,
+              25.6249
+            ],
+            [
+              85.1181,
+              25.6249
+            ],
+            [
+              85.1181,
+              25.6231
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BAI_01",
+      "name": "Bailey Road Saguna More Underpass",
+      "latitude": 25.6124,
+      "longitude": 85.0622,
+      "elevation": 52.4,
+      "slope": 0.7,
+      "flow_accumulation": 58000.0,
+      "imperviousness": 0.85,
+      "terrain_type": "railway_underpass_dip",
+      "associated_hotspot_id": "HS05",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.0613,
+              25.6115
+            ],
+            [
+              85.0631,
+              25.6115
+            ],
+            [
+              85.0631,
+              25.6133
+            ],
+            [
+              85.0613,
+              25.6133
+            ],
+            [
+              85.0613,
+              25.6115
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BAI_02",
+      "name": "Rupaspur Drainage Culvert",
+      "latitude": 25.614,
+      "longitude": 85.071,
+      "elevation": 52.1,
+      "slope": 0.6,
+      "flow_accumulation": 62000.0,
+      "imperviousness": 0.82,
+      "terrain_type": "culvert_depression",
+      "associated_hotspot_id": "HS05",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.0701,
+              25.6131
+            ],
+            [
+              85.0719,
+              25.6131
+            ],
+            [
+              85.0719,
+              25.6149
+            ],
+            [
+              85.0701,
+              25.6149
+            ],
+            [
+              85.0701,
+              25.6131
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BAI_03",
+      "name": "Raja Bazar Flyover Basin",
+      "latitude": 25.613,
+      "longitude": 85.092,
+      "elevation": 51.8,
+      "slope": 0.5,
+      "flow_accumulation": 66000.0,
+      "imperviousness": 0.89,
+      "terrain_type": "flyover_foot_drain",
+      "associated_hotspot_id": "HS05",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.0911,
+              25.6121
+            ],
+            [
+              85.0929,
+              25.6121
+            ],
+            [
+              85.0929,
+              25.6139
+            ],
+            [
+              85.0911,
+              25.6139
+            ],
+            [
+              85.0911,
+              25.6121
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BAI_04",
+      "name": "Jagdeo Path Drainage Node",
+      "latitude": 25.611,
+      "longitude": 85.08,
+      "elevation": 52.0,
+      "slope": 0.6,
+      "flow_accumulation": 54000.0,
+      "imperviousness": 0.84,
+      "terrain_type": "arterial_junction",
+      "associated_hotspot_id": "HS05",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.0791,
+              25.6101
+            ],
+            [
+              85.0809,
+              25.6101
+            ],
+            [
+              85.0809,
+              25.6119
+            ],
+            [
+              85.0791,
+              25.6119
+            ],
+            [
+              85.0791,
+              25.6101
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_GAN_01",
+      "name": "Gandhi Maidan Southern Gate",
+      "latitude": 25.618,
+      "longitude": 85.1441,
+      "elevation": 50.8,
+      "slope": 0.4,
+      "flow_accumulation": 82000.0,
+      "imperviousness": 0.91,
+      "terrain_type": "commercial_basin_runoff",
+      "associated_hotspot_id": "HS06",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1432,
+              25.6171
+            ],
+            [
+              85.145,
+              25.6171
+            ],
+            [
+              85.145,
+              25.6189
+            ],
+            [
+              85.1432,
+              25.6189
+            ],
+            [
+              85.1432,
+              25.6171
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_GAN_02",
+      "name": "Exhibition Road Commercial Basin",
+      "latitude": 25.614,
+      "longitude": 85.142,
+      "elevation": 50.5,
+      "slope": 0.3,
+      "flow_accumulation": 89000.0,
+      "imperviousness": 0.93,
+      "terrain_type": "commercial_depression",
+      "associated_hotspot_id": "HS06",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1411,
+              25.6131
+            ],
+            [
+              85.1429,
+              25.6131
+            ],
+            [
+              85.1429,
+              25.6149
+            ],
+            [
+              85.1411,
+              25.6149
+            ],
+            [
+              85.1411,
+              25.6131
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_GAN_03",
+      "name": "Dak Bungalow Chauraha Sump",
+      "latitude": 25.61,
+      "longitude": 85.138,
+      "elevation": 50.6,
+      "slope": 0.4,
+      "flow_accumulation": 84000.0,
+      "imperviousness": 0.94,
+      "terrain_type": "intersection_lowland",
+      "associated_hotspot_id": "HS06",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1371,
+              25.6091
+            ],
+            [
+              85.1389,
+              25.6091
+            ],
+            [
+              85.1389,
+              25.6109
+            ],
+            [
+              85.1371,
+              25.6109
+            ],
+            [
+              85.1371,
+              25.6091
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_GAN_04",
+      "name": "Frazer Road Transit Drain",
+      "latitude": 25.606,
+      "longitude": 85.139,
+      "elevation": 50.2,
+      "slope": 0.3,
+      "flow_accumulation": 91000.0,
+      "imperviousness": 0.92,
+      "terrain_type": "transit_corridor_sink",
+      "associated_hotspot_id": "HS06",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1381,
+              25.6051
+            ],
+            [
+              85.1399,
+              25.6051
+            ],
+            [
+              85.1399,
+              25.6069
+            ],
+            [
+              85.1381,
+              25.6069
+            ],
+            [
+              85.1381,
+              25.6051
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_PAT_01",
+      "name": "Patliputra Industrial Estate Lowland",
+      "latitude": 25.6321,
+      "longitude": 85.1052,
+      "elevation": 51.5,
+      "slope": 0.6,
+      "flow_accumulation": 48000.0,
+      "imperviousness": 0.86,
+      "terrain_type": "residential_depression_pocket",
+      "associated_hotspot_id": "HS07",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1043,
+              25.6312
+            ],
+            [
+              85.1061,
+              25.6312
+            ],
+            [
+              85.1061,
+              25.633
+            ],
+            [
+              85.1043,
+              25.633
+            ],
+            [
+              85.1043,
+              25.6312
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_PAT_02",
+      "name": "Patliputra Colony Roundabout",
+      "latitude": 25.628,
+      "longitude": 85.108,
+      "elevation": 52.0,
+      "slope": 0.7,
+      "flow_accumulation": 36000.0,
+      "imperviousness": 0.82,
+      "terrain_type": "roundabout_depression",
+      "associated_hotspot_id": "HS07",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1071,
+              25.6271
+            ],
+            [
+              85.1089,
+              25.6271
+            ],
+            [
+              85.1089,
+              25.6289
+            ],
+            [
+              85.1071,
+              25.6289
+            ],
+            [
+              85.1071,
+              25.6271
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_PAT_03",
+      "name": "Gosaintola Drainage Sink",
+      "latitude": 25.635,
+      "longitude": 85.102,
+      "elevation": 51.2,
+      "slope": 0.5,
+      "flow_accumulation": 55000.0,
+      "imperviousness": 0.84,
+      "terrain_type": "channel_inflow_pocket",
+      "associated_hotspot_id": "HS07",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1011,
+              25.6341
+            ],
+            [
+              85.1029,
+              25.6341
+            ],
+            [
+              85.1029,
+              25.6359
+            ],
+            [
+              85.1011,
+              25.6359
+            ],
+            [
+              85.1011,
+              25.6341
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_PAT_04",
+      "name": "Alpana Market Drainage Basin",
+      "latitude": 25.626,
+      "longitude": 85.112,
+      "elevation": 52.2,
+      "slope": 0.8,
+      "flow_accumulation": 32000.0,
+      "imperviousness": 0.8,
+      "terrain_type": "market_catchment",
+      "associated_hotspot_id": "HS07",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1111,
+              25.6251
+            ],
+            [
+              85.1129,
+              25.6251
+            ],
+            [
+              85.1129,
+              25.6269
+            ],
+            [
+              85.1111,
+              25.6269
+            ],
+            [
+              85.1111,
+              25.6251
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_ANI_01",
+      "name": "Anisabad Golambar Depression",
+      "latitude": 25.5781,
+      "longitude": 85.0973,
+      "elevation": 50.1,
+      "slope": 0.4,
+      "flow_accumulation": 76000.0,
+      "imperviousness": 0.84,
+      "terrain_type": "highway_embankment_toe",
       "associated_hotspot_id": "HS08",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              80.1921,
-              13.0671
+              85.0964,
+              25.5772
             ],
             [
-              80.1939,
-              13.0671
+              85.0982,
+              25.5772
             ],
             [
-              80.1939,
-              13.0689
+              85.0982,
+              25.579
             ],
             [
-              80.1921,
-              13.0689
+              85.0964,
+              25.579
             ],
             [
-              80.1921,
-              13.0671
+              85.0964,
+              25.5772
             ]
           ]
         ]
       }
     },
     {
-      "cell_id": "CELL_MAN_01",
-      "name": "Manapakkam MIOT Hospital River Bend",
-      "latitude": 13.0185,
-      "longitude": 80.181,
-      "elevation": 8.8,
-      "slope": 0.2,
-      "flow_accumulation": 175000.0,
-      "imperviousness": 0.87,
-      "terrain_type": "river_floodplain_hospital",
-      "associated_hotspot_id": "HS09",
+      "cell_id": "CELL_ANI_02",
+      "name": "Old Bypass Anisabad Culvert",
+      "latitude": 25.582,
+      "longitude": 85.105,
+      "elevation": 50.4,
+      "slope": 0.5,
+      "flow_accumulation": 68000.0,
+      "imperviousness": 0.82,
+      "terrain_type": "bypass_culvert_toe",
+      "associated_hotspot_id": "HS08",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              80.1801,
-              13.0176
+              85.1041,
+              25.5811
             ],
             [
-              80.1819,
-              13.0176
+              85.1059,
+              25.5811
             ],
             [
-              80.1819,
-              13.0194
+              85.1059,
+              25.5829
             ],
             [
-              80.1801,
-              13.0194
+              85.1041,
+              25.5829
             ],
             [
-              80.1801,
-              13.0176
+              85.1041,
+              25.5811
             ]
           ]
         ]
       }
     },
     {
-      "cell_id": "CELL_MAN_02",
-      "name": "Manapakkam Trade Centre Highway Corridor",
-      "latitude": 13.016,
-      "longitude": 80.178,
-      "elevation": 9.5,
+      "cell_id": "CELL_ANI_03",
+      "name": "Saristabad Lowlands",
+      "latitude": 25.574,
+      "longitude": 85.101,
+      "elevation": 49.8,
       "slope": 0.3,
-      "flow_accumulation": 110000.0,
-      "imperviousness": 0.85,
-      "terrain_type": "highway_drainage_bottleneck",
+      "flow_accumulation": 85000.0,
+      "imperviousness": 0.8,
+      "terrain_type": "southern_fringe_basin",
+      "associated_hotspot_id": "HS08",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.1001,
+              25.5731
+            ],
+            [
+              85.1019,
+              25.5731
+            ],
+            [
+              85.1019,
+              25.5749
+            ],
+            [
+              85.1001,
+              25.5749
+            ],
+            [
+              85.1001,
+              25.5731
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_DIG_01",
+      "name": "Digha Ghat Embankment Toe",
+      "latitude": 25.6423,
+      "longitude": 85.0884,
+      "elevation": 52.8,
+      "slope": 0.9,
+      "flow_accumulation": 28000.0,
+      "imperviousness": 0.76,
+      "terrain_type": "canal_embankment_dip",
       "associated_hotspot_id": "HS09",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              80.1771,
-              13.0151
+              85.0875,
+              25.6414
             ],
             [
-              80.1789,
-              13.0151
+              85.0893,
+              25.6414
             ],
             [
-              80.1789,
-              13.0169
+              85.0893,
+              25.6432
             ],
             [
-              80.1771,
-              13.0169
+              85.0875,
+              25.6432
             ],
             [
-              80.1771,
-              13.0151
+              85.0875,
+              25.6414
             ]
           ]
         ]
       }
     },
     {
-      "cell_id": "CELL_PAL_01",
-      "name": "Pallikaranai Radial Road Chokepoint",
-      "latitude": 12.939,
-      "longitude": 80.209,
-      "elevation": 5.8,
-      "slope": 0.1,
-      "flow_accumulation": 185000.0,
-      "imperviousness": 0.82,
-      "terrain_type": "wetland_corridor_chokepoint",
-      "associated_hotspot_id": "HS10",
+      "cell_id": "CELL_DIG_02",
+      "name": "Ashiana-Digha Canal Basin",
+      "latitude": 25.638,
+      "longitude": 85.082,
+      "elevation": 53.2,
+      "slope": 1.1,
+      "flow_accumulation": 21000.0,
+      "imperviousness": 0.74,
+      "terrain_type": "canal_inflow_ridge",
+      "associated_hotspot_id": "HS09",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              80.2081,
-              12.9381
+              85.0811,
+              25.6371
             ],
             [
-              80.2099,
-              12.9381
+              85.0829,
+              25.6371
             ],
             [
-              80.2099,
-              12.9399
+              85.0829,
+              25.6389
             ],
             [
-              80.2081,
-              12.9399
+              85.0811,
+              25.6389
             ],
             [
-              80.2081,
-              12.9381
+              85.0811,
+              25.6371
             ]
           ]
         ]
       }
     },
     {
-      "cell_id": "CELL_PAL_02",
-      "name": "Pallikaranai Kamakshi Hospital Edge",
-      "latitude": 12.936,
-      "longitude": 80.207,
-      "elevation": 6.2,
+      "cell_id": "CELL_DIG_03",
+      "name": "Ramji Chak Depression Pocket",
+      "latitude": 25.646,
+      "longitude": 85.093,
+      "elevation": 52.5,
+      "slope": 0.8,
+      "flow_accumulation": 31000.0,
+      "imperviousness": 0.78,
+      "terrain_type": "riverfront_pocket",
+      "associated_hotspot_id": "HS09",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.0921,
+              25.6451
+            ],
+            [
+              85.0939,
+              25.6451
+            ],
+            [
+              85.0939,
+              25.6469
+            ],
+            [
+              85.0921,
+              25.6469
+            ],
+            [
+              85.0921,
+              25.6451
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "cell_id": "CELL_BAZ_01",
+      "name": "Bazar Samiti Outfall Bottleneck",
+      "latitude": 25.6084,
+      "longitude": 85.1822,
+      "elevation": 49.0,
       "slope": 0.2,
-      "flow_accumulation": 145000.0,
-      "imperviousness": 0.78,
-      "terrain_type": "wetland_fringe_sink",
+      "flow_accumulation": 138000.0,
+      "imperviousness": 0.91,
+      "terrain_type": "drainage_outfall_bottleneck",
       "associated_hotspot_id": "HS10",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              80.2061,
-              12.9351
+              85.1813,
+              25.6075
             ],
             [
-              80.2079,
-              12.9351
+              85.1831,
+              25.6075
             ],
             [
-              80.2079,
-              12.9369
+              85.1831,
+              25.6093
             ],
             [
-              80.2061,
-              12.9369
+              85.1813,
+              25.6093
             ],
             [
-              80.2061,
-              12.9351
+              85.1813,
+              25.6075
             ]
           ]
         ]
       }
     },
     {
-      "cell_id": "CELL_ADY_01",
-      "name": "Adyar Shastri Nagar Residential",
-      "latitude": 13.001,
-      "longitude": 80.252,
-      "elevation": 13.2,
-      "slope": 1.1,
-      "flow_accumulation": 15000.0,
-      "imperviousness": 0.65,
-      "terrain_type": "urban_residential",
-      "associated_hotspot_id": null,
+      "cell_id": "CELL_BAZ_02",
+      "name": "Musallahpur Hat Stormwater Drain",
+      "latitude": 25.611,
+      "longitude": 85.185,
+      "elevation": 49.2,
+      "slope": 0.2,
+      "flow_accumulation": 128000.0,
+      "imperviousness": 0.93,
+      "terrain_type": "market_confluence_drain",
+      "associated_hotspot_id": "HS10",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              80.2511,
-              13.0001
+              85.1841,
+              25.6101
             ],
             [
-              80.2529,
-              13.0001
+              85.1859,
+              25.6101
             ],
             [
-              80.2529,
-              13.0019
+              85.1859,
+              25.6119
             ],
             [
-              80.2511,
-              13.0019
+              85.1841,
+              25.6119
             ],
             [
-              80.2511,
-              13.0001
+              85.1841,
+              25.6101
             ]
           ]
         ]
       }
     },
     {
-      "cell_id": "CELL_ADY_02",
-      "name": "Adyar Sardar Patel Road Corridor",
-      "latitude": 13.005,
-      "longitude": 80.248,
-      "elevation": 14.5,
-      "slope": 1.4,
-      "flow_accumulation": 12000.0,
-      "imperviousness": 0.72,
-      "terrain_type": "arterial_commercial_residential",
-      "associated_hotspot_id": null,
+      "cell_id": "CELL_BAZ_03",
+      "name": "Mahendru Lowland Catchment",
+      "latitude": 25.614,
+      "longitude": 85.181,
+      "elevation": 49.7,
+      "slope": 0.3,
+      "flow_accumulation": 112000.0,
+      "imperviousness": 0.88,
+      "terrain_type": "old_city_depression",
+      "associated_hotspot_id": "HS10",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              80.2471,
-              13.0041
+              85.1801,
+              25.6131
             ],
             [
-              80.2489,
-              13.0041
+              85.1819,
+              25.6131
             ],
             [
-              80.2489,
-              13.0059
+              85.1819,
+              25.6149
             ],
             [
-              80.2471,
-              13.0059
+              85.1801,
+              25.6149
             ],
             [
-              80.2471,
-              13.0041
+              85.1801,
+              25.6131
             ]
           ]
         ]
       }
     },
     {
-      "cell_id": "CELL_MYL_01",
-      "name": "Mylapore Luz Corner Historic Ward",
-      "latitude": 13.038,
-      "longitude": 80.265,
-      "elevation": 12.8,
-      "slope": 0.9,
-      "flow_accumulation": 18500.0,
-      "imperviousness": 0.82,
-      "terrain_type": "dense_historical_residential",
-      "associated_hotspot_id": null,
+      "cell_id": "CELL_BAZ_04",
+      "name": "Kumhrar Archaeological Basin",
+      "latitude": 25.602,
+      "longitude": 85.184,
+      "elevation": 48.9,
+      "slope": 0.2,
+      "flow_accumulation": 142000.0,
+      "imperviousness": 0.85,
+      "terrain_type": "archaeological_depression_sink",
+      "associated_hotspot_id": "HS10",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              80.2641,
-              13.0371
+              85.1831,
+              25.6011
             ],
             [
-              80.2659,
-              13.0371
+              85.1849,
+              25.6011
             ],
             [
-              80.2659,
-              13.0389
+              85.1849,
+              25.6029
             ],
             [
-              80.2641,
-              13.0389
+              85.1831,
+              25.6029
             ],
             [
-              80.2641,
-              13.0371
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_MYL_02",
-      "name": "Mylapore Santhome Coastal Avenue",
-      "latitude": 13.032,
-      "longitude": 80.278,
-      "elevation": 11.0,
-      "slope": 1.2,
-      "flow_accumulation": 9500.0,
-      "imperviousness": 0.68,
-      "terrain_type": "coastal_residential_fringe",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2771,
-              13.0311
-            ],
-            [
-              80.2789,
-              13.0311
-            ],
-            [
-              80.2789,
-              13.0329
-            ],
-            [
-              80.2771,
-              13.0329
-            ],
-            [
-              80.2771,
-              13.0311
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_ANN_01",
-      "name": "Anna Nagar Shanthi Colony Central",
-      "latitude": 13.085,
-      "longitude": 80.215,
-      "elevation": 16.0,
-      "slope": 1.5,
-      "flow_accumulation": 11000.0,
-      "imperviousness": 0.68,
-      "terrain_type": "planned_residential_grid",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2141,
-              13.0841
-            ],
-            [
-              80.2159,
-              13.0841
-            ],
-            [
-              80.2159,
-              13.0859
-            ],
-            [
-              80.2141,
-              13.0859
-            ],
-            [
-              80.2141,
-              13.0841
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_ANN_02",
-      "name": "Anna Nagar West Extension Pocket",
-      "latitude": 13.089,
-      "longitude": 80.201,
-      "elevation": 15.2,
-      "slope": 1.2,
-      "flow_accumulation": 14000.0,
-      "imperviousness": 0.7,
-      "terrain_type": "planned_residential_secondary",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2001,
-              13.0881
-            ],
-            [
-              80.2019,
-              13.0881
-            ],
-            [
-              80.2019,
-              13.0899
-            ],
-            [
-              80.2001,
-              13.0899
-            ],
-            [
-              80.2001,
-              13.0881
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_KOD_01",
-      "name": "Kodambakkam Station Road Fringe",
-      "latitude": 13.052,
-      "longitude": 80.228,
-      "elevation": 13.5,
-      "slope": 1.0,
-      "flow_accumulation": 19000.0,
-      "imperviousness": 0.78,
-      "terrain_type": "railway_adjacent_residential",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2271,
-              13.0511
-            ],
-            [
-              80.2289,
-              13.0511
-            ],
-            [
-              80.2289,
-              13.0529
-            ],
-            [
-              80.2271,
-              13.0529
-            ],
-            [
-              80.2271,
-              13.0511
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_ALN_01",
-      "name": "Alandur Cantonment Residential",
-      "latitude": 13.003,
-      "longitude": 80.201,
-      "elevation": 17.5,
-      "slope": 1.8,
-      "flow_accumulation": 8500.0,
-      "imperviousness": 0.6,
-      "terrain_type": "moderate_elevation_urban",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2001,
-              13.0021
-            ],
-            [
-              80.2019,
-              13.0021
-            ],
-            [
-              80.2019,
-              13.0039
-            ],
-            [
-              80.2001,
-              13.0039
-            ],
-            [
-              80.2001,
-              13.0021
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_AMB_01",
-      "name": "Ambattur Industrial Estate North",
-      "latitude": 13.098,
-      "longitude": 80.162,
-      "elevation": 18.0,
-      "slope": 1.6,
-      "flow_accumulation": 22000.0,
-      "imperviousness": 0.75,
-      "terrain_type": "industrial_built_up",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.1611,
-              13.0971
-            ],
-            [
-              80.1629,
-              13.0971
-            ],
-            [
-              80.1629,
-              13.0989
-            ],
-            [
-              80.1611,
-              13.0989
-            ],
-            [
-              80.1611,
-              13.0971
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_AMB_02",
-      "name": "Ambattur Lake Buffer Zone",
-      "latitude": 13.112,
-      "longitude": 80.155,
-      "elevation": 16.5,
-      "slope": 1.1,
-      "flow_accumulation": 35000.0,
-      "imperviousness": 0.45,
-      "terrain_type": "lake_catchment_semi_permeable",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.1541,
-              13.1111
-            ],
-            [
-              80.1559,
-              13.1111
-            ],
-            [
-              80.1559,
-              13.1129
-            ],
-            [
-              80.1541,
-              13.1129
-            ],
-            [
-              80.1541,
-              13.1111
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_GUI_01",
-      "name": "Guindy National Park Forest Core",
-      "latitude": 13.007,
-      "longitude": 80.222,
-      "elevation": 22.0,
-      "slope": 2.8,
-      "flow_accumulation": 2200.0,
-      "imperviousness": 0.12,
-      "terrain_type": "urban_forest_nature_reserve",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2211,
-              13.0061
-            ],
-            [
-              80.2229,
-              13.0061
-            ],
-            [
-              80.2229,
-              13.0079
-            ],
-            [
-              80.2211,
-              13.0079
-            ],
-            [
-              80.2211,
-              13.0061
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_GUI_02",
-      "name": "Guindy Raj Bhavan Woodland Reserve",
-      "latitude": 13.009,
-      "longitude": 80.228,
-      "elevation": 24.5,
-      "slope": 3.2,
-      "flow_accumulation": 1800.0,
-      "imperviousness": 0.18,
-      "terrain_type": "protected_woodland_canopy",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2271,
-              13.0081
-            ],
-            [
-              80.2289,
-              13.0081
-            ],
-            [
-              80.2289,
-              13.0099
-            ],
-            [
-              80.2271,
-              13.0099
-            ],
-            [
-              80.2271,
-              13.0081
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_STM_01",
-      "name": "St Thomas Mount Hillcrest Summit",
-      "latitude": 12.999,
-      "longitude": 80.193,
-      "elevation": 48.0,
-      "slope": 7.5,
-      "flow_accumulation": 350.0,
-      "imperviousness": 0.25,
-      "terrain_type": "granitic_ridge_crest",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.1921,
-              12.9981
-            ],
-            [
-              80.1939,
-              12.9981
-            ],
-            [
-              80.1939,
-              12.9999
-            ],
-            [
-              80.1921,
-              12.9999
-            ],
-            [
-              80.1921,
-              12.9981
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_STM_02",
-      "name": "St Thomas Mount Upper Slope",
-      "latitude": 12.997,
-      "longitude": 80.195,
-      "elevation": 36.0,
-      "slope": 5.8,
-      "flow_accumulation": 850.0,
-      "imperviousness": 0.32,
-      "terrain_type": "rocky_escarpment_slope",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.1941,
-              12.9961
-            ],
-            [
-              80.1959,
-              12.9961
-            ],
-            [
-              80.1959,
-              12.9979
-            ],
-            [
-              80.1941,
-              12.9979
-            ],
-            [
-              80.1941,
-              12.9961
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_SEM_01",
-      "name": "Semmozhi Poonga Botanical Garden",
-      "latitude": 13.051,
-      "longitude": 80.251,
-      "elevation": 18.5,
-      "slope": 2.1,
-      "flow_accumulation": 2800.0,
-      "imperviousness": 0.15,
-      "terrain_type": "botanical_garden_permeable",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2501,
-              13.0501
-            ],
-            [
-              80.2519,
-              13.0501
-            ],
-            [
-              80.2519,
-              13.0519
-            ],
-            [
-              80.2501,
-              13.0519
-            ],
-            [
-              80.2501,
-              13.0501
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_THI_01",
-      "name": "Thiruvanmiyur Beach Dune Ridge",
-      "latitude": 12.983,
-      "longitude": 80.265,
-      "elevation": 12.5,
-      "slope": 3.5,
-      "flow_accumulation": 1100.0,
-      "imperviousness": 0.22,
-      "terrain_type": "coastal_dune_permeable_sand",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2641,
-              12.9821
-            ],
-            [
-              80.2659,
-              12.9821
-            ],
-            [
-              80.2659,
-              12.9839
-            ],
-            [
-              80.2641,
-              12.9839
-            ],
-            [
-              80.2641,
-              12.9821
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_IIT_01",
-      "name": "IIT Madras Campus Forest Grove",
-      "latitude": 12.991,
-      "longitude": 80.233,
-      "elevation": 21.0,
-      "slope": 2.4,
-      "flow_accumulation": 3100.0,
-      "imperviousness": 0.15,
-      "terrain_type": "institutional_campus_canopy",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.2321,
-              12.9901
-            ],
-            [
-              80.2339,
-              12.9901
-            ],
-            [
-              80.2339,
-              12.9919
-            ],
-            [
-              80.2321,
-              12.9919
-            ],
-            [
-              80.2321,
-              12.9901
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "cell_id": "CELL_POR_01",
-      "name": "Porur Highland Ridge Residential",
-      "latitude": 13.036,
-      "longitude": 80.158,
-      "elevation": 26.0,
-      "slope": 3.0,
-      "flow_accumulation": 4500.0,
-      "imperviousness": 0.48,
-      "terrain_type": "elevated_suburban_terrace",
-      "associated_hotspot_id": null,
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              80.1571,
-              13.0351
-            ],
-            [
-              80.1589,
-              13.0351
-            ],
-            [
-              80.1589,
-              13.0369
-            ],
-            [
-              80.1571,
-              13.0369
-            ],
-            [
-              80.1571,
-              13.0351
+              85.1831,
+              25.6011
             ]
           ]
         ]

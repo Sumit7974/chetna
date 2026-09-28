@@ -26,11 +26,12 @@ import shapely.geometry
 from shapely.geometry import shape
 
 from src.db.forecasts import DEFAULT_DB_PATH, get_db_connection, init_db
+from src.ingestion.pilot_config import PROJECTED_CRS
 
 logger = logging.getLogger(__name__)
 
 # SQL DDL for Spatial Tables
-CREATE_GRID_CELLS_TABLE_SQL = """
+CREATE_GRID_CELLS_TABLE_SQL = f"""
 CREATE TABLE IF NOT EXISTS grid_cells (
     cell_id TEXT PRIMARY KEY,
     row INTEGER NOT NULL,
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS grid_cells (
     elevation_m REAL,
     geometry_geojson TEXT NOT NULL,
     crs TEXT NOT NULL DEFAULT 'EPSG:4326',
-    projected_crs TEXT NOT NULL DEFAULT 'EPSG:32644',
+    projected_crs TEXT NOT NULL DEFAULT '{PROJECTED_CRS}',
     resolution_m REAL NOT NULL DEFAULT 200.0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -195,7 +196,7 @@ def save_grid_cells(
                     elev_val,
                     geom_json,
                     str(row.get("crs", "EPSG:4326")),
-                    str(row.get("projected_crs", "EPSG:32644")),
+                    str(row.get("projected_crs", PROJECTED_CRS)),
                     float(row.get("resolution_m", 200.0)),
                 )
             )
@@ -215,7 +216,7 @@ def save_grid_cells(
                     elev_val,
                     geom_json,
                     str(r.get("crs", "EPSG:4326")),
-                    str(r.get("projected_crs", "EPSG:32644")),
+                    str(r.get("projected_crs", PROJECTED_CRS)),
                     float(r.get("resolution_m", 200.0)),
                 )
             )

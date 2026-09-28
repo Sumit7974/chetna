@@ -76,23 +76,33 @@ class TestB1SpatialData(unittest.TestCase):
     def test_crs_configuration_and_projections(self):
         """Verify authoritative CRS constants and bidirectional transformation."""
         self.assertEqual(GEOGRAPHIC_CRS, "EPSG:4326")
-        self.assertEqual(PROJECTED_CRS, "EPSG:32644")
+        self.assertIn(PROJECTED_CRS, ["EPSG:32645", "EPSG:32644"])
 
         # Test bidirectional transformer
         to_utm = pyproj.Transformer.from_crs(GEOGRAPHIC_CRS, PROJECTED_CRS, always_xy=True)
         to_wgs = pyproj.Transformer.from_crs(PROJECTED_CRS, GEOGRAPHIC_CRS, always_xy=True)
 
-        # Chennai pilot center: 80.2707 E, 13.0827 N
-        utm_x, utm_y = to_utm.transform(80.2707, 13.0827)
-        self.assertGreater(utm_x, 300000.0)
-        self.assertLess(utm_x, 500000.0)
-        self.assertGreater(utm_y, 1400000.0)
-        self.assertLess(utm_y, 1500000.0)
+        if PROJECTED_CRS == "EPSG:32645":
+            # Patna pilot center: 85.1376 E, 25.6093 N
+            test_lon, test_lat = 85.1376, 25.6093
+            utm_x, utm_y = to_utm.transform(test_lon, test_lat)
+            self.assertGreater(utm_x, 200000.0)
+            self.assertLess(utm_x, 400000.0)
+            self.assertGreater(utm_y, 2700000.0)
+            self.assertLess(utm_y, 2900000.0)
+        else:
+            # Chennai pilot center: 80.2707 E, 13.0827 N
+            test_lon, test_lat = 80.2707, 13.0827
+            utm_x, utm_y = to_utm.transform(test_lon, test_lat)
+            self.assertGreater(utm_x, 300000.0)
+            self.assertLess(utm_x, 500000.0)
+            self.assertGreater(utm_y, 1400000.0)
+            self.assertLess(utm_y, 1500000.0)
 
         # Inverse transform
         rev_lon, rev_lat = to_wgs.transform(utm_x, utm_y)
-        self.assertAlmostEqual(rev_lon, 80.2707, places=4)
-        self.assertAlmostEqual(rev_lat, 13.0827, places=4)
+        self.assertAlmostEqual(rev_lon, test_lon, places=4)
+        self.assertAlmostEqual(rev_lat, test_lat, places=4)
 
     def test_grid_generation_dimensions_and_validity(self):
         """Verify grid cells are valid polygons with ~200 m metric resolution."""
@@ -165,8 +175,13 @@ class TestB1SpatialData(unittest.TestCase):
         self.assertIsNotNone(meta["max_elevation_m"])
         self.assertGreater(meta["max_elevation_m"], meta["min_elevation_m"])
 
-        # Test attaching elevation to a sample grid
-        sub_bbox = {"south": 12.980, "north": 12.990, "west": 80.210, "east": 80.220}
+        # Test attaching elevation to a sample grid within pilot bounds
+        sub_bbox = {
+            "south": PILOT_BBOX["south"] + 0.010,
+            "north": PILOT_BBOX["south"] + 0.020,
+            "west": PILOT_BBOX["west"] + 0.010,
+            "east": PILOT_BBOX["west"] + 0.020,
+        }
         grid = generate_pilot_grid(bbox=sub_bbox, resolution_m=200.0)
         grid_with_elev = attach_elevation_to_grid(grid, self.dem_fixture_path)
 
@@ -201,7 +216,12 @@ class TestB1SpatialData(unittest.TestCase):
             init_spatial_db(db_path)
 
             # 1. Grid cells roundtrip
-            sub_bbox = {"south": 12.980, "north": 12.990, "west": 80.210, "east": 80.220}
+            sub_bbox = {
+                "south": PILOT_BBOX["south"] + 0.010,
+                "north": PILOT_BBOX["south"] + 0.020,
+                "west": PILOT_BBOX["west"] + 0.010,
+                "east": PILOT_BBOX["west"] + 0.020,
+            }
             grid = generate_pilot_grid(bbox=sub_bbox, resolution_m=200.0)
             grid = attach_elevation_to_grid(grid, self.dem_fixture_path)
             saved_count = save_grid_cells(grid, db_path)

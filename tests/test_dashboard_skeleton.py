@@ -33,8 +33,8 @@ class TestDashboardSkeleton(unittest.TestCase):
 
         # Check center coordinates
         lat, lon = folium_map.location
-        self.assertTrue(math.isclose(lat, 13.0827, abs_tol=1e-4))
-        self.assertTrue(math.isclose(lon, 80.2707, abs_tol=1e-4))
+        self.assertTrue(math.isclose(lat, DEFAULT_COORDINATES[0], abs_tol=1e-4))
+        self.assertTrue(math.isclose(lon, DEFAULT_COORDINATES[1], abs_tol=1e-4))
 
         # Check default zoom
         self.assertEqual(folium_map.options.get("zoom"), DEFAULT_ZOOM_START)
@@ -71,8 +71,8 @@ class TestDashboardSkeleton(unittest.TestCase):
         self.assertIsInstance(html_str, str)
         self.assertGreater(len(html_str), 500)
         self.assertIn("leaflet", html_str.lower())
-        self.assertIn("13.0827", html_str)
-        self.assertIn("80.2707", html_str)
+        self.assertIn(str(round(DEFAULT_COORDINATES[0], 4)), html_str)
+        self.assertIn(str(round(DEFAULT_COORDINATES[1], 4)), html_str)
 
     def test_brand_logo_assets(self):
         """Verify brand logo SVG and PNG assets exist and are valid."""
@@ -181,8 +181,8 @@ class TestDashboardSkeleton(unittest.TestCase):
     def test_app_package_imports(self):
         """Verify app package exposes core functions and constants."""
         import app
-        self.assertEqual(app.DEFAULT_CITY, "Chennai, India")
-        self.assertEqual(app.DEFAULT_COORDINATES, (13.0827, 80.2707))
+        self.assertEqual(app.DEFAULT_CITY, DEFAULT_CITY)
+        self.assertEqual(app.DEFAULT_COORDINATES, DEFAULT_COORDINATES)
         self.assertTrue(callable(app.create_base_map))
         self.assertTrue(callable(app.get_system_metrics))
         self.assertTrue(callable(app.get_logo_svg))

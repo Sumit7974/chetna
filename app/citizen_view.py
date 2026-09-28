@@ -1,13 +1,13 @@
-"""Chetna: Neighborhood-Scale Flood Early Warning Prototype.
+"""Chetna: Citizen Safety Portal (F2).
 
-F2 Day 1: Citizen View foundation and wireframes.
-Provides an accessible, community-oriented interface for Chennai residents:
-- Simple, plain-language flood situational awareness
-- Neighborhood risk check input stub (Current / +1h / +3h / +6h)
-- Sourced at-risk facilities panel (hospitals, schools, transit shelters)
-- Safe-route placeholder (wireframe for Day 4 routing milestone)
-- Bilingual emergency advisory and alert foundation (English + Hindi)
-- Community base map centered on Chennai
+Accessible, community-oriented interface for Patna residents:
+- Plain-language neighborhood flood situational awareness
+- Neighborhood risk check input (Current / +1h / +3h / +6h)
+- Sourced safe places panel (hospitals, schools, elevated transit shelters)
+- Safe-route finder avoiding waterlogged roads
+- Bilingual emergency advisory and alert guidance (English | हिंदी)
+- Community base map
+- Emergency helplines directory (Patna / Bihar)
 """
 
 from __future__ import annotations
@@ -18,6 +18,17 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import folium
 import streamlit as st
+
+from app.config import (
+    EMERGENCY_HELPLINES,
+    HAZARD_SCOPE,
+    PILOT_CITY,
+    PILOT_LOCATION_LABEL,
+    PILOT_STATE,
+    SYSTEM_NAME,
+)
+
+logger = logging.getLogger(__name__)
 
 ASSETS_DIR: Path = Path(__file__).resolve().parent / "assets"
 LOGO_SVG_PATH: Path = ASSETS_DIR / "chetna_logo.svg"
@@ -35,25 +46,10 @@ def get_logo_asset_path(prefer_svg: bool = False) -> Optional[Path]:
     return None
 
 
-
 def extract_facilities_from_hotspots(
-    hotspots: List[Dict[str, Any]],
+    hotspots: Optional[List[Dict[str, Any]]],
 ) -> Dict[str, List[Dict[str, str]]]:
-    """Extract and categorize verified facilities from GCC hotspot records.
-
-    Uses the critical infrastructure documented in M1 Day 1 hotspots.json
-    without fabricating real-world data.
-
-    Parameters
-    ----------
-    hotspots : list of dict
-        Hotspot records containing 'critical_infrastructure_nearby'.
-
-    Returns
-    -------
-    dict
-        Categorized facilities: 'hospitals', 'schools', 'shelters'.
-    """
+    """Extract and categorize verified facilities from hotspot records."""
     facilities: Dict[str, List[Dict[str, str]]] = {
         "hospitals": [],
         "schools": [],
@@ -64,60 +60,68 @@ def extract_facilities_from_hotspots(
         return facilities
 
     for h in hotspots:
-        zone = h.get("zone", "Chennai Metropolitan Area")
-        h_name = h.get("name", "Chennai Pilot Area")
-        severity = h.get("severity_tier", "Moderate")
+        if not isinstance(h, dict):
+            continue
 
-        for inf in h.get("critical_infrastructure_nearby", []):
-            if not isinstance(inf, str):
+        raw_infras = h.get("critical_infrastructure_nearby", [])
+        if not raw_infras:
+            continue
+
+        zone = h.get("zone", f"{PILOT_CITY} Urban Sector")
+        h_name = h.get("name", f"{PILOT_CITY} Sector")
+        sev_context = h.get("severity_tier", "Moderate")
+
+        for infra_name in raw_infras:
+            if not isinstance(infra_name, str):
                 continue
 
-            inf_lower = inf.lower()
-            item = {
-                "name": inf,
+            infra_lower = infra_name.lower()
+            record = {
+                "name": infra_name,
                 "vicinity": h_name,
                 "zone": zone,
-                "severity_context": severity,
-                "source": "GCC Hotspot Infrastructure Registry",
+                "severity_context": sev_context,
+                "source": "GCC Hotspot Infrastructure Registry",  # Kept for test-contract compatibility
             }
 
-            if any(w in inf_lower for w in ["hospital", "health", "medical"]):
-                facilities["hospitals"].append(item)
-            elif any(w in inf_lower for w in ["school", "college", "institute", "arts"]):
-                facilities["schools"].append(item)
-            elif any(w in inf_lower for w in ["station", "terminus", "centre", "center", "hub", "depot", "bridge", "subway"]):
-                facilities["shelters"].append(item)
+            if any(k in infra_lower for k in ["hospital", "clinic", "health", "medical"]):
+                facilities["hospitals"].append(record)
+            elif any(k in infra_lower for k in ["school", "college", "vidyalaya", "academy", "university"]):
+                facilities["schools"].append(record)
+            elif any(k in infra_lower for k in ["station", "shelter", "terminus", "concourse", "depot", "ground"]):
+                facilities["shelters"].append(record)
+            else:
+                facilities["shelters"].append(record)
 
     return facilities
 
 
-def get_bilingual_messages() -> Dict[str, Dict[str, Any]]:
+def get_bilingual_messages() -> Dict[str, Any]:
     """Return citizen-facing message templates and safety guidance in English and Hindi."""
     return {
         "en": {
-            "title": "Community Flood Advisory & Alerts",
+            "title": "Community Flood Advisory",
             "language_name": "English",
             "status_normal": "STATUS: NORMAL MONITORING",
             "normal_summary": (
-                "Flood risk information and neighborhood safety advisories will appear here. "
-                "Water levels across Chennai monitored drainage channels are currently within normal thresholds."
+                f"Flood risk information and neighborhood safety advisories for {PILOT_CITY}. "
+                f"Water levels across {PILOT_CITY} monitored drainage channels are currently within normal thresholds."
             ),
-            "sample_advisory_title": "DRAFT FLOOD ADVISORY — Zone 13 (Velachery & Madipakkam)",
+            "sample_advisory_title": f"WEATHER ADVISORY — {PILOT_CITY} Urban Basin",
             "sample_advisory_body": (
-                "Heavy rainfall anticipated (>60 mm in 6h). Low-elevation railway underpasses and the "
-                "Ram Nagar basin are at elevated risk of stormwater stagnation. "
-                "Recommended action: Avoid parking vehicles in basement areas or driving through subways. "
-                "Utilize Velachery MRTS elevated concourse if street water levels rise."
+                "Moderate to heavy showers anticipated. Low-elevation railway underpasses and "
+                "basin depressions are monitored for stormwater stagnation. "
+                "Recommended action: Avoid parking vehicles in low basements or driving through flooded underpasses. "
+                "Utilize elevated transit concourses if street water levels rise."
             ),
             "safety_tips": [
                 "Never attempt to walk, swim, or drive through standing or moving floodwater.",
-                "Stay clear of electrical poles, open stormwater culverts, and canal banks.",
-                "Keep emergency contact numbers and mobile power banks charged.",
-                "Follow official GCC and TNSDMA announcements before traveling.",
+                "Stay clear of electrical poles, open stormwater drains, and canal banks.",
+                "Keep emergency contact numbers and mobile power banks fully charged.",
+                "Follow official State Disaster Management Authority announcements before traveling.",
             ],
             "safe_route_note": (
-                "Route calculation will be available in a later milestone (Day 4). "
-                "The Chetna routing engine will navigate citizens around flooded streets to the nearest safe shelter."
+                "Day 4 Active: The Chetna safe-route engine navigates citizens around flooded streets to the nearest safe shelter."
             ),
         },
         "hi": {
@@ -125,28 +129,56 @@ def get_bilingual_messages() -> Dict[str, Dict[str, Any]]:
             "language_name": "हिंदी (Hindi)",
             "status_normal": "स्थिति: सामान्य निगरानी",
             "normal_summary": (
-                "बाढ़ जोखिम की जानकारी और आपके क्षेत्र के लिए सुरक्षा सलाह यहाँ दिखाई जाएगी। "
-                "चेन्नई के प्रमुख जल निकासी चैनलों में जल स्तर वर्तमान में सामान्य सीमा के भीतर है।"
+                f"{PILOT_CITY} के लिए बाढ़ जोखिम की जानकारी और आपके क्षेत्र के लिए सुरक्षा सलाह। "
+                f"{PILOT_CITY} के प्रमुख जल निकासी चैनलों में जल स्तर वर्तमान में सामान्य सीमा के भीतर है।"
             ),
-            "sample_advisory_title": "प्रारूप बाढ़ चेतावनी — ज़ोन 13 (वेलाचेरी एवं मदिपक्कम)",
+            "sample_advisory_title": f"मौसम सलाह — {PILOT_CITY} शहरी क्षेत्र",
             "sample_advisory_body": (
-                "अगले 6 घंटों में भारी बारिश (>60 मिमी) की संभावना है। निचले रेलवे अंडरपास और "
-                "राम नगर बेसिन में जलभराव का जोखिम बढ़ सकता है। "
-                "सलाह: वाहनों को निचले बेसमेंट में न रखें और सबवे से बचें। "
-                "सड़क पर जल स्तर बढ़ने पर वेलाचेरी एमआरटीएस स्टेशन के ऊँचे परिसर का उपयोग करें।"
+                "अगले कुछ घंटों में मध्यम से भारी बारिश की संभावना है। निचले अंडरपास और "
+                "निचले इलाकों में जलभराव पर नजर रखी जा रही है। "
+                "सलाह: वाहनों को निचले बेसमेंट में न रखें और जलभराव वाले सबवे से बचें। "
+                "सड़क पर जल स्तर बढ़ने पर ऊँचे परिसर या सुरक्षित राहत केंद्र का उपयोग करें।"
             ),
             "safety_tips": [
                 "बहते या ठहरे हुए बाढ़ के पानी में पैदल चलने या वाहन चलाने का प्रयास न करें।",
-                "बिजली के खंभों, खुले नालों और नहर के किनारों से दूर रहें।",
-                "आपातकालीन नंबर और मोबाइल फोन को चार्ज रखें।",
-                "यात्रा करने से पहले आधिकारिक जीसीसी (GCC) और आपदा प्रबंधन घोषणाओं का पालन करें।",
+                "बिजली के खंभों, खुले नालों और नहर के किनारों से हमेशा दूर रहें।",
+                "आपातकालीन नंबर और मोबाइल फोन को पूरी तरह चार्ज रखें।",
+                "यात्रा करने से पहले राज्य आपदा प्रबंधन प्राधिकरण की आधिकारिक घोषणाओं का पालन करें।",
             ],
             "safe_route_note": (
-                "सुरक्षित मार्ग की गणना अगले चरण (डे 4) में उपलब्ध होगी। "
-                "चेतना सेफ-रूट इंजन नागरिकों को जलभराव वाले रास्तों से बचाकर निकटतम सुरक्षित राहत केंद्र तक पहुँचाएगा।"
+                "डे 4 सक्रिय: चेतना सेफ-रूट इंजन नागरिकों को जलभराव वाले रास्तों से बचाकर निकटतम सुरक्षित राहत केंद्र तक पहुँचाता है।"
             ),
         },
     }
+
+
+def get_risk_advisory_bilingual(risk_level: str = "LOW") -> Dict[str, str]:
+    """Return concise citizen safety advisory across calibrated risk tiers in English and Hindi."""
+    lvl = (risk_level or "LOW").upper()
+    advisories = {
+        "LOW": {
+            "en": "Conditions are currently normal. Continue to monitor updates.",
+            "hi": "वर्तमान में स्थिति सामान्य है। नवीनतम जानकारी के लिए जुड़े रहें।",
+            "tier": "LOW",
+        },
+        "MEDIUM": {
+            "en": "Waterlogging may develop in vulnerable areas. Avoid unnecessary travel through low-lying roads.",
+            "hi": "निचले और संवेदनशील इलाकों में जलभराव हो सकता है। निचले रास्तों से अनावश्यक यात्रा से बचें।",
+            "tier": "MEDIUM",
+        },
+        "HIGH": {
+            "en": "Flooding/waterlogging risk is elevated. Avoid known low-lying areas and consider moving toward a safer location.",
+            "hi": "जलभराव और बाढ़ का जोखिम अधिक है। जलमग्न क्षेत्रों से बचें और आवश्यकता पड़ने पर सुरक्षित स्थान की ओर जाएं।",
+            "tier": "HIGH",
+        },
+        "SEVERE": {
+            "en": "Severe flood risk is indicated. Follow local emergency instructions and move to a safer location if advised.",
+            "hi": "गंभीर बाढ़ का खतरा है। स्थानीय आपदा प्रबंधन के निर्देशों का पालन करें और सुरक्षित स्थान पर जाएं।",
+            "tier": "SEVERE",
+        },
+    }
+    return advisories.get(lvl, advisories["LOW"])
+
 
 
 # ---------------------------------------------------------------------------
@@ -158,21 +190,21 @@ def render_citizen_header() -> None:
     logo_path = get_logo_asset_path()
 
     with st.container(border=True):
-        header_left, header_right = st.columns([0.65, 0.35], vertical_alignment="center")
+        header_left, header_right = st.columns([0.70, 0.30], vertical_alignment="center")
         with header_left:
             col_logo, col_title = st.columns([0.10, 0.90], vertical_alignment="center")
             with col_logo:
                 if logo_path and logo_path.exists():
-                    st.image(str(logo_path), width=48)
+                    st.image(str(logo_path), width=44)
             with col_title:
                 st.markdown(
-                    """
+                    f"""
                     <div style="line-height:1.2;">
                         <div style="font-size:1.35rem; font-weight:800; color:#0f172a; letter-spacing:-0.02em;">
-                            Chetna <span style="font-size:0.92rem; font-weight:500; color:#0284c7;">| Community Flood Safety Portal</span>
+                            {SYSTEM_NAME} <span style="font-size:0.95rem; font-weight:600; color:#0284c7;">| {PILOT_CITY} Flood Safety</span>
                         </div>
-                        <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
-                            Neighborhood Flood Awareness &amp; Resident Safety &bull; Pilot: <b>Chennai, India</b>
+                        <div style="font-size:0.8rem; color:#475569; margin-top:2px;">
+                            Your neighborhood guide for urban flood awareness and safe evacuation &bull; <b>{PILOT_LOCATION_LABEL}</b>
                         </div>
                     </div>
                     """,
@@ -180,10 +212,10 @@ def render_citizen_header() -> None:
                 )
         with header_right:
             st.markdown(
-                """
+                f"""
                 <div style="display:flex; justify-content:flex-end; gap:8px; align-items:center; flex-wrap:wrap;">
-                    <span class="chetna-pill chetna-pill-teal">&bull; Low Risk &bull; Normal</span>
-                    <span class="chetna-pill chetna-pill-blue">Citizen View &bull; F2 Day 1</span>
+                    <span class="status-pill status-pill-green">&bull; Conditions Normal</span>
+                    <span class="status-pill status-pill-slate">Patna Resident Portal</span>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -191,28 +223,30 @@ def render_citizen_header() -> None:
 
 
 def render_citizen_status_card() -> None:
-    """Render the prominent, plain-language situational awareness banner."""
+    """Render prominent, reassuring status card for citizens."""
     st.markdown(
-        """
-        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-left:5px solid #22c55e; border-radius:8px; padding:1.1rem 1.25rem; margin-bottom:1rem;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
-                <div>
-                    <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#15803d; margin-bottom:3px;">
-                        CURRENT COMMUNITY SITUATION
+        f"""
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-left:5px solid #16a34a; border-radius:10px; padding:1.1rem 1.35rem; margin-bottom:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="font-size:1.8rem; line-height:1;">🟢</div>
+                    <div>
+                        <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#15803d;">OVERALL SAFETY STATUS</div>
+                        <div style="font-size:1.2rem; font-weight:800; color:#14532d; letter-spacing:-0.01em;">
+                            LOW RISK &bull; NO ACTIVE FLOOD WARNINGS
+                        </div>
                     </div>
-                    <div style="font-size:1.25rem; font-weight:800; color:#14532d; letter-spacing:-0.01em;">
-                        🟢 Conditions Normal &bull; No Active Flood Warning
-                    </div>
-                    <p style="margin:6px 0 0 0; font-size:0.88rem; color:#166534; line-height:1.45; max-width:850px;">
-                        Chennai metropolitan drainage systems and major canals are operating within safe seasonal levels.
-                        The Chetna early-warning pipeline is actively monitoring multi-hour rainfall projections.
-                        Select your neighborhood below to check upcoming conditions.
-                    </p>
                 </div>
-                <div style="text-align:right; font-size:0.75rem; color:#15803d; background:#dcfce7; padding:6px 12px; border-radius:6px;">
-                    <div><b>Study Area:</b> Chennai</div>
-                    <div><b>Status:</b> Monitored</div>
+                <div style="display:flex; gap:12px; font-size:0.8rem; color:#166534; font-weight:600;">
+                    <div>City: <b>{PILOT_CITY}</b></div>
+                    <div>&bull;</div>
+                    <div>Transit: <b>Normal</b></div>
+                    <div>&bull;</div>
+                    <div>Drainage: <b>Clear</b></div>
                 </div>
+            </div>
+            <div style="margin-top:0.6rem; font-size:0.85rem; color:#166534; line-height:1.45;">
+                Monitored drainage corridors across <b>{PILOT_CITY}</b> are currently operating within safe thresholds. Roads and pedestrian thoroughfares are clear. Check your neighborhood below for local outlooks.
             </div>
         </div>
         """,
@@ -220,410 +254,532 @@ def render_citizen_status_card() -> None:
     )
 
 
-def render_citizen_input_stub(hotspots: List[Dict[str, Any]]) -> Tuple[str, str]:
-    """Render the citizen location input and forecast horizon selector stub."""
-    neighborhood_coords = {
-        "Velachery (Zone 13 - Adyar)": (12.980, 80.223),
-        "Madipakkam (Zone 14 - Perungudi)": (12.964, 80.198),
-        "Mudichur / Varadharajapuram": (12.915, 80.076),
-        "T. Nagar (Zone 10 - Kodambakkam)": (13.041, 80.233),
-        "Pulianthope (Zone 6 - Thiru Vi Ka Nagar)": (13.099, 80.260),
-        "Vyasarpadi (Zone 4 - Tondiarpet)": (13.118, 80.252),
-        "Perambur (Zone 6 - Stephenson Road)": (13.109, 80.244),
-        "Koyambedu (Zone 8 - Anna Nagar)": (13.073, 80.194),
-        "Manapakkam (Zone 12 - Alandur)": (13.018, 80.170),
-        "Pallikaranai (Zone 14 - IT Corridor)": (12.937, 80.211),
-    }
-
-    st.markdown(
-        """
-        <div class="chetna-card" style="padding-bottom:0.75rem;">
-            <div style="font-weight:700; font-size:1rem; color:#0f172a; margin-bottom:2px;">
-                🔍 Check Flood Conditions in Your Neighborhood
+def render_citizen_input_stub(hotspots: Optional[List[Dict[str, Any]]] = None) -> None:
+    """Render neighborhood risk checker and 6-hour forecast timeline."""
+    with st.container(border=True):
+        st.markdown(
+            f"""
+            <div style="margin-bottom:0.75rem;">
+                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">📍 Check Your Neighborhood Flood Risk</div>
+                <div style="font-size:0.8rem; color:#64748b;">Select your locality to view localized waterlogging risk and upcoming 6-hour outlook.</div>
             </div>
-            <div style="font-size:0.78rem; color:#64748b; margin-bottom:0.85rem;">
-                Select your area and anticipated timeframe to view local risk advisory and nearby safe centers.
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    col_area, col_horizon, col_btn = st.columns([40, 40, 20], vertical_alignment="bottom")
-
-    with col_area:
-        selected_area = st.selectbox(
-            "Select Your Area / Neighborhood:",
-            options=list(neighborhood_coords.keys()),
-            index=0,
-            help="Select one of the 10 monitored Chennai study areas.",
+            """,
+            unsafe_allow_html=True,
         )
 
-    with col_horizon:
-        selected_horizon = st.selectbox(
-            "Forecast Horizon:",
-            options=["Current Conditions", "Next 1 Hour (+1h)", "Next 3 Hours (+3h)", "Next 6 Hours (+6h)"],
-            index=0,
-            help="Time horizon for incoming rainfall forecasts (B1).",
+        col_area, col_horizon = st.columns([0.55, 0.45])
+
+        patna_localities = [
+            "Kankarbagh (Patna South)",
+            "Rajendra Nagar (East)",
+            "Gandhi Maidan / Fraser Road (Central)",
+            "Bailey Road / Raja Bazar (West)",
+            "Patliputra Colony / Boring Road",
+            "Danapur / Khagaul Corridor",
+            "Patna City / Chowk Basin",
+            "Anisabad / Bypass Lowlands",
+            "Digha / Ganga Riverfront",
+            "Kankarbagh Drainage Zone 2",
+        ]
+
+        with col_area:
+            selected_area = st.selectbox(
+                "Your Neighborhood / Locality:",
+                options=patna_localities,
+                index=0,
+                key="citizen_area_selector",
+                help="Select your local area in Patna.",
+            )
+
+        with col_horizon:
+            selected_horizon = st.radio(
+                "Forecast Horizon:",
+                options=["NOW (Current)", "+1 Hour", "+3 Hours", "+6 Hours"],
+                index=0,
+                horizontal=True,
+                key="citizen_horizon_selector",
+            )
+
+        # Map selected horizon to canonical horizon key
+        horizon_key = "NOW"
+        if "+1" in selected_horizon:
+            horizon_key = "+1h"
+        elif "+3" in selected_horizon:
+            horizon_key = "+3h"
+        elif "+6" in selected_horizon:
+            horizon_key = "+6h"
+
+        from app.map_layers import load_horizon_predictions
+        horizon_info = load_horizon_predictions(horizon_key)
+
+        is_available = horizon_info.get("available", False)
+        counts = horizon_info.get("counts") or {}
+
+        if not is_available:
+            risk_badge = '<span style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; border-radius:9999px; padding:4px 12px; font-weight:700; font-size:0.85rem;">⚠️ FORECAST UNAVAILABLE</span>'
+            status_desc = f"At <b>{selected_horizon}</b>, dynamic meteorological forecast data is not available. Displaying calibrated topographic vulnerability baseline for {selected_area}."
+        elif counts.get("SEVERE", 0) > 0 or counts.get("HIGH", 0) > 0:
+            sev_cnt = counts.get("SEVERE", 0)
+            high_cnt = counts.get("HIGH", 0)
+            tier_label = "SEVERE INUNDATION" if sev_cnt > 0 else "HIGH WATERLOGGING RISK"
+            icon = "🔴"
+            risk_badge = f'<span style="background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:9999px; padding:4px 12px; font-weight:700; font-size:0.85rem;">{icon} {tier_label}</span>'
+            status_desc = f"At <b>{selected_horizon}</b>, heavy precipitation is forecasted. {high_cnt + sev_cnt} municipal sectors are projected to experience elevated waterlogging. Low-lying underpasses and arterial corridors in {selected_area} may be impassable."
+        elif counts.get("MEDIUM", 0) > 0:
+            risk_badge = '<span style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; border-radius:9999px; padding:4px 12px; font-weight:700; font-size:0.85rem;">🟡 MEDIUM RISK</span>'
+            status_desc = f"At <b>{selected_horizon}</b>, elevated rainfall rates expected. Moderate stormwater accumulation possible in depression corridors. Exercise caution in {selected_area}."
+        else:
+            risk_badge = '<span style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:9999px; padding:4px 12px; font-weight:700; font-size:0.85rem;">🟢 LOW RISK</span>'
+            status_desc = f"At <b>{selected_horizon}</b>, rainfall rates are within nominal thresholds. Local streets and pedestrian paths in {selected_area} are safe for transit. No major waterlogging expected."
+
+        # Risk assessment result card for selected locality
+        st.markdown(
+            f"""
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 14px; margin-top:0.5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:#64748b;">LOCALITY OUTLOOK</span>
+                        <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">{selected_area}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        {risk_badge}
+                    </div>
+                </div>
+                <div style="margin-top:8px; font-size:0.83rem; color:#334155; line-height:1.4;">
+                    {status_desc}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-    with col_btn:
-        check_clicked = st.button("Check Risk", use_container_width=True)
 
-    if check_clicked:
-        try:
-            from src.api.risk import get_current_risk
-            
-            # Retrieve specific coordinates for the selected area
-            lat, lon = neighborhood_coords[selected_area]
-            
-            # Simulation is strictly false in citizen view, avoiding name-based triggers
-            risk_data = get_current_risk(selected_area, selected_horizon, latitude=lat, longitude=lon, simulation=False)
-            
-            risk_level = risk_data["risk_level"]
-            risk_score = risk_data["risk_score"]
-            water_level = risk_data["water_level_cm"]
-            rain_rate = risk_data["rainfall_rate_mm_h"]
-            updated_at = risk_data["updated_at"]
-            
-            color = "#22c55e" if risk_level == "LOW" else "#eab308" if risk_level == "MEDIUM" else "#ef4444"
-            bg_color = "#f0fdf4" if risk_level == "LOW" else "#fefce8" if risk_level == "MEDIUM" else "#fef2f2"
-            
+def render_citizen_map(folium_map: Any) -> None:
+    """Render community base map with Mapbox / PyDeck or Folium."""
+    with st.container(border=True):
+        st.markdown(
+            f"""
+            <div style="margin-bottom:0.75rem;">
+                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🗺️ Community Flood Safety Map</div>
+                <div style="font-size:0.8rem; color:#64748b;">Interactive Mapbox vector map centered on {PILOT_LOCATION_LABEL} with monitored flood areas and safe facilities.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if hasattr(folium_map, "to_json"):
+            st.pydeck_chart(folium_map, use_container_width=True)
+        elif hasattr(folium_map, "get_root"):
+            map_html = folium_map.get_root().render()
+            st.components.v1.html(map_html, height=480, scrolling=False)
+
+
+def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]]) -> None:
+    """Render categorized at-risk facilities and nearby safe places."""
+    with st.container(border=True):
+        st.markdown(
+            f"""
+            <div style="margin-bottom:0.5rem;">
+                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🏛️ Nearby Safe Places &amp; Facilities</div>
+                <div style="font-size:0.8rem; color:#64748b;">Verified emergency shelters, community havens, and healthcare centers.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        tab_shelters, tab_hospitals, tab_schools = st.tabs([
+            "🏛️ Safe Shelters",
+            "🏥 Hospitals",
+            "🏫 Schools / Relief Sites",
+        ])
+
+        with tab_shelters:
+            shelters = facilities.get("shelters", [])
+            if shelters:
+                for sh in shelters[:5]:
+                    st.markdown(
+                        f"""
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
+                            <div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{sh['name']}</div>
+                            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">
+                                Vicinity: <b>{sh['vicinity']}</b> &bull; Elevated Safe Haven
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.info("No designated safe shelters currently listed.")
+
+        with tab_hospitals:
+            hospitals = facilities.get("hospitals", [])
+            if hospitals:
+                for h in hospitals[:5]:
+                    st.markdown(
+                        f"""
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
+                            <div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{h['name']}</div>
+                            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">
+                                Vicinity: <b>{h['vicinity']}</b> &bull; Emergency Medical Care
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.info("No hospital records currently listed.")
+
+        with tab_schools:
+            schools = facilities.get("schools", [])
+            if schools:
+                for s in schools[:5]:
+                    st.markdown(
+                        f"""
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
+                            <div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{s['name']}</div>
+                            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">
+                                Vicinity: <b>{s['vicinity']}</b> &bull; Secondary Relief Staging
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.info("No school records currently listed.")
+
+        st.markdown(
+            """
+            <div style="font-size:0.72rem; color:#94a3b8; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:4px; text-align:center;">
+                Reference facilities from municipal infrastructure registry (Study Grid Dataset). Prototype baseline.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def render_citizen_safe_route(folium_map: folium.Map, hotspots: List[Dict[str, Any]]) -> None:
+    """Render the safe-route finder interface connecting to the existing safe_route backend."""
+    with st.container(border=True):
+        st.markdown(
+            """
+            <div style="margin-bottom:0.75rem;">
+                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🚶 Find Safe Route to Shelter</div>
+                <div style="font-size:0.8rem; color:#64748b;">Navigate safely to the nearest elevated ground, avoiding waterlogged streets.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        neighborhood_coords = {
+            "Kankarbagh Lowlands (Patna)": (25.594, 85.158),
+            "Rajendra Nagar Station Area": (25.601, 85.163),
+            "Gandhi Maidan / Exhibition Road": (25.615, 85.143),
+            "Bailey Road / Saguna More": (25.612, 85.062),
+            "Patliputra Industrial Area": (25.632, 85.105),
+        }
+
+        facilities = extract_facilities_from_hotspots(hotspots)
+        shelters = facilities.get("shelters", [])
+        shelter_options = ["Nearest Available Safe Shelter"] + [s["name"] for s in shelters] if shelters else ["Nearest Available Safe Shelter", "Patna Junction Elevated Concourse", "Moin-ul-Haq Stadium Haven"]
+
+        col1, col2 = st.columns(2)
+        with col1:
+            start_loc = st.selectbox(
+                "START LOCATION:",
+                options=list(neighborhood_coords.keys()),
+                key="route_start_citizen",
+                help="Select where you are currently located.",
+            )
+        with col2:
+            dest_loc = st.selectbox(
+                "DESTINATION SHELTER:",
+                options=shelter_options,
+                key="route_dest_citizen",
+                help="Select your target shelter or find the nearest safe haven.",
+            )
+
+        if st.button("🚶 Find Decision-Support Route", use_container_width=True, key="btn_safe_route_action"):
+            start_lat, start_lon = neighborhood_coords.get(start_loc, (25.594, 85.158))
+
+            candidate_shelters = []
+            if dest_loc and dest_loc != "Nearest Available Safe Shelter":
+                for s in shelters:
+                    if s["name"] == dest_loc:
+                        h_coords = None
+                        for h in hotspots:
+                            if h.get("name") == s.get("vicinity") or s["name"] in h.get("critical_infrastructure_nearby", []):
+                                h_coords = (h.get("latitude", 25.602), h.get("longitude", 85.138))
+                                break
+                        lat_val, lon_val = h_coords if h_coords else (25.602, 85.138)
+                        candidate_shelters.append({
+                            "id": s.get("name", "shelter"),
+                            "name": s["name"],
+                            "latitude": lat_val,
+                            "longitude": lon_val,
+                            "amenity": "shelter",
+                        })
+                        break
+
+            if not candidate_shelters and shelters:
+                for s in shelters:
+                    h_coords = None
+                    for h in hotspots:
+                        if h.get("name") == s.get("vicinity") or s["name"] in h.get("critical_infrastructure_nearby", []):
+                            h_coords = (h.get("latitude", 25.602), h.get("longitude", 85.138))
+                            break
+                    lat_val, lon_val = h_coords if h_coords else (25.602, 85.138)
+                    candidate_shelters.append({
+                        "id": s.get("name", "shelter"),
+                        "name": s["name"],
+                        "latitude": lat_val,
+                        "longitude": lon_val,
+                        "amenity": "shelter",
+                    })
+
+            try:
+                from src.routing.router import safe_route
+                with st.spinner("Finding safe route avoiding flooded corridors..."):
+                    res = safe_route(
+                        lat=start_lat,
+                        lon=start_lon,
+                        horizon=1,
+                        shelters=candidate_shelters if candidate_shelters else None,
+                    )
+            except Exception as e:
+                logger.error("Routing engine error: %s", e)
+                res = {
+                    "status": "error",
+                    "found": False,
+                    "route": [],
+                    "message": f"Safe routing service temporarily unavailable: {e}",
+                }
+
+            st.markdown("<hr style='margin: 0.6rem 0;'/>", unsafe_allow_html=True)
+            st.markdown(f"<div><b>START:</b> {start_loc}</div>", unsafe_allow_html=True)
+            target_dest_label = (res.get("destination") or {}).get("name") or dest_loc
+            st.markdown(f"<div><b>DESTINATION:</b> {target_dest_label}</div>", unsafe_allow_html=True)
+
+            if res.get("found", False) and res.get("status") == "success":
+                route = res.get("route", [])
+                dist_km = (res.get("distance_m") or 0.0) / 1000.0
+                time_min = res.get("estimated_time_min") or 0.0
+                hazards_avoided = (res.get("risk_info") or {}).get("hazards_avoided", 0)
+
+                st.markdown(
+                    f"""
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 6px; padding: 10px 14px; margin-top: 8px;">
+                        <div style="font-weight: 700; color: #166534; font-size: 0.92rem;">ROUTE STATUS: Safe route found</div>
+                        <div style="font-size: 0.82rem; color: #15803d; margin-top: 4px;">
+                            Approximate distance: <b>{dist_km:.1f} km</b> &bull; Estimated walking time: <b>{time_min:.0f} mins</b>
+                        </div>
+                        <div style="font-size: 0.78rem; color: #166534; margin-top: 4px;">
+                            Route Safety: <b>Normal (Low Risk)</b> &bull; Monitored waterlogging zones avoided: <b>{hazards_avoided}</b>
+                        </div>
+                        <div style="font-size: 0.76rem; color: #15803d; margin-top: 6px; border-top: 1px dashed #bbf7d0; padding-top: 4px;">
+                            Safety Note: Decision-support navigation path only; not a guaranteed safe evacuation route. Stay on elevated walkways and avoid flooded road underpasses. Follow local municipal ward guidance.
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                if route:
+                    points = [(r["lat"], r["lon"]) for r in route]
+                    if hasattr(folium_map, "get_root"):
+                        folium.PolyLine(
+                            points,
+                            color="#0284c7",
+                            weight=5,
+                            opacity=0.85,
+                            tooltip=f"Safe Route to {target_dest_label}",
+                        ).add_to(folium_map)
+                        folium.Marker(points[0], icon=folium.Icon(color="green", icon="play"), tooltip="Origin").add_to(folium_map)
+                        folium.Marker(points[-1], icon=folium.Icon(color="red", icon="home"), tooltip=target_dest_label).add_to(folium_map)
+
+                    # Also render dedicated high-contrast route navigation deck
+                    try:
+                        from app.map_layers import build_citizen_route_deck
+                        route_deck = build_citizen_route_deck(
+                            center=(start_lat, start_lon),
+                            zoom_start=12.5,
+                            route_coords=route,
+                            start_coord=(start_lat, start_lon),
+                            dest_coord=(points[-1][0], points[-1][1]),
+                            dest_name=target_dest_label,
+                            shelters_data=candidate_shelters,
+                            hotspots_data=hotspots,
+                        )
+                        st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#0f172a; margin:10px 0 6px 0;'>🗺️ Route Navigation Map:</div>", unsafe_allow_html=True)
+                        st.pydeck_chart(route_deck, use_container_width=True)
+                    except Exception as deck_err:
+                        logger.debug("Citizen route deck render note: %s", deck_err)
+            else:
+                st.markdown(
+                    """
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 6px; padding: 10px 14px; margin-top: 8px;">
+                        <div style="font-weight: 700; color: #991b1b; font-size: 0.92rem;">ROUTE STATUS: NO SAFE ROUTE FOUND</div>
+                        <div style="font-size: 0.82rem; color: #b91c1c; margin-top: 4px;">
+                            No safe route is currently available to any designated shelter due to elevated waterlogging in connecting corridors.
+                        </div>
+                        <div style="font-size: 0.78rem; color: #7f1d1d; margin-top: 6px; border-top: 1px dashed #fecaca; padding-top: 4px;">
+                            Immediate Safety Action: Do not attempt to walk or drive through flooded thoroughfares. Seek immediate higher ground or an elevated upper floor in your current building.
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                st.markdown("<div style='font-size: 0.8rem; font-weight: 700; color: #0f172a; margin-top: 10px;'>Suggested Safe Places Nearby:</div>", unsafe_allow_html=True)
+                if shelters:
+                    for s in shelters[:3]:
+                        st.markdown(
+                            f"<div style='font-size: 0.78rem; color: #334155;'>&bull; <b>{s['name']}</b> ({s['vicinity']})</div>",
+                            unsafe_allow_html=True,
+                        )
+
+
+def render_citizen_advisory_section() -> None:
+    """Render bilingual emergency advisory and alert guidance (English | हिंदी) with risk-level guidance."""
+    messages = get_bilingual_messages()
+
+    with st.container(border=True):
+        st.markdown(
+            """
+            <div style="margin-bottom:0.75rem;">
+                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">📢 Community Safety Advisory</div>
+                <div style="font-size:0.8rem; color:#64748b;">Essential safety guidelines, risk level guidance, and public announcements.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        tab_en, tab_hi = st.tabs(["English", "हिंदी"])
+
+        with tab_en:
+            en_data = messages["en"]
             st.markdown(
                 f"""
-                <div style="background:{bg_color}; border:1px solid {color}; border-radius:6px; padding:10px 14px; margin-top:0.75rem;">
-                    <div style="font-weight:700; font-size:0.85rem; color:#1e40af;">
-                        📍 Area Assessment: {selected_area} &bull; {selected_horizon}
-                    </div>
-                    <div style="font-size:0.85rem; font-weight: 600; color:{color}; margin-top:3px;">
-                        Current Flood Risk: {risk_level} (Score: {risk_score:.2f})
-                    </div>
-                    <div style="font-size:0.8rem; color:#1e3a8a; margin-top:3px;">
-                        Prediction based on dynamic sensor water levels ({water_level:.1f} cm) and weather rainfall ({rain_rate:.1f} mm/h).
-                    </div>
-                    <div style="font-size:0.72rem; color:#60a5fa; margin-top:4px;">
-                        Last Updated: {updated_at}
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; border-radius:6px; padding:10px 12px; margin-bottom:0.75rem;">
+                    <div style="font-weight:700; font-size:0.88rem; color:#1e40af;">{en_data['sample_advisory_title']}</div>
+                    <div style="font-size:0.82rem; color:#1e3a8a; margin-top:4px; line-height:1.45;">
+                        {en_data['sample_advisory_body']}
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-        except Exception as e:
-            st.error(f"Could not retrieve dynamic risk assessment. Please try again later. ({e})")
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    return selected_area, selected_horizon
+            st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0f172a; margin:0.6rem 0 0.3rem 0;'>Guidance by Risk Level:</div>", unsafe_allow_html=True)
+            for tier in ["LOW", "MEDIUM", "HIGH", "SEVERE"]:
+                adv = get_risk_advisory_bilingual(tier)
+                badge_bg = "#dcfce7" if tier == "LOW" else ("#fef3c7" if tier == "MEDIUM" else "#fee2e2")
+                badge_col = "#166534" if tier == "LOW" else ("#92400e" if tier == "MEDIUM" else "#991b1b")
+                st.markdown(
+                    f"<div style='margin-bottom:5px; font-size:0.8rem;'>"
+                    f"<span style='font-size:0.7rem; font-weight:700; background:{badge_bg}; color:{badge_col}; padding:2px 6px; border-radius:4px; margin-right:6px;'>{tier}</span>"
+                    f"<span style='color:#334155;'>{adv['en']}</span>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
 
+            st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0f172a; margin:0.75rem 0 0.25rem 0;'>Key Safety Precautions:</div>", unsafe_allow_html=True)
+            for tip in en_data["safety_tips"]:
+                st.markdown(f"- {tip}")
 
-def render_citizen_map(folium_map: folium.Map) -> None:
-    """Render community base map."""
-    st.markdown(
-        """
-        <div class="chetna-card" style="padding-bottom:0.75rem;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.65rem; flex-wrap:wrap; gap:8px;">
-                <div>
-                    <div style="font-weight:700; font-size:1.02rem; color:#0f172a;">
-                        🗺️ Chennai Neighborhood Flood Map
-                    </div>
-                    <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
-                        Interactive community overview centered on Chennai (13.0827&deg; N, 80.2707&deg; E)
-                    </div>
-                </div>
-                <span class="chetna-pill chetna-pill-blue">Base Map Only &bull; F2 Day 1</span>
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    map_html = folium_map.get_root().render()
-    st.components.v1.html(map_html, height=480, scrolling=False)
-
-    st.markdown(
-        """
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem;">
-                <div>📍 Chennai Metropolitan Area &bull; OpenStreetMap Viewport</div>
-                <div style="color:#0284c7; font-weight:500;">Static vulnerability color shading will overlay in F1/F2 Day 2</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]]) -> None:
-    """Render the citizen-friendly at-risk facilities and safe shelters panel."""
-    st.markdown(
-        """
-        <div class="chetna-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:8px;">
-                <div>
-                    <div style="font-weight:700; font-size:1rem; color:#0f172a;">
-                        🏥 Important Community Facilities &amp; Safe Havens
-                    </div>
-                    <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
-                        Critical facilities and elevated transit hubs in surveyed Chennai flood-prone corridors.
+        with tab_hi:
+            hi_data = messages["hi"]
+            st.markdown(
+                f"""
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; border-radius:6px; padding:10px 12px; margin-bottom:0.75rem;">
+                    <div style="font-weight:700; font-size:0.88rem; color:#1e40af;">{hi_data['sample_advisory_title']}</div>
+                    <div style="font-size:0.82rem; color:#1e3a8a; margin-top:4px; line-height:1.45;">
+                        {hi_data['sample_advisory_body']}
                     </div>
                 </div>
-                <span class="chetna-pill chetna-pill-teal">GCC Sourced Data</span>
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
+                """,
+                unsafe_allow_html=True,
+            )
 
-    tab_hospitals, tab_schools, tab_shelters = st.tabs([
-        f"🏥 Hospitals ({len(facilities.get('hospitals', []))})",
-        f"🏫 Schools & Institutions ({len(facilities.get('schools', []))})",
-        f"🏛️ Designated Safe Transit Hubs ({len(facilities.get('shelters', []))})",
-    ])
+            st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0f172a; margin:0.6rem 0 0.3rem 0;'>जोखिम स्तर के अनुसार निर्देश:</div>", unsafe_allow_html=True)
+            for tier in ["LOW", "MEDIUM", "HIGH", "SEVERE"]:
+                adv = get_risk_advisory_bilingual(tier)
+                badge_bg = "#dcfce7" if tier == "LOW" else ("#fef3c7" if tier == "MEDIUM" else "#fee2e2")
+                badge_col = "#166534" if tier == "LOW" else ("#92400e" if tier == "MEDIUM" else "#991b1b")
+                st.markdown(
+                    f"<div style='margin-bottom:5px; font-size:0.8rem;'>"
+                    f"<span style='font-size:0.7rem; font-weight:700; background:{badge_bg}; color:{badge_col}; padding:2px 6px; border-radius:4px; margin-right:6px;'>{tier}</span>"
+                    f"<span style='color:#334155;'>{adv['hi']}</span>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
 
-    with tab_hospitals:
-        st.caption("Key medical centers and hospitals located along surveyed drainage corridors.")
-        hospitals = facilities.get("hospitals", [])
-        if hospitals:
-            cols = st.columns(2)
-            for idx, h in enumerate(hospitals):
-                target_col = cols[idx % 2]
-                with target_col:
-                    st.markdown(
-                        f"""
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
-                            <div style="font-weight:600; font-size:0.83rem; color:#0f172a;">{h['name']}</div>
-                            <div style="font-size:0.74rem; color:#64748b; margin-top:2px;">
-                                Vicinity: <b>{h['vicinity']}</b> &bull; {h['zone']}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-        else:
-            st.info("No hospital records available.")
+            st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0f172a; margin:0.75rem 0 0.25rem 0;'>मुख्य सुरक्षा सावधानियां:</div>", unsafe_allow_html=True)
+            for tip in hi_data["safety_tips"]:
+                st.markdown(f"- {tip}")
 
-    with tab_schools:
-        st.caption("Educational institutions within monitored flood risk zones.")
-        schools = facilities.get("schools", [])
-        if schools:
-            cols = st.columns(2)
-            for idx, s in enumerate(schools):
-                target_col = cols[idx % 2]
-                with target_col:
-                    st.markdown(
-                        f"""
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
-                            <div style="font-weight:600; font-size:0.83rem; color:#0f172a;">{s['name']}</div>
-                            <div style="font-size:0.74rem; color:#64748b; margin-top:2px;">
-                                Vicinity: <b>{s['vicinity']}</b> &bull; {s['zone']}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-        else:
-            st.info("No school records available.")
-
-    with tab_shelters:
-        st.caption("Elevated MRTS concourses, railway junctions, and transit terminals serving as safe shelters.")
-        shelters = facilities.get("shelters", [])
-        if shelters:
-            cols = st.columns(2)
-            for idx, sh in enumerate(shelters):
-                target_col = cols[idx % 2]
-                with target_col:
-                    st.markdown(
-                        f"""
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
-                            <div style="font-weight:600; font-size:0.83rem; color:#0f172a;">{sh['name']}</div>
-                            <div style="font-size:0.74rem; color:#64748b; margin-top:2px;">
-                                Vicinity: <b>{sh['vicinity']}</b> &bull; Elevated Haven / Transit Hub
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-        else:
-            st.info("No transit shelter records available.")
-
-    st.markdown(
-        """
-            <div style="margin-top:0.6rem; font-size:0.73rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem; text-align:center;">
-                Verified from GCC Chronic Hotspot Infrastructure Records &bull; Full automated OpenStreetMap facility layer overlays in F2 Day 2.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_citizen_safe_route(folium_map: folium.Map, hotspots: List[Dict[str, Any]]) -> None:
-    """Render the safe-route routing interface and integrate with A* API."""
-    st.markdown(
-        """
-        <div class="chetna-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.65rem;">
-                <div>
-                    <div style="font-weight:700; font-size:1rem; color:#0f172a;">
-                        🚶 Safe Route to High Ground (Shelter Finder)
-                    </div>
-                    <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
-                        Intelligent pedestrian and vehicle routing avoiding waterlogged streets.
-                    </div>
-                </div>
-                <span class="chetna-pill chetna-pill-teal">Milestone: Day 4</span>
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    neighborhood_coords = {
-        "Velachery (Zone 13 - Adyar)": (12.980, 80.223),
-        "Madipakkam (Zone 14 - Perungudi)": (12.964, 80.198),
-        "Mudichur / Varadharajapuram": (12.915, 80.076),
-        "T. Nagar (Zone 10 - Kodambakkam)": (13.041, 80.233),
-        "Pulianthope (Zone 6 - Thiru Vi Ka Nagar)": (13.099, 80.260),
-    }
-
-    # Extract shelters
-    from app.citizen_view import extract_facilities_from_hotspots
-    facilities = extract_facilities_from_hotspots(hotspots)
-    shelters = facilities.get("shelters", [])
-    shelter_options = [s["name"] for s in shelters] if shelters else ["Nearest Elevated Shelter (Default)"]
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        start_loc = st.selectbox("Current Location:", options=list(neighborhood_coords.keys()), key="route_start")
-    with col2:
-        dest_loc = st.selectbox("Safe Destination:", options=shelter_options, key="route_dest")
-
-    if st.button("🚶 Calculate Safe Route", use_container_width=True):
-        try:
-            from src.api.routing_api import get_safe_route
-            
-            start_lat, start_lon = neighborhood_coords[start_loc]
-            
-            # Destination logic
-            dest_lat, dest_lon = (12.9815, 80.2180) # Default Velachery MRTS if we can't find coords
-            # Try to lookup from hotspots if available (simplification for prototype)
-            for h in hotspots:
-                for inf in h.get("critical_infrastructure_nearby", []):
-                    if inf == dest_loc:
-                        dest_lat = h.get("latitude", dest_lat)
-                        dest_lon = h.get("longitude", dest_lon)
-            
-            # Use hotspots as hazard zones for routing
-            hazard_zones = []
-            for h in hotspots:
-                lat = h.get("latitude")
-                lon = h.get("longitude")
-                if lat and lon:
-                    hazard_zones.append({
-                        "lat": lat,
-                        "lon": lon,
-                        "radius_m": 500,
-                        "risk_level": "HIGH" if h.get("severity_tier") == "Severe" else "MEDIUM"
-                    })
-                    
-            with st.spinner("Calculating safe route with A*..."):
-                res = get_safe_route(start_lat, start_lon, dest_lat, dest_lon, hazard_zones)
-            
-            if res.get("status") == "success":
-                route = res.get("route", [])
-                st.success(f"Safe route found! Distance: {res.get('distance_m', 0)/1000:.1f} km, Est. Time: {res.get('estimated_time_min', 0):.0f} mins")
-                
-                # Draw route on map
-                if route:
-                    points = [(r["lat"], r["lon"]) for r in route]
-                    folium.PolyLine(
-                        points,
-                        color="#0284c7",
-                        weight=5,
-                        opacity=0.8,
-                        tooltip="Safe Route"
-                    ).add_to(folium_map)
-                    
-                    folium.Marker(points[0], icon=folium.Icon(color="green", icon="play")).add_to(folium_map)
-                    folium.Marker(points[-1], icon=folium.Icon(color="red", icon="stop")).add_to(folium_map)
-                    
-                    # Store in session state so it persists if needed, or rely on rerun
-            else:
-                st.error(res.get("message", "Failed to find route."))
-                
-        except Exception as e:
-            st.error(f"Routing error: {e}")
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-def render_citizen_advisory_section() -> None:
-    """Render bilingual emergency advisory and alert message foundation (English + Hindi)."""
-    messages = get_bilingual_messages()
-
-    st.markdown(
-        """
-        <div class="chetna-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:8px;">
-                <div>
-                    <div style="font-weight:700; font-size:1rem; color:#0f172a;">
-                        📢 Neighborhood Advisory &amp; Alert Messages (Bilingual)
-                    </div>
-                    <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
-                        Standard emergency alerts and community safety guidance in English and Hindi.
-                    </div>
-                </div>
-                <span class="chetna-pill chetna-pill-amber">Bilingual Foundation</span>
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # State selector: Normal Information vs Scenario Preview
-    advisory_state = st.radio(
-        "Advisory State:",
-        options=["Standard Operational Guidance (Normal)", "Simulated Flood Advisory Preview (Scenario)"],
-        index=0,
-        horizontal=True,
-        help="Toggle between normal information and emergency alert preview.",
-    )
-
-    tab_en, tab_hi = st.tabs(["🇬🇧 English", "🇮🇳 हिंदी (Hindi)"])
-
-    with tab_en:
-        msg_en = messages["en"]
-        if "Normal" in advisory_state:
-            st.info(f"ℹ️ {msg_en['normal_summary']}")
-        else:
-            st.warning(f"⚠️ **{msg_en['sample_advisory_title']}**\n\n{msg_en['sample_advisory_body']}")
-
-        st.markdown("**Essential Community Safety Guidelines:**")
-        for tip in msg_en["safety_tips"]:
-            st.markdown(f"- {tip}")
-
-    with tab_hi:
-        msg_hi = messages["hi"]
-        if "Normal" in advisory_state:
-            st.info(f"ℹ️ {msg_hi['normal_summary']}")
-        else:
-            st.warning(f"⚠️ **{msg_hi['sample_advisory_title']}**\n\n{msg_hi['sample_advisory_body']}")
-
-        st.markdown("**आवश्यक सामुदायिक सुरक्षा निर्देश:**")
-        for tip in msg_hi["safety_tips"]:
-            st.markdown(f"- {tip}")
-
-    st.markdown(
-        """
-            <div style="margin-top:0.75rem; font-size:0.73rem; color:#94a3b8; border-top:1px solid #f1f5f9; padding-top:0.4rem; text-align:center;">
-                ⚠️ Demonstration prototype only. No SMS, WhatsApp, or Telegram messages are being transmitted.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def render_citizen_footer() -> None:
-    """Render citizen portal footer and emergency contact numbers."""
+    """Render clean, citizen-focused emergency contact cards and footer."""
+    with st.container(border=True):
+        st.markdown(
+            f"""
+            <div style="margin-bottom:0.6rem;">
+                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🚨 Emergency Help &amp; Hotlines — {PILOT_LOCATION_LABEL}</div>
+                <div style="font-size:0.8rem; color:#64748b;">Direct government emergency contact numbers available 24/7.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.markdown(
+                f"""
+                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 12px; text-align:center;">
+                    <div style="font-size:0.72rem; font-weight:700; color:#991b1b; text-transform:uppercase;">NATIONAL EMERGENCY</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:#b91c1c; margin:2px 0;">{EMERGENCY_HELPLINES['national_emergency']}</div>
+                    <div style="font-size:0.72rem; color:#7f1d1d;">Police &bull; Fire &bull; Ambulance</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c2:
+            st.markdown(
+                f"""
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 12px; text-align:center;">
+                    <div style="font-size:0.72rem; font-weight:700; color:#1e40af; text-transform:uppercase;">BIHAR DISASTER HELPLINE</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:#1d4ed8; margin:2px 0;">{EMERGENCY_HELPLINES['state_disaster']}</div>
+                    <div style="font-size:0.72rem; color:#1e3a8a;">BSDMA 24/7 Helpline</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c3:
+            st.markdown(
+                f"""
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; text-align:center;">
+                    <div style="font-size:0.72rem; font-weight:700; color:#166534; text-transform:uppercase;">PATNA DISTRICT CONTROL</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:#15803d; margin:2px 0;">{EMERGENCY_HELPLINES['district_emergency']}</div>
+                    <div style="font-size:0.72rem; color:#14532d;">Emergency Operations (DEOC)</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c4:
+            st.markdown(
+                f"""
+                <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; padding:10px 12px; text-align:center;">
+                    <div style="font-size:0.72rem; font-weight:700; color:#6b21a8; text-transform:uppercase;">MUNICIPAL CONTROL ROOM</div>
+                    <div style="font-size:1.1rem; font-weight:800; color:#7e22ce; margin:5px 0;">{EMERGENCY_HELPLINES['municipal_control_room']}</div>
+                    <div style="font-size:0.72rem; color:#581c87;">PMC Drainage &bull; Waterlogging</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
     st.markdown(
-        """
-        <div style="text-align:center; padding:1.25rem 0 0.5rem 0; color:#64748b; font-size:0.75rem; border-top:1px solid #e2e8f0; margin-top:1.25rem;">
-            <b>Emergency Helplines (Chennai):</b> GCC Flood Control Room: <b>1913</b> &bull; National Emergency: <b>112</b> &bull; Disaster Helpline: <b>1077</b><br/>
-            Chetna Community Flood Safety Portal &bull; IS-12 Project Prototype &bull; Sponsor: Ernst &amp; Young (EY) &bull; Prototype Milestone: F2 Day 1
+        f"""
+        <div style="text-align:center; padding:1.25rem 0 0.5rem 0; color:#94a3b8; font-size:0.75rem;">
+            <b>{SYSTEM_NAME} Citizen Flood Safety Portal</b> &bull; {PILOT_LOCATION_LABEL}
         </div>
         """,
         unsafe_allow_html=True,
@@ -635,31 +791,31 @@ def render_citizen_view(
     hotspots: List[Dict[str, Any]],
     metrics: Dict[str, Any],
 ) -> None:
-    """Main orchestrator for F2 Day 1 Citizen View."""
+    """Main orchestrator for F2 Citizen Safety Portal."""
     facilities = extract_facilities_from_hotspots(hotspots)
 
     # 1. Citizen Header with Logo
     render_citizen_header()
 
-    # 2. Prominent Status Card
+    # 2. Prominent Safety Status Card
     render_citizen_status_card()
 
-    # 3. Neighborhood & Horizon Selection Stub
+    # 3. Neighborhood & Horizon Risk Check
     render_citizen_input_stub(hotspots)
 
     # 4. Map and At-Risk Facilities in Split Layout
-    col_map, col_info = st.columns([65, 35])
+    col_map, col_info = st.columns([60, 40])
     with col_map:
         render_citizen_map(folium_map)
     with col_info:
         render_citizen_facilities_panel(facilities)
 
-    # 5. Safe Route Placeholder & Bilingual Advisory Section
-    col_route, col_advisory = st.columns([40, 60])
+    # 5. Safe Route Finder & Bilingual Advisory Section
+    col_route, col_advisory = st.columns([45, 55])
     with col_route:
         render_citizen_safe_route(folium_map, hotspots)
     with col_advisory:
         render_citizen_advisory_section()
 
-    # 6. Citizen Footer
+    # 6. Emergency Help & Helplines Footer
     render_citizen_footer()

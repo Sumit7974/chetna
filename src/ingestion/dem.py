@@ -42,7 +42,7 @@ from src.ingestion.pilot_config import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_DEM_DIR = Path("data/dem")
-DEFAULT_DEM_PATH = DEFAULT_DEM_DIR / "chennai_dem_30m.tif"
+DEFAULT_DEM_PATH = DEFAULT_DEM_DIR / "patna_dem_30m.tif"
 
 
 def download_dem_opentopography(
@@ -114,14 +114,14 @@ def download_dem_opentopography(
 
 def create_synthetic_dem_fixture(
     bbox: Optional[Dict[str, float]] = None,
-    output_path: Union[str, Path] = "tests/fixtures/chennai_dem_fixture.tif",
+    output_path: Union[str, Path] = "tests/fixtures/patna_dem_fixture.tif",
     width: int = 120,
     height: int = 120,
 ) -> Path:
     """Create a clearly-labeled synthetic DEM GeoTIFF for testing and offline development.
 
-    Models Chennai's general topography: coastal lowlands (2–5 m) in the east
-    gently rising to upland plateaus (20–30 m) in the west/southwest.
+    Models Patna's topography: natural Gangetic levee (52–54 m AMSL) in the north
+    falling gently southward into saucer depression basins (48–49 m AMSL) in Rajendra Nagar/Kankarbagh.
 
     Parameters
     ----------
@@ -156,13 +156,13 @@ def create_synthetic_dem_fixture(
     # Affine transform for pixel-to-world mapping: top-left corner is (west, north)
     transform = affine.Affine(res_x, 0.0, west, 0.0, -res_y, north)
 
-    # Generate synthetic elevation: sloping west-to-east towards Bay of Bengal
+    # Generate synthetic elevation: Gangetic high ridge in north, falling southward into saucer basin
     x_grid = np.linspace(0.0, 1.0, width)
     y_grid = np.linspace(0.0, 1.0, height)
     xx, yy = np.meshgrid(x_grid, y_grid)
 
-    # Elevation: ~28m in west falling to ~2.5m at coast (east), with local undulations
-    elevations = (1.0 - xx) * 25.0 + 3.0 + np.sin(xx * 10.0) * 1.5 + np.cos(yy * 8.0) * 1.0
+    # Inverted y: north (top) is high (~53.5m), south (bottom) is saucer basin (~48.5m)
+    elevations = 48.5 + (1.0 - yy) * 4.5 + np.sin(xx * 6.0) * 0.8
     elevations = elevations.astype(np.float32)
 
     profile = {
@@ -180,8 +180,8 @@ def create_synthetic_dem_fixture(
         dst.write(elevations, 1)
         dst.update_tags(
             is_synthetic="true",
-            source="Chetna Synthetic DEM Test Fixture",
-            provenance="Procedural gradient for Chennai pilot area offline tests",
+            source="Chetna Synthetic DEM Test Fixture (Patna)",
+            provenance="Procedural Gangetic levee and southern saucer basin gradient for Patna pilot area",
         )
 
     logger.info("Created synthetic DEM fixture at %s (is_synthetic=True)", out_file)

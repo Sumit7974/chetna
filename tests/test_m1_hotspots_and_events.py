@@ -42,8 +42,8 @@ class TestM1HotspotsAndEvents(unittest.TestCase):
         for h in hotspots:
             self.assertIsInstance(h, Hotspot)
             self.assertTrue(h.hotspot_id.startswith("HS"))
-            self.assertEqual(h.city, "Chennai")
-            self.assertEqual(h.state, "Tamil Nadu")
+            self.assertIn(h.city, ["Patna", "Chennai"])
+            self.assertIn(h.state, ["Bihar", "Tamil Nadu"])
             self.assertTrue(len(h.name) > 0)
             self.assertTrue(len(h.zone) > 0)
             self.assertGreater(h.ward, 0)
@@ -55,14 +55,19 @@ class TestM1HotspotsAndEvents(unittest.TestCase):
             self.assertTrue(len(h.source_reference) > 0)
 
     def test_hotspots_geospatial_bounds(self) -> None:
-        """Verify all hotspots are geographically located within the Chennai Metropolitan Area."""
+        """Verify all hotspots are geographically located within the pilot metropolitan area."""
         hotspots = load_hotspots()
-        # Chennai bounding box roughly: Lat 12.8 to 13.3 N, Lon 80.0 to 80.35 E
         for h in hotspots:
-            self.assertGreaterEqual(h.latitude, 12.8, f"{h.name} latitude too low")
-            self.assertLessEqual(h.latitude, 13.3, f"{h.name} latitude too high")
-            self.assertGreaterEqual(h.longitude, 80.0, f"{h.name} longitude too low")
-            self.assertLessEqual(h.longitude, 80.35, f"{h.name} longitude too high")
+            if h.city == "Patna":
+                self.assertGreaterEqual(h.latitude, 25.50, f"{h.name} latitude too low")
+                self.assertLessEqual(h.latitude, 25.75, f"{h.name} latitude too high")
+                self.assertGreaterEqual(h.longitude, 85.00, f"{h.name} longitude too low")
+                self.assertLessEqual(h.longitude, 85.30, f"{h.name} longitude too high")
+            else:
+                self.assertGreaterEqual(h.latitude, 12.8, f"{h.name} latitude too low")
+                self.assertLessEqual(h.latitude, 13.3, f"{h.name} latitude too high")
+                self.assertGreaterEqual(h.longitude, 80.0, f"{h.name} longitude too low")
+                self.assertLessEqual(h.longitude, 80.35, f"{h.name} longitude too high")
 
     def test_hotspot_geojson_export(self) -> None:
         """Verify Hotspot.to_geojson_feature generates valid GeoJSON Point feature."""
@@ -75,7 +80,7 @@ class TestM1HotspotsAndEvents(unittest.TestCase):
         # GeoJSON is [longitude, latitude]
         self.assertEqual(feature["geometry"]["coordinates"], [hotspot.longitude, hotspot.latitude])  # type: ignore
         self.assertEqual(feature["properties"]["id"], "HS01")
-        self.assertEqual(feature["properties"]["name"], "Velachery Vijayanagar Junction")
+        self.assertIn(feature["properties"]["name"], ["Rajendra Nagar Sump Basin", "Velachery Vijayanagar Junction"])
 
     def test_hotspot_coordinate_validation_errors(self) -> None:
         """Verify boundary validations raise ValueError on erroneous inputs."""

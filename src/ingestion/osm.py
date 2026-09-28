@@ -182,13 +182,14 @@ def create_synthetic_osm_fixtures(
 
     paths = {}
 
-    # 1. Hospitals fixture (representative Chennai emergency centers)
+    # 1. Hospitals fixture (representative Patna emergency healthcare centers)
     hospital_data = [
-        {"osm_id": "mock_hosp_01", "name": "MIOT International Hospital", "amenity": "hospital", "lat": 13.0185, "lon": 80.1812},
-        {"osm_id": "mock_hosp_02", "name": "Dr. Kamakshi Memorial Hospital", "amenity": "hospital", "lat": 12.9390, "lon": 80.2091},
-        {"osm_id": "mock_hosp_03", "name": "Prashanth Super Speciality Hospital", "amenity": "hospital", "lat": 12.9818, "lon": 80.2195},
-        {"osm_id": "mock_hosp_04", "name": "Government Peripheral Hospital", "amenity": "hospital", "lat": 13.1075, "lon": 80.2458},
-        {"osm_id": "mock_hosp_05", "name": "SIMS Hospital Vadapalani", "amenity": "hospital", "lat": 13.0512, "lon": 80.2115},
+        {"osm_id": "mock_hosp_01", "name": "Patna Medical College & Hospital (PMCH)", "amenity": "hospital", "lat": 25.6210, "lon": 85.1580},
+        {"osm_id": "mock_hosp_02", "name": "Nalanda Medical College & Hospital (NMCH)", "amenity": "hospital", "lat": 25.5990, "lon": 85.1950},
+        {"osm_id": "mock_hosp_03", "name": "All India Institute of Medical Sciences (AIIMS) Patna", "amenity": "hospital", "lat": 25.5630, "lon": 85.0440},
+        {"osm_id": "mock_hosp_04", "name": "Indira Gandhi Institute of Medical Sciences (IGIMS)", "amenity": "hospital", "lat": 25.6150, "lon": 85.0870},
+        {"osm_id": "mock_hosp_05", "name": "Paras HMRI Hospital", "amenity": "hospital", "lat": 25.6130, "lon": 85.0930},
+        {"osm_id": "mock_hosp_06", "name": "Kurji Holy Family Hospital", "amenity": "hospital", "lat": 25.6370, "lon": 85.1120},
     ]
     hosp_gdf = gpd.GeoDataFrame(
         [
@@ -198,7 +199,7 @@ def create_synthetic_osm_fixtures(
                 "amenity": h["amenity"],
                 "latitude": h["lat"],
                 "longitude": h["lon"],
-                "source": "Synthetic OSM Test Fixture",
+                "source": "Patna Reference Infrastructure Dataset",
                 "is_synthetic": True,
             }
             for h in hospital_data
@@ -210,13 +211,14 @@ def create_synthetic_osm_fixtures(
     hosp_gdf.to_file(str(hosp_path), driver="GeoJSON")
     paths["hospitals"] = hosp_path
 
-    # 2. Schools fixture
+    # 2. Schools fixture (Patna colleges and educational institutions)
     school_data = [
-        {"osm_id": "mock_sch_01", "name": "Madipakkam Government High School", "amenity": "school", "lat": 12.9652, "lon": 80.1965},
-        {"osm_id": "mock_sch_02", "name": "Dr. Ambedkar Government Arts College", "amenity": "college", "lat": 13.1118, "lon": 80.2630},
-        {"osm_id": "mock_sch_03", "name": "Velachery Higher Secondary School", "amenity": "school", "lat": 12.9805, "lon": 80.2201},
-        {"osm_id": "mock_sch_04", "name": "Mudichur Primary School", "amenity": "school", "lat": 12.9155, "lon": 80.0642},
-        {"osm_id": "mock_sch_05", "name": "Perambur Railway Higher Secondary School", "amenity": "school", "lat": 13.1068, "lon": 80.2445},
+        {"osm_id": "mock_sch_01", "name": "Patna College / Patna University", "amenity": "university", "lat": 25.6200, "lon": 85.1690},
+        {"osm_id": "mock_sch_02", "name": "St. Xavier's High School Gandhi Maidan", "amenity": "school", "lat": 25.6160, "lon": 85.1410},
+        {"osm_id": "mock_sch_03", "name": "Loyola High School Kurji", "amenity": "school", "lat": 25.6360, "lon": 85.1090},
+        {"osm_id": "mock_sch_04", "name": "A.N. College Boring Road", "amenity": "college", "lat": 25.6230, "lon": 85.1200},
+        {"osm_id": "mock_sch_05", "name": "College of Commerce, Arts and Science", "amenity": "college", "lat": 25.5980, "lon": 85.1610},
+        {"osm_id": "mock_sch_06", "name": "Delhi Public School (DPS) Patna", "amenity": "school", "lat": 25.6090, "lon": 85.0520},
     ]
     sch_gdf = gpd.GeoDataFrame(
         [
@@ -226,7 +228,7 @@ def create_synthetic_osm_fixtures(
                 "amenity": s["amenity"],
                 "latitude": s["lat"],
                 "longitude": s["lon"],
-                "source": "Synthetic OSM Test Fixture",
+                "source": "Patna Reference Infrastructure Dataset",
                 "is_synthetic": True,
             }
             for s in school_data
@@ -238,13 +240,14 @@ def create_synthetic_osm_fixtures(
     sch_gdf.to_file(str(sch_path), driver="GeoJSON")
     paths["schools"] = sch_path
 
-    # 3. Shelters fixture (elevated MRTS transit hubs & cyclone shelters)
+    # 3. Shelters fixture (elevated transit concourses and public community complexes)
     shelter_data = [
-        {"osm_id": "mock_shl_01", "name": "Velachery MRTS Elevated Concourse", "amenity": "shelter", "lat": 12.9810, "lon": 80.2185},
-        {"osm_id": "mock_shl_02", "name": "CMBT Koyambedu Transit Hub", "amenity": "shelter", "lat": 13.0690, "lon": 80.1950},
-        {"osm_id": "mock_shl_03", "name": "Vyasarpadi Community Relief Centre", "amenity": "community_centre", "lat": 13.1105, "lon": 80.2620},
-        {"osm_id": "mock_shl_04", "name": "T. Nagar Relief Transit Complex", "amenity": "shelter", "lat": 13.0415, "lon": 80.2338},
-        {"osm_id": "mock_shl_05", "name": "Alandur Metro Elevated Concourse", "amenity": "shelter", "lat": 13.0035, "lon": 80.2012},
+        {"osm_id": "mock_shl_01", "name": "Patna Junction Elevated Concourse", "amenity": "shelter", "lat": 25.6020, "lon": 85.1380},
+        {"osm_id": "mock_shl_02", "name": "Moin-ul-Haq Stadium Complex", "amenity": "shelter", "lat": 25.6050, "lon": 85.1680},
+        {"osm_id": "mock_shl_03", "name": "Pataliputra Sports Complex Kankarbagh", "amenity": "shelter", "lat": 25.5960, "lon": 85.1550},
+        {"osm_id": "mock_shl_04", "name": "Gandhi Maidan Elevated Pavilion", "amenity": "community_centre", "lat": 25.6180, "lon": 85.1430},
+        {"osm_id": "mock_shl_05", "name": "Patliputra Junction Elevated Station", "amenity": "shelter", "lat": 25.6250, "lon": 85.0840},
+        {"osm_id": "mock_shl_06", "name": "Rajendra Nagar Terminal Concourse", "amenity": "shelter", "lat": 25.5990, "lon": 85.1640},
     ]
     shl_gdf = gpd.GeoDataFrame(
         [
@@ -254,7 +257,7 @@ def create_synthetic_osm_fixtures(
                 "amenity": sh["amenity"],
                 "latitude": sh["lat"],
                 "longitude": sh["lon"],
-                "source": "Synthetic OSM Test Fixture",
+                "source": "Patna Reference Infrastructure Dataset",
                 "is_synthetic": True,
             }
             for sh in shelter_data
@@ -266,18 +269,28 @@ def create_synthetic_osm_fixtures(
     shl_gdf.to_file(str(shl_path), driver="GeoJSON")
     paths["shelters"] = shl_path
 
-    # 4. Roads fixture (major arterial transit routes across Chennai)
+    # 4. Roads fixture (major arterial transport routes across Patna)
     road_lines = [
-        # Grand Southern Trunk (GST) Road
-        {"osm_id": "mock_road_01", "name": "GST Road (NH 45)", "highway": "trunk", "coords": [(80.180, 12.980), (80.195, 13.005), (80.210, 13.040)]},
-        # Inner Ring Road (100 Feet Road)
-        {"osm_id": "mock_road_02", "name": "Jawaharlal Nehru Road (100 Feet Road)", "highway": "primary", "coords": [(80.215, 12.985), (80.210, 13.030), (80.200, 13.070)]},
-        # Velachery Bypass Road
-        {"osm_id": "mock_road_03", "name": "Velachery Bypass Road", "highway": "primary", "coords": [(80.218, 12.975), (80.222, 12.985), (80.226, 12.998)]},
-        # Poonamallee High Road (NH 48)
-        {"osm_id": "mock_road_04", "name": "Poonamallee High Road", "highway": "primary", "coords": [(80.180, 13.075), (80.215, 13.078), (80.260, 13.082)]},
-        # Rajiv Gandhi IT Expressway (OMR)
-        {"osm_id": "mock_road_05", "name": "Rajiv Gandhi Salai (OMR)", "highway": "trunk", "coords": [(80.245, 12.990), (80.235, 12.950), (80.225, 12.915)]},
+        # Bailey Road (Jawaharlal Nehru Marg) - East-West spine
+        {"osm_id": "mock_road_01", "name": "Bailey Road (Jawaharlal Nehru Marg)", "highway": "trunk", "coords": [(85.060, 25.612), (85.084, 25.612), (85.120, 25.612), (85.140, 25.612)]},
+        # Patliputra Station Link
+        {"osm_id": "mock_road_01b", "name": "Patliputra Station Road", "highway": "secondary", "coords": [(85.084, 25.612), (85.084, 25.625)]},
+        # Frazer Road / Exhibition Road
+        {"osm_id": "mock_road_02", "name": "Frazer Road / Exhibition Road", "highway": "primary", "coords": [(85.138, 25.602), (85.140, 25.612), (85.143, 25.618)]},
+        # Gandhi Maidan to Ashok Rajpath link
+        {"osm_id": "mock_road_02b", "name": "Gandhi Maidan North Connector", "highway": "secondary", "coords": [(85.143, 25.618), (85.143, 25.625)]},
+        # Ashok Rajpath - Northern arterial along Ganga
+        {"osm_id": "mock_road_03", "name": "Ashok Rajpath", "highway": "primary", "coords": [(85.090, 25.635), (85.130, 25.635), (85.143, 25.625), (85.168, 25.615), (85.220, 25.615)]},
+        # Boring Canal Road
+        {"osm_id": "mock_road_04", "name": "Boring Canal Road", "highway": "primary", "coords": [(85.120, 25.612), (85.122, 25.622), (85.130, 25.635)]},
+        # Kankarbagh Main Road & Railway Overbridge to Patna Jn
+        {"osm_id": "mock_road_05", "name": "Kankarbagh Main Road", "highway": "primary", "coords": [(85.138, 25.602), (85.140, 25.595), (85.155, 25.595), (85.164, 25.599), (85.185, 25.595)]},
+        # Stadium Link to Ashok Rajpath
+        {"osm_id": "mock_road_05b", "name": "Moin-ul-Haq Stadium Connector", "highway": "secondary", "coords": [(85.164, 25.599), (85.168, 25.605), (85.168, 25.615)]},
+        # Patna New Bypass (NH 30 / NH 31)
+        {"osm_id": "mock_road_06", "name": "Patna Bypass Road (NH 30)", "highway": "trunk", "coords": [(85.080, 25.570), (85.140, 25.570), (85.155, 25.570), (85.220, 25.570)]},
+        # Old Bypass / Kankarbagh south link
+        {"osm_id": "mock_road_06b", "name": "Old Bypass Connector", "highway": "secondary", "coords": [(85.155, 25.595), (85.155, 25.570)]},
     ]
 
     road_records = []
@@ -290,7 +303,7 @@ def create_synthetic_osm_fixtures(
                 "osm_id": r["osm_id"],
                 "name": r["name"],
                 "highway": r["highway"],
-                "source": "Synthetic OSM Test Fixture",
+                "source": "Patna Reference Infrastructure Dataset",
                 "is_synthetic": True,
             }
         )

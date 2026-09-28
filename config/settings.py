@@ -123,6 +123,21 @@ class Settings:
                 n.strip() for n in raw_numbers.split(",") if n.strip()
             ]
 
+    # Mapbox Configuration
+    mapbox_access_token: str = field(
+        default_factory=lambda: os.getenv("MAPBOX_ACCESS_TOKEN", os.getenv("MAPBOX_API_KEY", "")).strip()
+    )
+
+    @property
+    def has_valid_mapbox_token(self) -> bool:
+        """Verify whether Mapbox access token is configured and not a placeholder."""
+        return bool(
+            self.mapbox_access_token
+            and len(self.mapbox_access_token) > 15
+            and not self.mapbox_access_token.startswith("pk.placeholder")
+            and not self.mapbox_access_token.startswith("pk.your_")
+        )
+
     @property
     def has_valid_twilio_credentials(self) -> bool:
         """Verify whether Twilio credentials appear configured and not placeholders."""
@@ -155,9 +170,15 @@ class Settings:
             if self.telegram_bot_token
             else "<unset>"
         )
+        masked_mapbox = (
+            f"{self.mapbox_access_token[:8]}...***"
+            if self.mapbox_access_token
+            else "<unset>"
+        )
         return (
             f"Settings(twilio_sid={masked_twilio}, "
             f"telegram_bot={masked_telegram}, "
+            f"mapbox_token={masked_mapbox}, "
             f"dry_run={self.alert_dry_run}, "
             f"db_path={self.database_path})"
         )

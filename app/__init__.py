@@ -16,7 +16,39 @@ from app.dashboard import (
 from app.citizen_view import (
     extract_facilities_from_hotspots,
     get_bilingual_messages,
+    get_risk_advisory_bilingual,
     render_citizen_view,
+)
+from app.config import (
+    HAZARD_SCOPE,
+    PILOT_CITY,
+    PILOT_LOCATION_LABEL,
+    PILOT_STATE,
+)
+from app.map_layers import (
+    add_hotspots_layer,
+    add_map_legend,
+    add_risk_cells_layer,
+    add_sensor_layer,
+    build_operational_deck,
+    build_citizen_route_deck,
+    build_operational_map,
+    check_horizon_prediction_availability,
+    format_why_flagged_html,
+    get_at_risk_assets_summary,
+    get_mapbox_map_style,
+    get_risk_tier_style,
+    load_horizon_predictions,
+    load_sensor_stations,
+)
+from app.alert_service import (
+    dispatch_authority_alert,
+    format_draft_alert_text,
+)
+from app.demo_scenario import (
+    load_backtest_summary,
+    reset_to_baseline_scenario,
+    simulate_heavy_rain_scenario,
 )
 
 __all__ = [
@@ -33,5 +65,29 @@ __all__ = [
     "load_static_risk_metadata",
     "extract_facilities_from_hotspots",
     "get_bilingual_messages",
+    "get_risk_advisory_bilingual",
     "render_citizen_view",
+    "PILOT_CITY",
+    "PILOT_STATE",
+    "PILOT_LOCATION_LABEL",
+    "HAZARD_SCOPE",
+    "add_hotspots_layer",
+    "add_map_legend",
+    "add_risk_cells_layer",
+    "add_sensor_layer",
+    "build_operational_deck",
+    "build_citizen_route_deck",
+    "build_operational_map",
+    "check_horizon_prediction_availability",
+    "format_why_flagged_html",
+    "get_at_risk_assets_summary",
+    "get_mapbox_map_style",
+    "get_risk_tier_style",
+    "load_horizon_predictions",
+    "load_sensor_stations",
+    "dispatch_authority_alert",
+    "format_draft_alert_text",
+    "simulate_heavy_rain_scenario",
+    "reset_to_baseline_scenario",
+    "load_backtest_summary",
 ]
