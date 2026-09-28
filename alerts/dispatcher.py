@@ -39,6 +39,7 @@ class AlertDispatcher:
             account_sid=settings.twilio_account_sid,
             auth_token=settings.twilio_auth_token,
             from_phone=settings.twilio_phone_number,
+            whatsapp_from_phone=getattr(settings, "twilio_whatsapp_phone_number", None),
             dry_run=settings.alert_dry_run,
         )
         self.telegram = telegram_handler or TelegramAlertHandler(
@@ -84,7 +85,7 @@ class AlertDispatcher:
             db_path=self.db_path,
         )
 
-        # 2. SMS delivery for WARNING, CRITICAL, EMERGENCY
+        # 2. SMS and WhatsApp delivery for WARNING, CRITICAL, EMERGENCY
         recipients = sms_recipients or settings.emergency_broadcast_numbers
         if severity in (
             AlertSeverity.WARNING,
@@ -92,17 +93,31 @@ class AlertDispatcher:
             AlertSeverity.EMERGENCY,
         ):
             for phone in recipients:
-                sms_res = self.twilio.send_sms(to_phone=phone, body=formatted_sms)
-                log_alert_dispatch(
-                    alert_id=alert_id,
-                    severity=severity.value,
-                    channel="TWILIO_SMS",
-                    recipient=phone,
-                    message=formatted_sms,
-                    status=sms_res.status,
-                    response_payload=str(sms_res.message_sid or sms_res.error),
-                    db_path=self.db_path,
-                )
+                if phone.startswith("whatsapp:"):
+                    wa_res = self.twilio.send_whatsapp(to_phone=phone, body=formatted_sms)
+                    log_alert_dispatch(
+                        alert_id=alert_id,
+                        severity=severity.value,
+                        channel="TWILIO_WHATSAPP",
+                        recipient=phone,
+                        message=formatted_sms,
+                        status=wa_res.status,
+                        response_payload=str(wa_res.message_sid or wa_res.error),
+                        db_path=self.db_path,
+                    )
+                else:
+                    clean_phone = phone[4:] if phone.startswith("sms:") else phone
+                    sms_res = self.twilio.send_sms(to_phone=clean_phone, body=formatted_sms)
+                    log_alert_dispatch(
+                        alert_id=alert_id,
+                        severity=severity.value,
+                        channel="TWILIO_SMS",
+                        recipient=phone,
+                        message=formatted_sms,
+                        status=sms_res.status,
+                        response_payload=str(sms_res.message_sid or sms_res.error),
+                        db_path=self.db_path,
+                    )
 
         # 3. Automated Voice Calls for EMERGENCY tier
         if severity == AlertSeverity.EMERGENCY:
@@ -111,8 +126,13 @@ class AlertDispatcher:
                 f"{message}. Please move to higher ground immediately."
             )
             for phone in recipients:
+                clean_phone = (
+                    phone[4:]
+                    if phone.startswith("sms:")
+                    else (phone[9:] if phone.startswith("whatsapp:") else phone)
+                )
                 call_res = self.twilio.make_voice_call(
-                    to_phone=phone,
+                    to_phone=clean_phone,
                     twiml_url_or_say=voice_prompt,
                 )
                 log_alert_dispatch(

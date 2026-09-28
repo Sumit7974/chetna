@@ -56,6 +56,11 @@ class Settings:
     twilio_phone_number: str = field(
         default_factory=lambda: os.getenv("TWILIO_PHONE_NUMBER", "")
     )
+    twilio_whatsapp_phone_number: str = field(
+        default_factory=lambda: os.getenv(
+            "TWILIO_WHATSAPP_PHONE_NUMBER", os.getenv("TWILIO_WHATSAPP_FROM", "")
+        )
+    )
 
     # Telegram Bot Configuration
     telegram_bot_token: str = field(
@@ -126,7 +131,7 @@ class Settings:
             and not self.twilio_account_sid.startswith("ACxxxx")
             and self.twilio_auth_token
             and "your_" not in self.twilio_auth_token
-            and self.twilio_phone_number
+            and (self.twilio_phone_number or self.twilio_whatsapp_phone_number)
         )
 
     @property

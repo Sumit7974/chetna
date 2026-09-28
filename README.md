@@ -929,7 +929,7 @@ SensorSimulator
                     └─> AlertCooldown.should_send()   → suppress / escalate
                             └─> AlertDispatcher.dispatch()
                                     ├─> TelegramAlertHandler  → Telegram
-                                    ├─> TwilioAlertHandler    → SMS
+                                    ├─> TwilioAlertHandler    → SMS / WhatsApp
                                     ├─> TwilioAlertHandler    → Voice (EMERGENCY only)
                                     └─> database.db.log_alert_dispatch() → alert_logs
                             └─> alerts table (lifecycle: generated → dispatched → acknowledged → resolved)
@@ -957,9 +957,9 @@ SensorSimulator
 | Severity | Water Level | Rainfall Rate | Anomaly | Channels |
 |---|---|---|---|---|
 | INFO | < 75 cm | < 30 mm/h | No | Telegram only |
-| WARNING | ≥ 75 cm | ≥ 30 mm/h | No | Telegram + SMS |
-| CRITICAL | ≥ 120 cm | ≥ 60 mm/h | No | Telegram + SMS |
-| EMERGENCY | ≥ 120 cm AND ≥ 60 mm/h | both critical | YES | Telegram + SMS + Voice |
+| WARNING | ≥ 75 cm | ≥ 30 mm/h | No | Telegram + SMS / WhatsApp |
+| CRITICAL | ≥ 120 cm | ≥ 60 mm/h | No | Telegram + SMS / WhatsApp |
+| EMERGENCY | ≥ 120 cm AND ≥ 60 mm/h | both critical | YES | Telegram + SMS / WhatsApp + Voice |
 
 Thresholds are configurable via `.env`:
 ```
@@ -969,6 +969,33 @@ RAINFALL_HOURLY_WARNING_MM=30.0
 RAINFALL_HOURLY_CRITICAL_MM=60.0
 ALERT_COOLDOWN_SECONDS=300
 ```
+
+### Notification Channels & Sandbox Configuration (B2 Day 1)
+
+Chetna B2 Day 1 supports multi-channel alerting with automated channel selection:
+
+1. **Telegram Backup Channel**:
+   - Primary channel for informational alerts (`INFO`) and redundant backup for elevated tiers (`WARNING`, `CRITICAL`, `EMERGENCY`).
+   - Configured via `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
+   - In dry-run mode (`ALERT_DRY_RUN=true`), delivery is safely simulated without network calls.
+
+2. **Twilio SMS**:
+   - Dispatched for `WARNING`, `CRITICAL`, and `EMERGENCY` tiers.
+   - Recipient addresses format as `+919876543210` or `sms:+919876543210`.
+   - Sender configured via `TWILIO_PHONE_NUMBER`.
+
+3. **Twilio WhatsApp Sandbox**:
+   - Dispatched for `WARNING`, `CRITICAL`, and `EMERGENCY` tiers when recipient address starts with `whatsapp:+...`.
+   - Sandbox sender configured via `TWILIO_WHATSAPP_PHONE_NUMBER` (defaults to Twilio sandbox `whatsapp:+14155238886`).
+   - The dispatcher automatically differentiates `sms:+...` vs `whatsapp:+...` prefixes and routes to the appropriate channel.
+
+4. **Twilio Automated Voice**:
+   - High-urgency audio call dispatched exclusively during `EMERGENCY` tier alerts.
+   - Uses speech synthesis (`Say voice='alice'`) or custom TwiML.
+
+5. **Dry-Run & Credentials Safety**:
+   - `ALERT_DRY_RUN=true` (default) allows full end-to-end testing without credentials or network requests.
+   - All credentials must be supplied via environment variables (`.env`). No credentials or tokens are hardcoded.
 
 ### Alert Deduplication / Cooldown
 The `AlertCooldown` class suppresses repeated identical alerts within a configurable window
@@ -1010,7 +1037,7 @@ for r in readings:
 | `alerts/pipeline.py` | Full pipeline orchestrator + lifecycle helpers |
 | `alerts/dispatcher.py` | Notification routing by severity |
 | `alerts/telegram_handler.py` | Telegram Bot HTTP handler |
-| `alerts/twilio_handler.py` | Twilio SMS + Voice handler |
+| `alerts/twilio_handler.py` | Twilio SMS, WhatsApp Sandbox, and Voice handler |
 | `database/db.py` | Canonical B2 database API |
 | `database/schema.sql` | Complete unified SQLite schema |
 | `config/settings.py` | Centralized configuration from `.env` |
