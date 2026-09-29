@@ -773,6 +773,7 @@ def render_dominant_status(
     """Render the single dominant overall status area for Authority Operations."""
     counts = (horizon_status or {}).get("counts") or {}
     high_cnt = counts.get("HIGH", 0)
+    sev_cnt = counts.get("SEVERE", 0)
     has_sim = st.session_state.get("simulation_active", False)
     has_alert = st.session_state.get("alert_under_review", False) or st.session_state.get("alert_approved", False)
     has_dynamic_surge = bool(horizon_status and horizon_status.get("available") and horizon_status.get("predictions") and (high_cnt + sev_cnt > 0))

@@ -37,9 +37,11 @@ from src.model.predictor import FloodRiskPredictor, RiskPrediction
 
 logger = logging.getLogger(__name__)
 
-# Default Chennai pilot coordinates
-DEFAULT_LATITUDE = 13.0827
-DEFAULT_LONGITUDE = 80.2707
+from src.ingestion.pilot_config import PILOT_CENTER_LAT, PILOT_CENTER_LON
+
+# Authoritative Patna pilot coordinates
+DEFAULT_LATITUDE = PILOT_CENTER_LAT
+DEFAULT_LONGITUDE = PILOT_CENTER_LON
 
 # Authoritative forecast horizons
 REQUIRED_HORIZONS: List[int] = [1, 3, 6]
@@ -172,8 +174,8 @@ def run_pipeline(
         6. Return execution summary.
 
     Args:
-        latitude: Target pilot latitude (default: Chennai 13.0827).
-        longitude: Target pilot longitude (default: Chennai 80.2707).
+        latitude: Target pilot latitude (default: Patna 25.6093).
+        longitude: Target pilot longitude (default: Patna 85.1376).
         db_path: Target SQLite database file or connection (default: data/chetna.db).
         horizons: List of forecast horizons to process (default: [1, 3, 6]).
         reference_time: Optional reference timestamp for forecast window.
@@ -193,6 +195,9 @@ def run_pipeline(
 
     logger.info("Executing Chetna B1 Day 3 pipeline for (lat=%.4f, lon=%.4f)", latitude, longitude)
 
+    # Resolve location name for forecast persistence contract
+    loc_name = "Patna Pilot Municipal Area" if (24.0 <= latitude <= 27.0 and 83.0 <= longitude <= 87.0) else "Chennai Pilot Area"
+
     # 1. Fetch & Store Open-Meteo Forecast
     try:
         weather_result, _ = fetch_and_store_forecast(
@@ -202,6 +207,7 @@ def run_pipeline(
             reference_time=reference_time,
             cache_dir=cache_dir,
             use_cache_on_failure=use_cache_on_failure,
+            location_name=loc_name,
         )
         used_cached_forecast = getattr(weather_result, "used_cached_data", False)
     except Exception as exc:
@@ -310,8 +316,8 @@ def run_pipeline(
 def main() -> None:
     """Command-line interface for executing the B1 Day 3 pipeline."""
     parser = argparse.ArgumentParser(description="Chetna B1 Day 3 Forecast-to-Risk Pipeline")
-    parser.add_argument("--lat", type=float, default=DEFAULT_LATITUDE, help="Latitude (default: Chennai 13.0827)")
-    parser.add_argument("--lon", type=float, default=DEFAULT_LONGITUDE, help="Longitude (default: Chennai 80.2707)")
+    parser.add_argument("--lat", type=float, default=DEFAULT_LATITUDE, help=f"Latitude (default: Patna {DEFAULT_LATITUDE})")
+    parser.add_argument("--lon", type=float, default=DEFAULT_LONGITUDE, help=f"Longitude (default: Patna {DEFAULT_LONGITUDE})")
     parser.add_argument("--db-path", type=str, default=str(DEFAULT_DB_PATH), help="SQLite database path")
     parser.add_argument("--cache-dir", type=str, default="data/cache", help="Forecast cache directory")
     parser.add_argument("--no-persist", action="store_true", help="Do not persist predictions to DB")

@@ -344,10 +344,15 @@ def load_osm_layer(
     gpd.GeoDataFrame
         Loaded spatial layer in EPSG:4326.
     """
-    cache_file = Path(cache_dir) / f"chennai_{layer_name}.geojson"
-    if cache_file.exists():
-        logger.info("Loading cached OSM layer '%s' from %s", layer_name, cache_file)
-        return gpd.read_file(str(cache_file))
+    # Look for Patna-specific layer, generic OSM fixture, or historical cache
+    patna_cache = Path(cache_dir) / f"patna_{layer_name}.geojson"
+    fixture_in_cache = Path(cache_dir) / f"osm_{layer_name}_fixture.geojson"
+    chennai_cache = Path(cache_dir) / f"chennai_{layer_name}.geojson"
+
+    for candidate in [patna_cache, fixture_in_cache, chennai_cache]:
+        if candidate.exists():
+            logger.info("Loading cached OSM layer '%s' from %s", layer_name, candidate)
+            return gpd.read_file(str(candidate))
 
     if fallback_to_fixture:
         fixture_file = Path(fixtures_dir) / f"osm_{layer_name}_fixture.geojson"
@@ -356,7 +361,7 @@ def load_osm_layer(
             return gpd.read_file(str(fixture_file))
 
     raise FileNotFoundError(
-        f"OSM layer '{layer_name}' not found at {cache_file} or {fixtures_dir}"
+        f"OSM layer '{layer_name}' not found at {cache_dir} or {fixtures_dir}"
     )
 
 
