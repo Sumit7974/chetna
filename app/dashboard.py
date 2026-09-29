@@ -571,12 +571,12 @@ def render_sidebar(metrics: Dict[str, Any]) -> Dict[str, Any]:
             citizen_section = st.radio(
                 "CITIZEN NAVIGATION",
                 options=[
-                    "📍 My Area Overview",
-                    "🌊 Flood Risk Check",
-                    "🏛️ Safe Shelters",
-                    "🚶 Safe Evacuation Route",
-                    "📢 Safety Advisory",
-                    "🚨 Emergency Contacts",
+                    "My Area",
+                    "Flood Risk",
+                    "Safe Places",
+                    "Safe Route",
+                    "Advisory",
+                    "Emergency Help",
                 ],
                 index=0,
             )
@@ -600,13 +600,13 @@ def render_sidebar(metrics: Dict[str, Any]) -> Dict[str, Any]:
             f1_section = st.radio(
                 "OPERATIONS NAVIGATION",
                 options=[
-                    "📊 Overview",
-                    "🗺️ Risk Map",
-                    "🚨 Alerts & Broadcast",
-                    "🏥 At-Risk Assets",
-                    "📡 Telemetry & Sensors",
-                    "📈 Risk Analytics",
-                    "⚙️ System Settings",
+                    "Overview",
+                    "Risk Map",
+                    "Alerts",
+                    "At-Risk Assets",
+                    "Sensors",
+                    "Analytics",
+                    "Settings",
                 ],
                 index=0,
             )
@@ -968,6 +968,10 @@ def render_main_workspace(
                 unsafe_allow_html=True,
             )
 
+        from config.settings import Settings
+        _has_mapbox = Settings().has_valid_mapbox_token
+        _map_engine_badge = "Mapbox Engine" if _has_mapbox else "Carto Vector Engine"
+
         st.markdown(
             f"""
             <div class="chetna-card" style="padding-bottom: 0.85rem;">
@@ -982,7 +986,7 @@ def render_main_workspace(
                     </div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <span class="status-pill status-pill-blue">Patna Urban Grid</span>
-                        <span class="status-pill status-pill-slate">Mapbox Engine</span>
+                        <span class="status-pill status-pill-slate">{_map_engine_badge}</span>
                     </div>
                 </div>
             """,
@@ -1411,14 +1415,14 @@ def main() -> None:
             add_fullscreen=True,
         )
 
-        f1_section = controls.get("f1_section", "📊 Overview")
-        if f1_section in ("📊 Overview", "🗺️ Risk Map"):
+        f1_section = controls.get("f1_section", "Overview")
+        if f1_section in ("Overview", "Risk Map", "📊 Overview", "🗺️ Risk Map"):
             render_main_workspace(folium_map, hotspots, horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
             render_alert_and_architecture_section(static_meta, active_horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
-        elif f1_section == "🚨 Alerts & Broadcast":
+        elif f1_section in ("Alerts", "🚨 Alerts & Broadcast"):
             render_alert_and_architecture_section(static_meta, active_horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
             render_main_workspace(folium_map, hotspots, horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
-        elif f1_section == "🏥 At-Risk Assets":
+        elif f1_section in ("At-Risk Assets", "🏥 At-Risk Assets"):
             with st.container(border=True):
                 st.markdown(f"### Critical Assets &amp; Hotspots Registry — {PILOT_LOCATION_LABEL}")
                 st.markdown("Monitored vulnerable infrastructure and drainage bottleneck sites across municipal sectors.")
@@ -1426,20 +1430,20 @@ def main() -> None:
                     st.dataframe(hotspots, use_container_width=True)
                 else:
                     st.info("No asset records loaded.")
-        elif f1_section == "📡 Telemetry & Sensors":
+        elif f1_section in ("Sensors", "📡 Telemetry & Sensors"):
             with st.container(border=True):
                 st.markdown(f"### Telemetry &amp; Hydrological Sensor Network — {PILOT_LOCATION_LABEL}")
-                st.markdown("Virtual and physical water-level monitoring nodes across municipal sectors.")
+                st.markdown("Simulated water-level monitoring nodes across municipal sectors (Computational Telemetry).")
                 if sensors:
                     st.dataframe(sensors, use_container_width=True)
                 else:
                     st.info("No sensor records loaded.")
-        elif f1_section == "📈 Risk Analytics":
+        elif f1_section in ("Analytics", "📈 Risk Analytics"):
             with st.container(border=True):
                 st.markdown(f"### 📈 Model Evaluation &amp; Backtest Analytics &mdash; {PILOT_LOCATION_LABEL}")
                 st.markdown(f"**Hazard Scope:** {HAZARD_SCOPE} &bull; **Pilot Baseline:** 200m Metric Vulnerability Grid")
                 st.markdown(
-                    "Rigorous historical backtest evaluation comparing ML (XGBoost), Heuristic Linear, and Rainfall-only baseline models "
+                    "Historical backtest evaluation comparing ML (XGBoost), Heuristic Linear, and Rainfall-only baseline models "
                     "across multi-hour forecast horizons (+1h, +3h, +6h)."
                 )
 
@@ -1471,14 +1475,14 @@ def main() -> None:
                     )
                 else:
                     st.dataframe(static_meta.get("cells", [])[:15], use_container_width=True)
-        elif f1_section == "⚙️ System Settings":
+        elif f1_section in ("Settings", "⚙️ System Settings"):
             with st.container(border=True):
                 st.markdown(f"### Authority System Settings — {PILOT_LOCATION_LABEL}")
                 st.markdown(f"- **Pilot City:** {PILOT_CITY}")
                 st.markdown(f"- **Pilot State:** {PILOT_STATE}")
                 st.markdown(f"- **Hazard Scope:** {HAZARD_SCOPE}")
                 st.markdown("- **Alert Channels:** Twilio WhatsApp Sandbox, Twilio SMS, Telegram Bot, Automated Voice")
-                st.markdown("- **Dry-Run Mode:** Active (ALERT_DRY_RUN=true)")
+                st.markdown("- **Dry-Run Mode:** Active (ALERT_DRY_RUN=true) — notifications safely simulated locally")
         else:
             render_main_workspace(folium_map, hotspots, horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
             render_alert_and_architecture_section(static_meta, active_horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)

@@ -121,7 +121,7 @@ def get_bilingual_messages() -> Dict[str, Any]:
                 "Follow official State Disaster Management Authority announcements before traveling.",
             ],
             "safe_route_note": (
-                "Day 4 Active: The Chetna safe-route engine navigates citizens around flooded streets to the nearest safe shelter."
+                "The Chetna safe-route engine navigates citizens around flooded streets to the nearest safe shelter."
             ),
         },
         "hi": {
@@ -146,7 +146,7 @@ def get_bilingual_messages() -> Dict[str, Any]:
                 "यात्रा करने से पहले राज्य आपदा प्रबंधन प्राधिकरण की आधिकारिक घोषणाओं का पालन करें।",
             ],
             "safe_route_note": (
-                "डे 4 सक्रिय: चेतना सेफ-रूट इंजन नागरिकों को जलभराव वाले रास्तों से बचाकर निकटतम सुरक्षित राहत केंद्र तक पहुँचाता है।"
+                "चेतना सेफ-रूट इंजन नागरिकों को जलभराव वाले रास्तों से बचाकर निकटतम सुरक्षित राहत केंद्र तक पहुँचाता है।"
             ),
         },
     }
@@ -317,7 +317,7 @@ def render_citizen_input_stub(hotspots: Optional[List[Dict[str, Any]]] = None) -
 
         if not is_available:
             risk_badge = '<span style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; border-radius:9999px; padding:4px 12px; font-weight:700; font-size:0.85rem;">⚠️ FORECAST UNAVAILABLE</span>'
-            status_desc = f"At <b>{selected_horizon}</b>, dynamic meteorological forecast data is not available. Displaying calibrated topographic vulnerability baseline for {selected_area}."
+            status_desc = f"Forecast unavailable for <b>{selected_horizon}</b> — showing the area's baseline flood vulnerability for {selected_area}."
         elif counts.get("SEVERE", 0) > 0 or counts.get("HIGH", 0) > 0:
             sev_cnt = counts.get("SEVERE", 0)
             high_cnt = counts.get("HIGH", 0)
@@ -449,7 +449,7 @@ def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]])
         st.markdown(
             """
             <div style="font-size:0.72rem; color:#94a3b8; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:4px; text-align:center;">
-                Reference facilities from municipal infrastructure registry (Study Grid Dataset). Prototype baseline.
+                Reference facilities from municipal infrastructure registry (Study Grid Dataset). Prototype reference data.
             </div>
             """,
             unsafe_allow_html=True,

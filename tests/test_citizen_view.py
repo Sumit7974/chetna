@@ -104,12 +104,12 @@ class TestCitizenView(unittest.TestCase):
         # English-specific checks
         en_dict = messages["en"]
         self.assertIn("Community Flood Advisory", en_dict["title"])
-        self.assertIn("Day 4", en_dict["safe_route_note"])
+        self.assertIn("safe-route", en_dict["safe_route_note"].lower())
 
         # Hindi-specific checks (Unicode)
         hi_dict = messages["hi"]
         self.assertIn("बाढ़", hi_dict["title"])
-        self.assertIn("डे 4", hi_dict["safe_route_note"])
+        self.assertIn("राहत केंद्र", hi_dict["safe_route_note"])
 
     def test_logo_asset_resolution_in_citizen_view(self):
         """Verify citizen view resolves the existing brand logo asset."""

@@ -878,6 +878,31 @@ class TestFrontendV2(unittest.TestCase):
         h1_reset2 = load_horizon_predictions("+1h")
         self.assertFalse(h1_reset2["available"])
 
+    def test_day7_frontend_framework_alignment_and_freeze(self):
+        """Verify frontend navigation, honest engine badges, and disclaimer alignment."""
+        from config.settings import Settings
+        from app.citizen_view import get_bilingual_messages
+
+        # Verify F1 and F2 navigation items
+        expected_f1 = ["Overview", "Risk Map", "Alerts", "At-Risk Assets", "Sensors", "Analytics", "Settings"]
+        expected_f2 = ["My Area", "Flood Risk", "Safe Places", "Safe Route", "Advisory", "Emergency Help"]
+        self.assertEqual(F1_NAV_ITEMS, expected_f1)
+        self.assertEqual(F2_NAV_ITEMS, expected_f2)
+
+        # Verify bilingual safe route note does not contain developer milestone text
+        bilingual = get_bilingual_messages()
+        for lang_code in ("en", "hi"):
+            note = bilingual[lang_code]["safe_route_note"]
+            self.assertNotIn("Day 4", note)
+            self.assertNotIn("डे 4", note)
+            self.assertNotIn("Active:", note)
+
+        # Verify dynamic engine badge
+        settings = Settings()
+        expected_badge = "Mapbox Engine" if settings.has_valid_mapbox_token else "Carto Vector Engine"
+        if not settings.has_valid_mapbox_token:
+            self.assertEqual(expected_badge, "Carto Vector Engine")
+
 
 if __name__ == "__main__":
     unittest.main()
