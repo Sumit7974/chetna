@@ -5,5 +5,21 @@ from simulators.sensor_simulator import (
     SensorSimulator,
     SimulationScenario,
 )
+from src.sensors.correction import (
+    SensorCorrector,
+    ValidatedReading,
+    ValidationStatus,
+    correct_and_validate_batch,
+    correct_and_validate_reading,
+)
 
-__all__ = ["SensorReading", "SensorSimulator", "SimulationScenario"]
+__all__ = [
+    "SensorReading",
+    "SensorSimulator",
+    "SimulationScenario",
+    "ValidatedReading",
+    "ValidationStatus",
+    "SensorCorrector",
+    "correct_and_validate_reading",
+    "correct_and_validate_batch",
+]

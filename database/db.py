@@ -56,6 +56,24 @@ def init_db(
         schema_sql = f.read()
 
     with get_db_connection(db_path) as conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(sensor_readings);")
+            sr_cols = [row["name"] for row in cursor.fetchall()]
+            if sr_cols:
+                if "raw_water_level_cm" not in sr_cols:
+                    conn.execute("ALTER TABLE sensor_readings ADD COLUMN raw_water_level_cm REAL;")
+                if "raw_rainfall_rate_mm_h" not in sr_cols:
+                    conn.execute("ALTER TABLE sensor_readings ADD COLUMN raw_rainfall_rate_mm_h REAL;")
+                if "validation_status" not in sr_cols:
+                    conn.execute("ALTER TABLE sensor_readings ADD COLUMN validation_status TEXT DEFAULT 'VALID';")
+                if "validation_message" not in sr_cols:
+                    conn.execute("ALTER TABLE sensor_readings ADD COLUMN validation_message TEXT;")
+                if "source" not in sr_cols:
+                    conn.execute("ALTER TABLE sensor_readings ADD COLUMN source TEXT DEFAULT 'simulated';")
+        except Exception as exc:
+            logger.debug("Pre-migration check: %s", exc)
+
         conn.executescript(schema_sql)
         try:
             cursor = conn.cursor()
@@ -64,7 +82,7 @@ def init_db(
             if cols and "explanation" not in cols:
                 conn.execute("ALTER TABLE risk_predictions ADD COLUMN explanation TEXT;")
         except Exception as exc:
-            logger.debug("Column migration check for risk_predictions: %s", exc)
+            logger.debug("Column migration check: %s", exc)
 
     logger.info("Database schema initialized successfully at %s", db_path)
 
@@ -115,13 +133,25 @@ def save_sensor_reading(
     rainfall_rate_mm_h: Optional[float] = None,
     battery_pct: Optional[float] = None,
     is_anomaly: int = 0,
+    raw_water_level_cm: Optional[float] = None,
+    raw_rainfall_rate_mm_h: Optional[float] = None,
+    validation_status: str = "VALID",
+    validation_message: Optional[str] = None,
+    source: str = "simulated",
     db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
 ) -> int:
-    """Persist an individual telemetry reading into the database."""
+    """Persist an individual telemetry reading into the database with auditability."""
+    # Preserve raw values for backwards compatibility if not explicitly supplied
+    if raw_water_level_cm is None and water_level_cm is not None:
+        raw_water_level_cm = water_level_cm
+    if raw_rainfall_rate_mm_h is None and rainfall_rate_mm_h is not None:
+        raw_rainfall_rate_mm_h = rainfall_rate_mm_h
+
     sql = """
     INSERT INTO sensor_readings (
-        node_id, timestamp, water_level_cm, rainfall_rate_mm_h, battery_pct, is_anomaly
-    ) VALUES (?, ?, ?, ?, ?, ?);
+        node_id, timestamp, water_level_cm, rainfall_rate_mm_h, battery_pct, is_anomaly,
+        raw_water_level_cm, raw_rainfall_rate_mm_h, validation_status, validation_message, source
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     """
     with get_db_connection(db_path) as conn:
         cursor = conn.cursor()
@@ -134,9 +164,56 @@ def save_sensor_reading(
                 rainfall_rate_mm_h,
                 battery_pct,
                 is_anomaly,
+                raw_water_level_cm,
+                raw_rainfall_rate_mm_h,
+                validation_status,
+                validation_message,
+                source,
             ),
         )
         return int(cursor.lastrowid)
+
+
+def get_sensor_readings(
+    node_id: Optional[str] = None,
+    validation_status: Optional[str] = None,
+    limit: int = 100,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> List[Dict[str, Any]]:
+    """Query recent sensor readings with optional node and validation filters."""
+    conditions = []
+    params: List[Any] = []
+    if node_id:
+        conditions.append("node_id = ?")
+        params.append(node_id)
+    if validation_status:
+        conditions.append("validation_status = ?")
+        params.append(validation_status)
+
+    where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    sql = f"""
+    SELECT id, node_id, timestamp, water_level_cm, rainfall_rate_mm_h, battery_pct,
+           is_anomaly, raw_water_level_cm, raw_rainfall_rate_mm_h, validation_status,
+           validation_message, source, created_at
+    FROM sensor_readings
+    {where_clause}
+    ORDER BY id DESC
+    LIMIT ?;
+    """
+    params.append(limit)
+    with get_db_connection(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_latest_sensor_reading(
+    node_id: str,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> Optional[Dict[str, Any]]:
+    """Retrieve the most recent reading for a given sensor node."""
+    rows = get_sensor_readings(node_id=node_id, limit=1, db_path=db_path)
+    return rows[0] if rows else None
 
 
 def log_alert_dispatch(

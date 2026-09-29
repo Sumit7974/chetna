@@ -48,12 +48,18 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     rainfall_rate_mm_h REAL,
     battery_pct REAL,
     is_anomaly INTEGER DEFAULT 0,
+    raw_water_level_cm REAL,
+    raw_rainfall_rate_mm_h REAL,
+    validation_status TEXT DEFAULT 'VALID',
+    validation_message TEXT,
+    source TEXT DEFAULT 'simulated',
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (node_id) REFERENCES sensor_nodes(node_id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_readings_node_timestamp ON sensor_readings (node_id, timestamp);
 CREATE INDEX IF NOT EXISTS idx_readings_timestamp ON sensor_readings (timestamp);
+CREATE INDEX IF NOT EXISTS idx_readings_validation ON sensor_readings (validation_status);
 
 -- ------------------------------------------------------------------------------
 -- Table: alert_subscribers (Residents, municipal emergency officers)

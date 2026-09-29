@@ -122,3 +122,7 @@ def test_velachery_does_not_force_flash_flood(monkeypatch, test_db_conn):
     assert result["rainfall_rate_mm_h"] == 0.0
 
 
+# Expose Day 3 Sensor Correction & Validation test suite
+from tests.test_b2_day3_sensor_correction import TestB2Day3SensorCorrectionAndValidation
+
+

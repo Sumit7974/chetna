@@ -36,6 +36,8 @@ class EvaluationResult:
     water_level_cm: Optional[float] = None
     rainfall_rate_mm_h: Optional[float] = None
     is_anomaly: bool = False
+    alert_type: str = "FLOOD_ALERT"  # 'FLOOD_ALERT', 'SENSOR_QUALITY', 'SUPPRESSED_INVALID'
+    validation_status: str = "VALID"
     evaluated_at: str = field(
         default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat()
     )
@@ -43,6 +45,10 @@ class EvaluationResult:
     @property
     def title(self) -> str:
         """Short human-readable title for use in alert message formatting."""
+        if self.alert_type == "SENSOR_QUALITY" or self.is_anomaly:
+            return "Sensor Quality Alert: Anomaly Detected"
+        if self.alert_type == "SUPPRESSED_INVALID":
+            return "Invalid Sensor Reading Suppressed"
         titles = {
             AlertSeverity.INFO: "Conditions Normal",
             AlertSeverity.WARNING: "Flood Warning Issued",
@@ -62,6 +68,8 @@ class EvaluationResult:
             "water_level_cm": self.water_level_cm,
             "rainfall_rate_mm_h": self.rainfall_rate_mm_h,
             "is_anomaly": self.is_anomaly,
+            "alert_type": self.alert_type,
+            "validation_status": self.validation_status,
             "title": self.title,
             "evaluated_at": self.evaluated_at,
         }
@@ -71,8 +79,8 @@ class AlertEvaluator:
     """Evaluates SensorReadings against configured thresholds.
 
     Threshold precedence (highest wins):
-        1. Sensor anomaly flag                 -> EMERGENCY
-        2. water_level >= critical_threshold   -> EMERGENCY  (if rainfall also critical)
+        1. Sensor anomaly flag / state         -> EMERGENCY (Sensor Quality Problem)
+        2. water_level >= critical_threshold   -> EMERGENCY (if rainfall also critical)
            water_level >= critical_threshold   -> CRITICAL
         3. rainfall_rate >= critical_mm        -> CRITICAL
         4. water_level >= warning_threshold    -> WARNING
@@ -97,17 +105,42 @@ class AlertEvaluator:
 
     def evaluate(self, reading: SensorReading, risk_level: Optional[str] = None) -> EvaluationResult:
         """Evaluate a single sensor reading and return a structured result."""
+        val_status = getattr(reading, "validation_status", "VALID")
+        val_msg = getattr(reading, "validation_message", "")
         wl = reading.water_level_cm
         rr = reading.rainfall_rate_mm_h
-        anomaly = reading.is_anomaly
+        anomaly = getattr(reading, "is_anomaly", False) or val_status == "ANOMALY"
 
-        # --- EMERGENCY: sensor malfunction or combined extreme conditions ---
+        # ------------------------------------------------------------------
+        # 1. INVALID Reading: Suppress from generating any false flood alert
+        # ------------------------------------------------------------------
+        if val_status == "INVALID" or (wl is None and not anomaly):
+            return EvaluationResult(
+                severity=AlertSeverity.INFO,
+                reason=(
+                    f"Node {reading.node_id}: Invalid sensor observation suppressed "
+                    f"({val_msg or 'impossible value or missing data'}). No flood alert generated."
+                ),
+                node_id=reading.node_id,
+                timestamp=reading.timestamp,
+                affected_area=self.affected_area,
+                water_level_cm=None,
+                rainfall_rate_mm_h=rr,
+                is_anomaly=False,
+                alert_type="SUPPRESSED_INVALID",
+                validation_status="INVALID",
+            )
+
+        # ------------------------------------------------------------------
+        # 2. SENSOR ANOMALY: Flag sensor quality failure; do NOT treat as physical flood
+        # ------------------------------------------------------------------
         if anomaly:
             return EvaluationResult(
                 severity=AlertSeverity.EMERGENCY,
                 reason=(
                     f"Sensor anomaly detected on node {reading.node_id}. "
-                    "Readings are unreliable; possible sensor failure or extreme event."
+                    "Readings are unreliable; possible sensor failure or telemetry glitch "
+                    "(sensor quality problem; physical flood alert withheld)."
                 ),
                 node_id=reading.node_id,
                 timestamp=reading.timestamp,
@@ -115,6 +148,8 @@ class AlertEvaluator:
                 water_level_cm=wl,
                 rainfall_rate_mm_h=rr,
                 is_anomaly=True,
+                alert_type="SENSOR_QUALITY",
+                validation_status=val_status if val_status != "VALID" else "ANOMALY",
             )
 
         water_critical = wl is not None and wl >= self.critical_water_cm

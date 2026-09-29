@@ -104,36 +104,32 @@ class AlertPipeline:
         """
         recipients = sms_recipients or self.sms_recipients
 
-        # Step 1: persist reading
-        if persist and not isinstance(self.db_path, sqlite3.Connection):
-            persist_reading(reading, db_path=self.db_path)
+        # Step 0: Sensor Correction & Validation
+        from src.sensors.correction import ValidatedReading, correct_and_validate_reading
+        validated = (
+            reading
+            if isinstance(reading, ValidatedReading)
+            else correct_and_validate_reading(reading)
+        )
 
-        # Step 2: evaluate (with risk prediction)
+        # Step 1: persist validated reading with audit trail
+        if persist and not isinstance(self.db_path, sqlite3.Connection):
+            persist_reading(validated, db_path=self.db_path)
+
         if affected_area:
             self.evaluator.affected_area = affected_area
-            
-        pred = self.predictor.predict(
-            water_level_cm=reading.water_level_cm,
-            rainfall_rate_mm_h=reading.rainfall_rate_mm_h,
-            cell_id=reading.node_id,
-            persist=persist
-        )
-        
-        evaluation = self.evaluator.evaluate(reading, risk_level=pred.level)
 
-        # Step 3: write lifecycle record
-        alert_id = f"ALT-{uuid.uuid4().hex[:8].upper()}"
-        self._write_lifecycle(
-            alert_id=alert_id,
-            evaluation=evaluation,
-            lifecycle_status="generated",
-        )
-
-        # Step 4: cooldown check
-        if not self.cooldown.should_send(reading.node_id, evaluation.severity):
-            self._update_lifecycle(alert_id, "suppressed")
+        # Step 2: Handle invalid sensor readings
+        if getattr(validated, "validation_status", "VALID") == "INVALID":
+            evaluation = self.evaluator.evaluate(validated)
+            alert_id = f"ALT-{uuid.uuid4().hex[:8].upper()}"
+            self._write_lifecycle(
+                alert_id=alert_id,
+                evaluation=evaluation,
+                lifecycle_status="suppressed",
+            )
             return PipelineResult(
-                reading=reading,
+                reading=validated,
                 evaluation=evaluation,
                 alert_id=alert_id,
                 dispatched=False,
@@ -141,16 +137,63 @@ class AlertPipeline:
                 lifecycle_status="suppressed",
             )
 
-        # Step 5: dispatch
-        try:
-            self.dispatcher.dispatch(
-                severity=evaluation.severity,
-                title=evaluation.title,
-                message=evaluation.reason,
-                affected_area=evaluation.affected_area,
-                sms_recipients=recipients if recipients else None,
+        # Step 3: Evaluate (with risk prediction on validated/corrected telemetry)
+        risk_level = None
+        if validated.validation_status in ("VALID", "CORRECTED"):
+            try:
+                pred = self.predictor.predict(
+                    water_level_cm=validated.water_level_cm,
+                    rainfall_rate_mm_h=validated.rainfall_rate_mm_h,
+                    cell_id=validated.node_id,
+                    persist=persist,
+                )
+                risk_level = pred.level
+            except Exception as exc:
+                logger.warning("Predictor error in pipeline: %s", exc)
+
+        evaluation = self.evaluator.evaluate(validated, risk_level=risk_level)
+
+        # Step 4: Write lifecycle record
+        alert_id = f"ALT-{uuid.uuid4().hex[:8].upper()}"
+        self._write_lifecycle(
+            alert_id=alert_id,
+            evaluation=evaluation,
+            lifecycle_status="generated",
+        )
+
+        # Step 5: Cooldown check
+        if not self.cooldown.should_send(validated.node_id, evaluation.severity):
+            self._update_lifecycle(alert_id, "suppressed")
+            return PipelineResult(
+                reading=validated,
+                evaluation=evaluation,
+                alert_id=alert_id,
+                dispatched=False,
+                suppressed=True,
+                lifecycle_status="suppressed",
             )
-            self.cooldown.record(reading.node_id, evaluation.severity)
+
+        # Step 6: Dispatch
+        try:
+            if getattr(evaluation, "alert_type", "FLOOD_ALERT") == "SENSOR_QUALITY":
+                # Diagnostic dispatch to Telegram/logs only; suppress citizen evacuation calls
+                formatted_diag = (
+                    f"🔧 *[CHETNA SENSOR QUALITY ALERT]*\n"
+                    f"*Node:* {validated.node_id}\n"
+                    f"*Area:* {evaluation.affected_area}\n"
+                    f"{evaluation.reason}\n\n"
+                    f"⚠️ _Sensor maintenance flagged. Physical flood alert withheld._"
+                )
+                self.dispatcher.telegram.send_message(text=formatted_diag)
+            else:
+                self.dispatcher.dispatch(
+                    severity=evaluation.severity,
+                    title=evaluation.title,
+                    message=evaluation.reason,
+                    affected_area=evaluation.affected_area,
+                    sms_recipients=recipients if recipients else None,
+                )
+            self.cooldown.record(validated.node_id, evaluation.severity)
             self._update_lifecycle(alert_id, "dispatched")
             lifecycle_status = "dispatched"
             dispatched = True
