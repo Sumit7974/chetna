@@ -382,6 +382,11 @@ def inject_custom_styles() -> None:
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
         }
 
+        .chetna-card {
+            padding: 1rem 1.15rem !important;
+            box-sizing: border-box !important;
+        }
+
         /* Ensure all text inside card containers has high readability */
         [data-testid="stVerticalBlockBorderWrapper"] p,
         [data-testid="stVerticalBlockBorderWrapper"] label,
@@ -433,8 +438,10 @@ def inject_custom_styles() -> None:
             border-left: 5px solid #16a34a;
             border-radius: 10px;
             padding: 1rem 1.35rem;
-            margin-bottom: 1rem;
+            margin-top: 0.25rem;
+            margin-bottom: 1.25rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            box-sizing: border-box;
         }
 
         /* Pulse indicators */
@@ -479,40 +486,78 @@ def inject_custom_styles() -> None:
             border: 1px solid #fde68a;
         }
 
-        /* Compact Metric Card */
+        /* Compact Metric Card & Grid System */
         .chetna-metric-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             padding: 0.85rem 1rem;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-            height: 100%;
+            min-height: 98px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            width: 100%;
+            margin-bottom: 0.25rem;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
+
+        .chetna-metric-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
         .chetna-metric-label {
             font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.05em;
             color: #64748b;
             margin-bottom: 0.25rem;
+            line-height: 1.25;
+            word-break: break-word;
         }
+
         .chetna-metric-val {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             font-weight: 800;
             color: #0f172a;
             line-height: 1.2;
             letter-spacing: -0.02em;
+            word-break: break-word;
+            margin: 0.15rem 0;
         }
+
         .chetna-metric-sub {
-            font-size: 0.76rem;
+            font-size: 0.75rem;
             color: #0284c7;
-            margin-top: 0.25rem;
+            margin-top: 0.2rem;
             font-weight: 500;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+
+        /* Uncollapsible Dashboard Section Spacers */
+        .dashboard-row-spacer {
+            height: 1.25rem;
+            min-height: 1.25rem;
+            width: 100%;
+            display: block;
+            clear: both;
+        }
+
+        .dashboard-section-spacer {
+            height: 1.5rem;
+            min-height: 1.5rem;
+            width: 100%;
+            display: block;
+            clear: both;
         }
 
         /* Hotspot Scroll Container */
         .chetna-hotspots-scroll {
-            max-height: 480px;
+            max-height: 520px;
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -794,7 +839,7 @@ def render_dominant_status(
 
 def render_summary_cards(metrics: Dict[str, Any]) -> None:
     """Render the compact summary metric cards."""
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4, gap="medium")
 
     with col1:
         st.markdown(
@@ -886,7 +931,7 @@ def render_operational_risk_summary(
         she = at_risk_assets.get("shelters", 0)
         assets_breakdown = f"{hosp} Hosp &bull; {sch} Sch &bull; {she} She"
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
     with col1:
         st.markdown(
             f"""
@@ -952,7 +997,7 @@ def render_main_workspace(
     at_risk_assets: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Render the primary operational workspace with map, hotspots panel, and at-risk infrastructure."""
-    col_map, col_hotspots = st.columns([68, 32])
+    col_map, col_hotspots = st.columns([68, 32], gap="medium")
 
     with col_map:
         if horizon_status and not horizon_status.get("available", True):
@@ -972,9 +1017,9 @@ def render_main_workspace(
         _has_mapbox = Settings().has_valid_mapbox_token
         _map_engine_badge = "Mapbox Engine" if _has_mapbox else "Carto Vector Engine"
 
-        st.markdown(
-            f"""
-            <div class="chetna-card" style="padding-bottom: 0.85rem;">
+        with st.container(border=True):
+            st.markdown(
+                f"""
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:8px;">
                     <div>
                         <div style="font-weight:700; font-size:1.05rem; color:#0f172a; letter-spacing:-0.01em;">
@@ -989,30 +1034,29 @@ def render_main_workspace(
                         <span class="status-pill status-pill-slate">{_map_engine_badge}</span>
                     </div>
                 </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
-        if hasattr(folium_map, "to_json"):
-            # Native Streamlit Mapbox / PyDeck WebGL engine
-            st.pydeck_chart(folium_map, use_container_width=True)
-        elif hasattr(folium_map, "get_root"):
-            map_html = folium_map.get_root().render()
-            st.components.v1.html(map_html, height=540, scrolling=False)
+            if hasattr(folium_map, "to_json"):
+                # Native Streamlit Mapbox / PyDeck WebGL engine
+                st.pydeck_chart(folium_map, use_container_width=True)
+            elif hasattr(folium_map, "get_root"):
+                map_html = folium_map.get_root().render()
+                st.components.v1.html(map_html, height=540, scrolling=False)
 
-        from config.settings import Settings
-        _map_engine = "Mapbox Vector Active (light-v10)" if Settings().has_valid_mapbox_token else "Vector Engine (Carto Positron Fallback)"
+            from config.settings import Settings
+            _map_engine = "Mapbox Vector Active (light-v10)" if Settings().has_valid_mapbox_token else "Vector Engine (Carto Positron Fallback)"
 
-        st.markdown(
-            f"""
+            st.markdown(
+                f"""
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem; font-size:0.76rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.5rem; flex-wrap:wrap; gap:6px;">
                     <div>📍 Viewport: Centered on {PILOT_CITY} (25.6093°N, 85.1376°E) &bull; EPSG:4326 / UTM 45N</div>
                     <div style="color:#0284c7; font-weight:500;">Horizon: <b>{horizon}</b> &bull; {_map_engine}</div>
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
         # Inspectable At-Risk Infrastructure Accordion
         if at_risk_assets and at_risk_assets.get("available", False) and at_risk_assets.get("items"):
@@ -1038,25 +1082,7 @@ def render_main_workspace(
                 st.dataframe(facility_rows, use_container_width=True)
 
     with col_hotspots:
-        st.markdown(
-            """
-            <div class="chetna-card" style="padding-bottom: 0.85rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-                    <div>
-                        <div style="font-weight:700; font-size:1.05rem; color:#0f172a; letter-spacing:-0.01em;">
-                            Monitored Hotspots
-                        </div>
-                        <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
-                            Chronic drainage bottlenecks
-                        </div>
-                    </div>
-                    <span class="status-pill status-pill-amber">10 Sourced Sites</span>
-                </div>
-                <div class="chetna-hotspots-scroll">
-            """,
-            unsafe_allow_html=True,
-        )
-
+        hotspot_items_html = []
         if hotspots:
             for h in hotspots:
                 severity = h.get("severity_tier", "Moderate")
@@ -1067,7 +1093,7 @@ def render_main_workspace(
                     badge_bg = "#fef3c7"
                     badge_col = "#92400e"
 
-                st.markdown(
+                hotspot_items_html.append(
                     f"""
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:7px;">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -1082,22 +1108,34 @@ def render_main_workspace(
                             {h.get('zone')} &bull; Elev: <b>{h.get('elevation_m', 0.0)}m</b> &bull; Trigger (6h): <b>{h.get('typical_trigger_rain_6h_mm', 0.0)}mm</b>
                         </div>
                     </div>
-                    """,
-                    unsafe_allow_html=True,
+                    """
                 )
-        else:
-            st.info("No hotspots records currently loaded.")
 
-        st.markdown(
-            """
+        scroll_content = "".join(hotspot_items_html) if hotspot_items_html else "<div style='color:#64748b; font-size:0.8rem;'>No hotspots records currently loaded.</div>"
+
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                    <div>
+                        <div style="font-weight:700; font-size:1.05rem; color:#0f172a; letter-spacing:-0.01em;">
+                            Monitored Hotspots
+                        </div>
+                        <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
+                            Chronic drainage bottlenecks
+                        </div>
+                    </div>
+                    <span class="status-pill status-pill-amber">{len(hotspots)} Sourced Sites</span>
+                </div>
+                <div class="chetna-hotspots-scroll" style="max-height: 520px; overflow-y: auto; padding-right: 4px;">
+                    {scroll_content}
                 </div>
                 <div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem; text-align:center;">
                     Monitored high-risk municipal points and drainage depressions.
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
 
 def render_alert_and_architecture_section(
@@ -1107,7 +1145,7 @@ def render_alert_and_architecture_section(
     at_risk_assets: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Render the Alert Centre preview with Review Alert affordance, Approval Gate, and risk architecture status."""
-    col_alert, col_arch = st.columns(2)
+    col_alert, col_arch = st.columns(2, gap="medium")
 
     high_zones_count = 0
     if horizon_status and horizon_status.get("available", False):
@@ -1128,9 +1166,9 @@ def render_alert_and_architecture_section(
     )
 
     with col_alert:
-        st.markdown(
-            f"""
-            <div class="chetna-card" style="height: 100%;">
+        with st.container(border=True):
+            st.markdown(
+                f"""
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
                     <div>
                         <div style="font-weight:700; font-size:1rem; color:#0f172a;">Alert Centre (Authorized Personnel)</div>
@@ -1151,168 +1189,167 @@ def render_alert_and_architecture_section(
                         Integrated Channels: <b>Twilio WhatsApp Sandbox &bull; SMS &bull; Telegram &bull; Automated Voice</b>
                     </div>
                 </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
-        b_col0, b_col1, b_col2 = st.columns([0.34, 0.33, 0.33])
-        with b_col0:
-            if st.button("🔍 Review Alert", key="btn_review_alert", help="Review detailed alert draft, why-flagged factors, and channel payload."):
-                st.session_state["review_alert_open"] = True
-                st.session_state.pop("alert_dismissed_notice", None)
-                if not st.session_state.get("current_draft_id"):
+            b_col0, b_col1, b_col2 = st.columns([0.34, 0.33, 0.33])
+            with b_col0:
+                if st.button("🔍 Review Alert", key="btn_review_alert", help="Review detailed alert draft, why-flagged factors, and channel payload."):
+                    st.session_state["review_alert_open"] = True
+                    st.session_state.pop("alert_dismissed_notice", None)
+                    if not st.session_state.get("current_draft_id"):
+                        try:
+                            st.session_state["current_draft_id"] = create_draft_alert(
+                                severity=current_risk_level,
+                                title=f"Urban Flood Warning ({active_horizon})",
+                                message=draft_msg,
+                                affected_area=PILOT_LOCATION_LABEL,
+                            )
+                        except Exception as draft_err:
+                            logger.debug("Draft generation notice: %s", draft_err)
+            with b_col1:
+                if st.button("✅ Issue Broadcast", disabled=False, key="btn_issue_broadcast"):
+                    st.session_state["review_alert_open"] = True
+                    if not st.session_state.get("current_draft_id"):
+                        try:
+                            st.session_state["current_draft_id"] = create_draft_alert(
+                                severity=current_risk_level,
+                                title=f"Urban Flood Warning ({active_horizon})",
+                                message=draft_msg,
+                                affected_area=PILOT_LOCATION_LABEL,
+                            )
+                        except Exception as draft_err:
+                            logger.debug("Draft generation notice: %s", draft_err)
+            with b_col2:
+                if st.button("❌ Suppress Advisory", disabled=False, key="btn_dismiss_broadcast"):
+                    st.session_state["review_alert_open"] = False
+                    st.session_state["alert_dismissed_notice"] = "Advisory suppressed by authority. No broadcast transmitted."
+                    st.session_state.pop("alert_dispatch_outcome", None)
                     try:
-                        st.session_state["current_draft_id"] = create_draft_alert(
-                            severity=current_risk_level,
-                            title=f"Urban Flood Warning ({active_horizon})",
-                            message=draft_msg,
-                            affected_area=PILOT_LOCATION_LABEL,
-                        )
-                    except Exception as draft_err:
-                        logger.debug("Draft generation notice: %s", draft_err)
-        with b_col1:
-            if st.button("✅ Issue Broadcast", disabled=False, key="btn_issue_broadcast"):
-                st.session_state["review_alert_open"] = True
-                if not st.session_state.get("current_draft_id"):
-                    try:
-                        st.session_state["current_draft_id"] = create_draft_alert(
-                            severity=current_risk_level,
-                            title=f"Urban Flood Warning ({active_horizon})",
-                            message=draft_msg,
-                            affected_area=PILOT_LOCATION_LABEL,
-                        )
-                    except Exception as draft_err:
-                        logger.debug("Draft generation notice: %s", draft_err)
-        with b_col2:
-            if st.button("❌ Suppress Advisory", disabled=False, key="btn_dismiss_broadcast"):
-                st.session_state["review_alert_open"] = False
-                st.session_state["alert_dismissed_notice"] = "Advisory suppressed by authority. No broadcast transmitted."
-                st.session_state.pop("alert_dispatch_outcome", None)
-                try:
-                    dismiss_authority_alert(st.session_state.get("current_draft_id"))
-                except Exception as dis_err:
-                    logger.debug("Dismissal notice: %s", dis_err)
-                st.session_state.pop("current_draft_id", None)
+                        dismiss_authority_alert(st.session_state.get("current_draft_id"))
+                    except Exception as dis_err:
+                        logger.debug("Dismissal notice: %s", dis_err)
+                    st.session_state.pop("current_draft_id", None)
 
-        # PART A & B: Explicit Review Panel & Approval Gate
-        if st.session_state.get("review_alert_open", False):
-            curr_draft_ref = st.session_state.get("current_draft_id", "ALT-DRAFT-PENDING")
-            st.markdown(
-                f"""
-                <div style="background:#f8fafc; border:1px solid #cbd5e1; border-top:3px solid #0284c7; border-radius:6px; padding:12px; margin-top:0.75rem; font-size:0.78rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-weight:700; font-size:0.88rem; color:#0f172a;">📋 DRAFT ALERT &mdash; HUMAN-IN-THE-LOOP APPROVAL GATE</span>
-                        <span style="font-size:0.7rem; font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px;">PENDING APPROVAL</span>
-                    </div>
-                    <div style="color:#334155; line-height:1.6;">
-                        <div>&bull; <b>Draft Reference:</b> <code style="color:#0369a1; font-weight:600;">{curr_draft_ref}</code></div>
-                        <div>&bull; <b>1. Target Area:</b> {PILOT_LOCATION_LABEL} &mdash; Low-Elevation Depressions &amp; Underpasses</div>
-                        <div>&bull; <b>2. Forecast Horizon:</b> {active_horizon}</div>
-                        <div>&bull; <b>3. Evaluated Risk Tier:</b> <span style="font-weight:700; color:#dc2626;">{current_risk_level}</span></div>
-                        <div>&bull; <b>4. Affected Monitored Cells:</b> {high_zones_count} sectors</div>
-                        <div>&bull; <b>5. Affected Critical Facilities:</b> {asset_total} ({hosp_cnt} Hospitals, {sch_cnt} Schools, {she_cnt} Shelters)</div>
-                        <div>&bull; <b>6. Why Flagged:</b> Low ground elevation (&le;8m), concentrated drainage flow accumulation, high impervious surface fraction.</div>
-                        <div>&bull; <b>7. Recommended Operational Action:</b> Deploy dewatering pumps, clear road grates, alert railway underpass traffic police, and post traffic advisories.</div>
-                        <div style="margin-top:6px; padding:6px 8px; background:#f1f5f9; border-radius:4px; font-style:italic; color:#0f172a;">
-                            <b>8. Proposed Message:</b> "{draft_msg}"
+            # PART A & B: Explicit Review Panel & Approval Gate
+            if st.session_state.get("review_alert_open", False):
+                curr_draft_ref = st.session_state.get("current_draft_id", "ALT-DRAFT-PENDING")
+                st.markdown(
+                    f"""
+                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-top:3px solid #0284c7; border-radius:6px; padding:12px; margin-top:0.75rem; font-size:0.78rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-weight:700; font-size:0.88rem; color:#0f172a;">📋 DRAFT ALERT &mdash; HUMAN-IN-THE-LOOP APPROVAL GATE</span>
+                            <span style="font-size:0.7rem; font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px;">PENDING APPROVAL</span>
                         </div>
-                        <div style="margin-top:4px;">&bull; <b>9. Notification Channels:</b> Twilio WhatsApp Sandbox &bull; Twilio SMS &bull; Telegram Bot &bull; Automated Voice</div>
+                        <div style="color:#334155; line-height:1.6;">
+                            <div>&bull; <b>Draft Reference:</b> <code style="color:#0369a1; font-weight:600;">{curr_draft_ref}</code></div>
+                            <div>&bull; <b>1. Target Area:</b> {PILOT_LOCATION_LABEL} &mdash; Low-Elevation Depressions &amp; Underpasses</div>
+                            <div>&bull; <b>2. Forecast Horizon:</b> {active_horizon}</div>
+                            <div>&bull; <b>3. Evaluated Risk Tier:</b> <span style="font-weight:700; color:#dc2626;">{current_risk_level}</span></div>
+                            <div>&bull; <b>4. Affected Monitored Cells:</b> {high_zones_count} sectors</div>
+                            <div>&bull; <b>5. Affected Critical Facilities:</b> {asset_total} ({hosp_cnt} Hospitals, {sch_cnt} Schools, {she_cnt} Shelters)</div>
+                            <div>&bull; <b>6. Why Flagged:</b> Low ground elevation (&le;8m), concentrated drainage flow accumulation, high impervious surface fraction.</div>
+                            <div>&bull; <b>7. Recommended Operational Action:</b> Deploy dewatering pumps, clear road grates, alert railway underpass traffic police, and post traffic advisories.</div>
+                            <div style="margin-top:6px; padding:6px 8px; background:#f1f5f9; border-radius:4px; font-style:italic; color:#0f172a;">
+                                <b>8. Proposed Message:</b> "{draft_msg}"
+                            </div>
+                            <div style="margin-top:4px;">&bull; <b>9. Notification Channels:</b> Twilio WhatsApp Sandbox &bull; Twilio SMS &bull; Telegram Bot &bull; Automated Voice</div>
+                        </div>
+                        <div style="font-size:8.5px; color:#64748b; margin-top:6px; font-style:italic; border-top:1px dashed #cbd5e1; padding-top:4px;">
+                            Scientific provenance: Model feature attribution, not proven physical causation.
+                        </div>
                     </div>
-                    <div style="font-size:8.5px; color:#64748b; margin-top:6px; font-style:italic; border-top:1px dashed #cbd5e1; padding-top:4px;">
-                        Scientific provenance: Model feature attribution, not proven physical causation.
-                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                # Explicit Approval Action Buttons
+                st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
+                col_ap1, col_ap2 = st.columns(2)
+                with col_ap1:
+                    approve_clicked = st.button("✅ APPROVE & SEND", key="btn_approve_and_send", type="primary")
+                with col_ap2:
+                    dismiss_clicked = st.button("❌ DISMISS", key="btn_dismiss_alert_gate")
+
+                if approve_clicked:
+                    with st.spinner("Dispatching multi-channel emergency broadcast..."):
+                        outcome = dispatch_authority_alert(
+                            severity=current_risk_level,
+                            title=f"Urban Flood Warning ({active_horizon})",
+                            message=draft_msg,
+                            affected_area=PILOT_LOCATION_LABEL,
+                            draft_id=st.session_state.get("current_draft_id"),
+                        )
+                    st.session_state["alert_dispatch_outcome"] = outcome
+                    st.session_state["review_alert_open"] = False
+                    st.session_state.pop("alert_dismissed_notice", None)
+                    st.session_state.pop("current_draft_id", None)
+
+                if dismiss_clicked:
+                    st.session_state["review_alert_open"] = False
+                    st.session_state["alert_dismissed_notice"] = "Advisory dismissed by authority. No broadcast transmitted."
+                    st.session_state.pop("alert_dispatch_outcome", None)
+                    try:
+                        dismiss_authority_alert(st.session_state.get("current_draft_id"))
+                    except Exception as dis_err:
+                        logger.debug("Dismissal notice: %s", dis_err)
+                    st.session_state.pop("current_draft_id", None)
+
+            # Show Dismiss Notice
+            if st.session_state.get("alert_dismissed_notice"):
+                st.warning(f"⚠️ {st.session_state['alert_dismissed_notice']}")
+
+            # PART C & D: Show Dispatch Outcome and Individual Channel Results
+            if st.session_state.get("alert_dispatch_outcome"):
+                outcome = st.session_state["alert_dispatch_outcome"]
+                if outcome.get("dry_run"):
+                    st.info(
+                        f"ℹ️ **Dry-run:** {outcome.get('message')}\n\n"
+                        f"Audit Reference: `{outcome.get('alert_id')}` &bull; Severity: `{outcome.get('severity')}`"
+                    )
+                elif outcome.get("success"):
+                    st.success(f"✅ {outcome.get('message')}")
+                else:
+                    st.error(f"❌ {outcome.get('message')}")
+
+                channels = outcome.get("channels", {})
+                if channels:
+                    st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#0f172a; margin-top:6px;'>Channel Delivery Status:</div>", unsafe_allow_html=True)
+                    for ch_name, ch_info in channels.items():
+                        is_ok = ch_info.get("success", False)
+                        ch_badge = "#dcfce7" if is_ok else "#fee2e2"
+                        ch_col = "#166534" if is_ok else "#991b1b"
+                        st.markdown(
+                            f"""
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:4px 8px; margin-bottom:4px; font-size:0.74rem;">
+                                <div><b>{ch_name}</b> &bull; <span style="color:#64748b;">{ch_info.get('recipient')}</span></div>
+                                <span style="font-size:0.68rem; font-weight:700; background:{ch_badge}; color:{ch_col}; padding:2px 6px; border-radius:3px;">
+                                    {ch_info.get('status')}
+                                </span>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+
+                if outcome.get("partial_failure"):
+                    st.warning("⚠️ Partial delivery failure encountered on one or more secondary channels.")
+                if outcome.get("error"):
+                    st.error(f"Operational error logged: {outcome['error']}")
+
+            st.markdown(
+                """
+                <div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem;">
+                    Multi-channel alert dispatch requires designated authority confirmation. Dry-run mode protects live subscribers.
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            # Explicit Approval Action Buttons
-            st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
-            col_ap1, col_ap2 = st.columns(2)
-            with col_ap1:
-                approve_clicked = st.button("✅ APPROVE & SEND", key="btn_approve_and_send", type="primary")
-            with col_ap2:
-                dismiss_clicked = st.button("❌ DISMISS", key="btn_dismiss_alert_gate")
-
-            if approve_clicked:
-                with st.spinner("Dispatching multi-channel emergency broadcast..."):
-                    outcome = dispatch_authority_alert(
-                        severity=current_risk_level,
-                        title=f"Urban Flood Warning ({active_horizon})",
-                        message=draft_msg,
-                        affected_area=PILOT_LOCATION_LABEL,
-                        draft_id=st.session_state.get("current_draft_id"),
-                    )
-                st.session_state["alert_dispatch_outcome"] = outcome
-                st.session_state["review_alert_open"] = False
-                st.session_state.pop("alert_dismissed_notice", None)
-                st.session_state.pop("current_draft_id", None)
-
-            if dismiss_clicked:
-                st.session_state["review_alert_open"] = False
-                st.session_state["alert_dismissed_notice"] = "Advisory dismissed by authority. No broadcast transmitted."
-                st.session_state.pop("alert_dispatch_outcome", None)
-                try:
-                    dismiss_authority_alert(st.session_state.get("current_draft_id"))
-                except Exception as dis_err:
-                    logger.debug("Dismissal notice: %s", dis_err)
-                st.session_state.pop("current_draft_id", None)
-
-        # Show Dismiss Notice
-        if st.session_state.get("alert_dismissed_notice"):
-            st.warning(f"⚠️ {st.session_state['alert_dismissed_notice']}")
-
-        # PART C & D: Show Dispatch Outcome and Individual Channel Results
-        if st.session_state.get("alert_dispatch_outcome"):
-            outcome = st.session_state["alert_dispatch_outcome"]
-            if outcome.get("dry_run"):
-                st.info(
-                    f"ℹ️ **Dry-run:** {outcome.get('message')}\n\n"
-                    f"Audit Reference: `{outcome.get('alert_id')}` &bull; Severity: `{outcome.get('severity')}`"
-                )
-            elif outcome.get("success"):
-                st.success(f"✅ {outcome.get('message')}")
-            else:
-                st.error(f"❌ {outcome.get('message')}")
-
-            channels = outcome.get("channels", {})
-            if channels:
-                st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#0f172a; margin-top:6px;'>Channel Delivery Status:</div>", unsafe_allow_html=True)
-                for ch_name, ch_info in channels.items():
-                    is_ok = ch_info.get("success", False)
-                    ch_badge = "#dcfce7" if is_ok else "#fee2e2"
-                    ch_col = "#166534" if is_ok else "#991b1b"
-                    st.markdown(
-                        f"""
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:4px 8px; margin-bottom:4px; font-size:0.74rem;">
-                            <div><b>{ch_name}</b> &bull; <span style="color:#64748b;">{ch_info.get('recipient')}</span></div>
-                            <span style="font-size:0.68rem; font-weight:700; background:{ch_badge}; color:{ch_col}; padding:2px 6px; border-radius:3px;">
-                                {ch_info.get('status')}
-                            </span>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-            if outcome.get("partial_failure"):
-                st.warning("⚠️ Partial delivery failure encountered on one or more secondary channels.")
-            if outcome.get("error"):
-                st.error(f"Operational error logged: {outcome['error']}")
-
-        st.markdown(
-            """
-                <div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem;">
-                    Multi-channel alert dispatch requires designated authority confirmation. Dry-run mode protects live subscribers.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
     with col_arch:
-        st.markdown(
-            """
-            <div class="chetna-card" style="height: 100%;">
+        with st.container(border=True):
+            st.markdown(
+                """
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
                     <div>
                         <div style="font-weight:700; font-size:1rem; color:#0f172a;">Static Topographic Risk Architecture</div>
@@ -1335,10 +1372,9 @@ def render_alert_and_architecture_section(
                         Grid cells are scored on a normalized scale [0, 1] categorized into Low (&lt; 0.40), Medium (0.40–0.70), and High (&ge; 0.70) vulnerability tiers to guide preemptive deployment.
                     </div>
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
 
 
@@ -1396,8 +1432,9 @@ def main() -> None:
         render_header()
         render_dominant_status(metrics, active_horizon=active_horizon, horizon_status=horizon_status)
         render_summary_cards(metrics)
+        st.markdown("<div class='dashboard-row-spacer'></div>", unsafe_allow_html=True)
         render_operational_risk_summary(active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
-        st.markdown("<div style='margin-bottom: 0.85rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='dashboard-section-spacer'></div>", unsafe_allow_html=True)
 
         # Build data-driven operational map with active layers
         folium_map = build_operational_map(
@@ -1418,9 +1455,11 @@ def main() -> None:
         f1_section = controls.get("f1_section", "Overview")
         if f1_section in ("Overview", "Risk Map", "📊 Overview", "🗺️ Risk Map"):
             render_main_workspace(folium_map, hotspots, horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
+            st.markdown("<div class='dashboard-section-spacer'></div>", unsafe_allow_html=True)
             render_alert_and_architecture_section(static_meta, active_horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
         elif f1_section in ("Alerts", "🚨 Alerts & Broadcast"):
             render_alert_and_architecture_section(static_meta, active_horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
+            st.markdown("<div class='dashboard-section-spacer'></div>", unsafe_allow_html=True)
             render_main_workspace(folium_map, hotspots, horizon=active_horizon, horizon_status=horizon_status, at_risk_assets=at_risk_assets)
         elif f1_section in ("At-Risk Assets", "🏥 At-Risk Assets"):
             with st.container(border=True):
