@@ -1041,3 +1041,100 @@ for r in readings:
 | `database/db.py` | Canonical B2 database API |
 | `database/schema.sql` | Complete unified SQLite schema |
 | `config/settings.py` | Centralized configuration from `.env` |
+
+---
+
+# Chetna v2 Prototype: Complete Operational Guide (B2 Day 7)
+
+## 1. System Purpose & Pilot Scope
+- **System**: Chetna (चेतना) — AI-assisted urban flood and waterlogging early-warning decision-support prototype.
+- **Pilot Location**: Patna, Bihar (focusing on low-lying saucer depressions, chronic railway underpasses, and outfall sluice gates).
+- **Hazard Scope**: Rainfall-driven monsoon urban waterlogging and flash ponding.
+
+## 2. Product Architecture
+Chetna exposes two complementary operational products:
+
+### F1 — Authority Operations Center
+Dedicated interface for municipal engineers, disaster managers, and district emergency operations center (DEOC) personnel:
+1. **Overview**: Live situational awareness, telemetry status, active weather outlook.
+2. **Risk Map**: Multi-horizon geospatial hazard footprints (Now, +1h, +3h, +6h) with Mapbox/Deck.gl vector rendering.
+3. **Alerts**: Human-in-the-loop review panel, why-flagged attribution, and explicit **APPROVE & SEND** / **DISMISS** gates.
+4. **At-Risk Assets**: Affected critical infrastructure footprint (hospitals, schools, transit shelters).
+5. **Sensors**: Monitored telemetry nodes, raw vs corrected values, and anomaly diagnostic states.
+6. **Analytics**: Model explainability, feature attribution, and historical backtest comparative metrics.
+7. **Settings**: Municipal emergency thresholds, channel routing, and dry-run safety toggles.
+
+### F2 — Citizen Safety Portal
+Accessible community interface designed for clarity, rapid comprehension, and bilingual operation (English | हिंदी):
+1. **My Area**: Ward-level situational check with color-coded safety indicators.
+2. **Flood Risk**: Plain-language risk summaries across +1h, +3h, and +6h precipitation horizons.
+3. **Safe Places**: Verified nearby emergency shelters, schools, and elevated medical facilities.
+4. **Safe Route**: Real-time hazard-avoidance routing locating reachable designated shelters.
+5. **Advisory**: Plain-language bilingual safety guidance for flood surge preparedness.
+6. **Emergency Help**: Direct directory of Patna/Bihar emergency disaster helplines.
+
+---
+
+## 3. End-to-End Operational Pipeline
+```text
+WEATHER FORECAST / SENSOR TELEMETRY
+                ↓
+    DETERMINISTIC SENSOR CORRECTION
+(Zero-drift, negative rate repair, physical boundaries)
+                ↓
+    VALIDATION & ANOMALY ISOLATION
+(Telemetry marked VALID, CORRECTED, or ANOMALY)
+                ↓
+    STATIC + DYNAMIC FLOOD RISK ENGINE
+(Topographic vulnerability + XGBoost/Heuristic precipitation runoff)
+                ↓
+    AFFECTED ASSET & SECTOR EVALUATION
+                ↓
+    DRAFT OPERATIONAL ADVISORY
+                ↓
+    HUMAN AUTHORITY REVIEW GATE
+       /                   \
+[APPROVE & SEND]       [DISMISS]
+      ↓                     ↓
+MULTI-CHANNEL DISPATCH  AUDIT LOG ENTRY
+(Dry-run simulation)    (Suppressed)
+      ↓
+FULL AUDIT TRAIL LOGGING (`alert_logs`)
+      ↓
+CITIZEN RISK & SAFE ROUTE INTEGRATION
+```
+
+---
+
+## 4. Canonical 7-Scene Demonstration Rehearsal
+1. **Scene 1 (Normal Baseline)**: Run application at `http://localhost:8501`. Observe nominal drainage, low risk scores, and zero emergency alerts.
+2. **Scene 2 (Heavy Rain Simulation)**: Trigger heavy rain scenario via scenario controller. Observe elevated rainfall forecasts (+52.5mm 1h, +84mm 3h, +126mm 6h), elevated sensor telemetry, and multi-horizon risk propagation.
+3. **Scene 3 (Alert Generation)**: Review draft advisory generated with affected area footprint, critical asset summary, and operational recommendations.
+4. **Scene 4 (Authority Approval & Dispatch)**: Click **Review Alert** in F1, inspect why-flagged factors, and click **✅ APPROVE & SEND**. Observe dry-run dispatch across SMS, WhatsApp, Telegram, and Voice with audit records logged in `alert_logs`.
+5. **Scene 5 (Citizen Portal Verification)**: Switch to F2 Citizen Portal. Verify active warning status, browse safe shelters, and click **Find Decision-Support Route** to view a hazard-avoiding route.
+6. **Scene 6 (Failure & Safety Demonstration)**: Verify that when all routes are blocked or invalid coordinates are supplied, Chetna reports failure honestly without fabricating fake geometry or evacuation guarantees.
+7. **Scene 7 (Deterministic Reset)**: Click **Reset to Baseline**. Confirm all dynamic risk predictions, scenario forecasts, and active alerts are cleanly cleared back to baseline.
+
+---
+
+## 5. Known Limitations & Prototype Honesty
+- **Prototype Status**: Chetna is an experimental prototype and decision-support tool. It does not replace official IMD weather bulletins or State Disaster Management Authority (BSDMA) directives.
+- **Simulated Sensors**: All water-level and rainfall sensors represent computational simulation nodes (`simulators/`). They are not physical IoT hardware deployed in Patna storm drains.
+- **Dry-Run Notifications**: Multi-channel notification delivery operates in safe dry-run mode (`ALERT_DRY_RUN=true`) by default to prevent accidental transmission to real citizens. Real delivery requires verified provider credentials.
+- **Prototype / Reference Facilities**: Hospital, school, and shelter records represent prototype geospatial reference data sourced from OpenStreetMap.
+- **Proxy ML Validation**: Machine-learning models (XGBoost) are evaluated against calibrated proxy inundation labels from historical severe storms (Michaung 2023, Nov 2021) and have not been validated against physical gauge ground-truth.
+- **Decision-Support Safe Routing**: Safe route calculations provide walking guidance avoiding monitored high-hazard cells. It does **not** guarantee evacuation safety or account for micro-topographic street obstacles.
+
+---
+
+## 6. Execution Commands
+
+### Running the Application
+```powershell
+python -m streamlit run run_dashboard.py
+```
+
+### Running the Full Test Suite
+```powershell
+python -m pytest -q
+```
