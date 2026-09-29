@@ -121,7 +121,8 @@ def get_bilingual_messages() -> Dict[str, Any]:
                 "Follow official State Disaster Management Authority announcements before traveling.",
             ],
             "safe_route_note": (
-                "The Chetna safe-route engine navigates citizens around flooded streets to the nearest safe shelter."
+                "The Chetna safe-route engine navigates citizens around flooded streets to the nearest safe shelter. "
+                "Decision-support navigation path only; not a guaranteed safe evacuation route."
             ),
         },
         "hi": {
@@ -146,7 +147,8 @@ def get_bilingual_messages() -> Dict[str, Any]:
                 "यात्रा करने से पहले राज्य आपदा प्रबंधन प्राधिकरण की आधिकारिक घोषणाओं का पालन करें।",
             ],
             "safe_route_note": (
-                "चेतना सेफ-रूट इंजन नागरिकों को जलभराव वाले रास्तों से बचाकर निकटतम सुरक्षित राहत केंद्र तक पहुँचाता है।"
+                "चेतना सेफ-रूट इंजन नागरिकों को जलभराव वाले रास्तों से बचाकर निकटतम सुरक्षित राहत केंद्र तक पहुँचाता है। "
+                "केवल निर्णय-सहायता नेविगेशन मार्ग; कोई गारंटीकृत सुरक्षित निकासी मार्ग नहीं।"
             ),
         },
     }

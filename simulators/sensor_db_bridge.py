@@ -121,11 +121,26 @@ def _ensure_node_registered(
 
     Uses UPSERT semantics in register_sensor_node — safe to call repeatedly.
     """
+    try:
+        from app.map_layers import DEFAULT_PILOT_SENSORS
+        node_meta = next((s for s in DEFAULT_PILOT_SENSORS if s.get("node_id") == node_id), None)
+    except Exception:
+        node_meta = None
+
+    if node_meta:
+        name = node_meta.get("name", f"Auto-registered: {node_id}")
+        lat = float(node_meta.get("latitude", 25.6093))
+        lon = float(node_meta.get("longitude", 85.1376))
+    else:
+        name = f"Auto-registered: {node_id}"
+        lat = 25.6093
+        lon = 85.1376
+
     register_sensor_node(
         node_id=node_id,
-        name=f"Auto-registered: {node_id}",
-        latitude=13.0827,   # Chennai centroid default
-        longitude=80.2707,
+        name=name,
+        latitude=lat,
+        longitude=lon,
         sensor_type="combined",
         db_path=db_path,
     )
