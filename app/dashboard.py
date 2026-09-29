@@ -87,9 +87,19 @@ except (ImportError, ModuleNotFoundError):
     )
 
 try:
-    from app.alert_service import dispatch_authority_alert, format_draft_alert_text
+    from app.alert_service import (
+        create_draft_alert,
+        dismiss_authority_alert,
+        dispatch_authority_alert,
+        format_draft_alert_text,
+    )
 except (ImportError, ModuleNotFoundError):
-    from alert_service import dispatch_authority_alert, format_draft_alert_text  # type: ignore
+    from alert_service import (  # type: ignore
+        create_draft_alert,
+        dismiss_authority_alert,
+        dispatch_authority_alert,
+        format_draft_alert_text,
+    )
 
 try:
     from app.demo_scenario import (
@@ -644,6 +654,7 @@ def render_sidebar(metrics: Dict[str, Any]) -> Dict[str, Any]:
                     st.session_state["review_alert_open"] = False
                     st.session_state.pop("alert_dismissed_notice", None)
                     st.session_state.pop("alert_dispatch_outcome", None)
+                    st.session_state.pop("current_draft_id", None)
                     st.rerun()
             with col_s2:
                 if st.button("🔄 Reset", key="btn_reset_scenario", help="Reset system to standard baseline conditions."):
@@ -652,6 +663,7 @@ def render_sidebar(metrics: Dict[str, Any]) -> Dict[str, Any]:
                     st.session_state["review_alert_open"] = False
                     st.session_state.pop("alert_dismissed_notice", None)
                     st.session_state.pop("alert_dispatch_outcome", None)
+                    st.session_state.pop("current_draft_id", None)
                     st.rerun()
 
             st.markdown("<hr style='margin: 0.75rem 0;'/>", unsafe_allow_html=True)
@@ -1144,17 +1156,43 @@ def render_alert_and_architecture_section(
             if st.button("🔍 Review Alert", key="btn_review_alert", help="Review detailed alert draft, why-flagged factors, and channel payload."):
                 st.session_state["review_alert_open"] = True
                 st.session_state.pop("alert_dismissed_notice", None)
+                if not st.session_state.get("current_draft_id"):
+                    try:
+                        st.session_state["current_draft_id"] = create_draft_alert(
+                            severity=current_risk_level,
+                            title=f"Urban Flood Warning ({active_horizon})",
+                            message=draft_msg,
+                            affected_area=PILOT_LOCATION_LABEL,
+                        )
+                    except Exception as draft_err:
+                        logger.debug("Draft generation notice: %s", draft_err)
         with b_col1:
             if st.button("✅ Issue Broadcast", disabled=False, key="btn_issue_broadcast"):
                 st.session_state["review_alert_open"] = True
+                if not st.session_state.get("current_draft_id"):
+                    try:
+                        st.session_state["current_draft_id"] = create_draft_alert(
+                            severity=current_risk_level,
+                            title=f"Urban Flood Warning ({active_horizon})",
+                            message=draft_msg,
+                            affected_area=PILOT_LOCATION_LABEL,
+                        )
+                    except Exception as draft_err:
+                        logger.debug("Draft generation notice: %s", draft_err)
         with b_col2:
             if st.button("❌ Suppress Advisory", disabled=False, key="btn_dismiss_broadcast"):
                 st.session_state["review_alert_open"] = False
                 st.session_state["alert_dismissed_notice"] = "Advisory suppressed by authority. No broadcast transmitted."
                 st.session_state.pop("alert_dispatch_outcome", None)
+                try:
+                    dismiss_authority_alert(st.session_state.get("current_draft_id"))
+                except Exception as dis_err:
+                    logger.debug("Dismissal notice: %s", dis_err)
+                st.session_state.pop("current_draft_id", None)
 
         # PART A & B: Explicit Review Panel & Approval Gate
         if st.session_state.get("review_alert_open", False):
+            curr_draft_ref = st.session_state.get("current_draft_id", "ALT-DRAFT-PENDING")
             st.markdown(
                 f"""
                 <div style="background:#f8fafc; border:1px solid #cbd5e1; border-top:3px solid #0284c7; border-radius:6px; padding:12px; margin-top:0.75rem; font-size:0.78rem;">
@@ -1163,6 +1201,7 @@ def render_alert_and_architecture_section(
                         <span style="font-size:0.7rem; font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px;">PENDING APPROVAL</span>
                     </div>
                     <div style="color:#334155; line-height:1.6;">
+                        <div>&bull; <b>Draft Reference:</b> <code style="color:#0369a1; font-weight:600;">{curr_draft_ref}</code></div>
                         <div>&bull; <b>1. Target Area:</b> {PILOT_LOCATION_LABEL} &mdash; Low-Elevation Depressions &amp; Underpasses</div>
                         <div>&bull; <b>2. Forecast Horizon:</b> {active_horizon}</div>
                         <div>&bull; <b>3. Evaluated Risk Tier:</b> <span style="font-weight:700; color:#dc2626;">{current_risk_level}</span></div>
@@ -1198,15 +1237,22 @@ def render_alert_and_architecture_section(
                         title=f"Urban Flood Warning ({active_horizon})",
                         message=draft_msg,
                         affected_area=PILOT_LOCATION_LABEL,
+                        draft_id=st.session_state.get("current_draft_id"),
                     )
                 st.session_state["alert_dispatch_outcome"] = outcome
                 st.session_state["review_alert_open"] = False
                 st.session_state.pop("alert_dismissed_notice", None)
+                st.session_state.pop("current_draft_id", None)
 
             if dismiss_clicked:
                 st.session_state["review_alert_open"] = False
                 st.session_state["alert_dismissed_notice"] = "Advisory dismissed by authority. No broadcast transmitted."
                 st.session_state.pop("alert_dispatch_outcome", None)
+                try:
+                    dismiss_authority_alert(st.session_state.get("current_draft_id"))
+                except Exception as dis_err:
+                    logger.debug("Dismissal notice: %s", dis_err)
+                st.session_state.pop("current_draft_id", None)
 
         # Show Dismiss Notice
         if st.session_state.get("alert_dismissed_notice"):

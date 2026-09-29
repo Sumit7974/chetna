@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import logging
 import sqlite3
 from contextlib import contextmanager
@@ -247,3 +248,77 @@ def log_alert_dispatch(
             ),
         )
         return int(cursor.lastrowid)
+
+
+def create_alert_record(
+    alert_id: str,
+    severity: str,
+    title: str,
+    message: str,
+    affected_area: str,
+    lifecycle_status: str = "draft",
+    suppressed: int = 0,
+    node_id: Optional[str] = None,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> None:
+    """Insert or replace an alert record in the alerts table."""
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    sql = """
+    INSERT INTO alerts (
+        alert_id, node_id, severity, lifecycle_status,
+        title, message, affected_area, reason, suppressed, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(alert_id) DO UPDATE SET
+        lifecycle_status=excluded.lifecycle_status,
+        suppressed=excluded.suppressed,
+        updated_at=excluded.updated_at;
+    """
+    with get_db_connection(db_path) as conn:
+        conn.execute(
+            sql,
+            (
+                alert_id,
+                node_id,
+                severity,
+                lifecycle_status,
+                title,
+                message,
+                affected_area,
+                message,
+                suppressed,
+                now,
+                now,
+            ),
+        )
+
+
+def update_alert_lifecycle(
+    alert_id: str,
+    lifecycle_status: str,
+    suppressed: Optional[int] = None,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> None:
+    """Update lifecycle_status and optionally suppressed flag for an alert."""
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    supp = 1 if lifecycle_status in ("suppressed", "dismissed") else 0
+    if suppressed is not None:
+        supp = suppressed
+    sql = """
+    UPDATE alerts SET lifecycle_status=?, suppressed=?, updated_at=?
+    WHERE alert_id=?;
+    """
+    with get_db_connection(db_path) as conn:
+        conn.execute(sql, (lifecycle_status, supp, now, alert_id))
+
+
+def get_alert_by_id(
+    alert_id: str,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> Optional[Dict[str, Any]]:
+    """Retrieve an alert record by alert_id."""
+    sql = "SELECT * FROM alerts WHERE alert_id=? LIMIT 1;"
+    with get_db_connection(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, (alert_id,))
+        row = cursor.fetchone()
+        return dict(row) if row else None

@@ -284,14 +284,23 @@ def resolve_alert(
     _set_lifecycle(alert_id, "resolved", db_path)
 
 
+def dismiss_alert(
+    alert_id: str,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> None:
+    """Dismiss an alert, transitioning it to 'dismissed' and marking it suppressed."""
+    _set_lifecycle(alert_id, "dismissed", db_path)
+
+
 def _set_lifecycle(
     alert_id: str,
     status: str,
     db_path: Union[str, Path, sqlite3.Connection],
 ) -> None:
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    suppressed = 1 if status in ("suppressed", "dismissed") else 0
     with get_db_connection(db_path) as conn:
         conn.execute(
-            "UPDATE alerts SET lifecycle_status=?, updated_at=? WHERE alert_id=?;",
-            (status, now, alert_id),
+            "UPDATE alerts SET lifecycle_status=?, suppressed=?, updated_at=? WHERE alert_id=?;",
+            (status, suppressed, now, alert_id),
         )

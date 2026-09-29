@@ -70,10 +70,20 @@ class AlertDispatcher:
         formatted_sms = f"[CHETNA {severity.value}] {title} in {affected_area}. {message}"
 
         # 1. Telegram delivery for all tiers
-        tg_res = self.telegram.send_message(
-            text=formatted_tg,
-            chat_id=telegram_chat_id,
-        )
+        try:
+            tg_res = self.telegram.send_message(
+                text=formatted_tg,
+                chat_id=telegram_chat_id,
+            )
+        except Exception as tg_err:
+            logger.error("Telegram dispatch error for %s: %s", alert_id, tg_err)
+            from alerts.telegram_handler import TelegramDispatchResult
+            tg_res = TelegramDispatchResult(
+                success=False,
+                chat_id=telegram_chat_id or "default",
+                status="FAILED",
+                error=str(tg_err),
+            )
         log_alert_dispatch(
             alert_id=alert_id,
             severity=severity.value,
@@ -92,9 +102,20 @@ class AlertDispatcher:
             AlertSeverity.CRITICAL,
             AlertSeverity.EMERGENCY,
         ):
+            from alerts.twilio_handler import TwilioDispatchResult
             for phone in recipients:
                 if phone.startswith("whatsapp:"):
-                    wa_res = self.twilio.send_whatsapp(to_phone=phone, body=formatted_sms)
+                    try:
+                        wa_res = self.twilio.send_whatsapp(to_phone=phone, body=formatted_sms)
+                    except Exception as wa_err:
+                        logger.error("WhatsApp dispatch error to %s: %s", phone, wa_err)
+                        wa_res = TwilioDispatchResult(
+                            success=False,
+                            channel="WHATSAPP",
+                            recipient=phone,
+                            status="FAILED",
+                            error=str(wa_err),
+                        )
                     log_alert_dispatch(
                         alert_id=alert_id,
                         severity=severity.value,
@@ -106,8 +127,18 @@ class AlertDispatcher:
                         db_path=self.db_path,
                     )
                 else:
-                    clean_phone = phone[4:] if phone.startswith("sms:") else phone
-                    sms_res = self.twilio.send_sms(to_phone=clean_phone, body=formatted_sms)
+                    try:
+                        clean_phone = phone[4:] if phone.startswith("sms:") else phone
+                        sms_res = self.twilio.send_sms(to_phone=clean_phone, body=formatted_sms)
+                    except Exception as sms_err:
+                        logger.error("SMS dispatch error to %s: %s", phone, sms_err)
+                        sms_res = TwilioDispatchResult(
+                            success=False,
+                            channel="SMS",
+                            recipient=phone,
+                            status="FAILED",
+                            error=str(sms_err),
+                        )
                     log_alert_dispatch(
                         alert_id=alert_id,
                         severity=severity.value,
@@ -121,20 +152,31 @@ class AlertDispatcher:
 
         # 3. Automated Voice Calls for EMERGENCY tier
         if severity == AlertSeverity.EMERGENCY:
+            from alerts.twilio_handler import TwilioDispatchResult
             voice_prompt = (
                 f"Emergency flood warning for {affected_area}. "
                 f"{message}. Please move to higher ground immediately."
             )
             for phone in recipients:
-                clean_phone = (
-                    phone[4:]
-                    if phone.startswith("sms:")
-                    else (phone[9:] if phone.startswith("whatsapp:") else phone)
-                )
-                call_res = self.twilio.make_voice_call(
-                    to_phone=clean_phone,
-                    twiml_url_or_say=voice_prompt,
-                )
+                try:
+                    clean_phone = (
+                        phone[4:]
+                        if phone.startswith("sms:")
+                        else (phone[9:] if phone.startswith("whatsapp:") else phone)
+                    )
+                    call_res = self.twilio.make_voice_call(
+                        to_phone=clean_phone,
+                        twiml_url_or_say=voice_prompt,
+                    )
+                except Exception as call_err:
+                    logger.error("Voice dispatch error to %s: %s", phone, call_err)
+                    call_res = TwilioDispatchResult(
+                        success=False,
+                        channel="VOICE",
+                        recipient=phone,
+                        status="FAILED",
+                        error=str(call_err),
+                    )
                 log_alert_dispatch(
                     alert_id=alert_id,
                     severity=severity.value,
