@@ -797,6 +797,10 @@ def generate_m1_development_dataset(
                 writer.writerow(d)
 
     events = load_backtest_events(directory / "backtest_events.json" if (directory / "backtest_events.json").exists() else None)
+    # Restrict M1 Day 1 development dataset specifically to historical development events
+    dev_events = [e for e in events if e.event_id in ("EVT_2023_MICHAUNG", "EVT_2021_NOV_DEPRESSION")]
+    if dev_events:
+        events = dev_events
 
     observations: List[HotspotEventObservation] = []
     hotspot_map = {h.hotspot_id: h for h in hotspots}

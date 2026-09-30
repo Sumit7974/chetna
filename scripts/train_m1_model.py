@@ -43,6 +43,7 @@ def run_training_pipeline(
     test_size: float = 0.20,
     random_state: int = 42,
     output_dataset_dir: str = "data/m1",
+    held_out_event: str = "EVT_PATNA_2024_09_HEAVY_RAIN",
 ) -> Dict[int, HorizonMetrics]:
     """Executes the complete M1 Day 3 training and evaluation pipeline."""
     print("=" * 72)
@@ -57,9 +58,13 @@ def run_training_pipeline(
     )
     print(f"      Total generated multi-horizon proxy samples: {len(samples)}")
 
+    # Strict isolation: exclude held-out evaluation event
+    training_samples = [s for s in samples if s.event_id != held_out_event]
+    print(f"      Training samples after excluding held-out event '{held_out_event}': {len(training_samples)}")
+
     # 2. Prepare feature and target matrices
     print("\n[2/5] Structuring feature matrices for horizons (+1h, +3h, +6h)...")
-    matrices = prepare_matrices_by_horizon(samples)
+    matrices = prepare_matrices_by_horizon(training_samples)
     for h, (X, y) in matrices.items():
         pos = int(y.sum())
         print(f"      Horizon +{h}h: {X.shape[0]} samples, {pos} positive proxy waterlogging events ({pos / len(y):.1%})")
@@ -90,6 +95,20 @@ def run_training_pipeline(
         m = evaluate_predictions(y_true=y_val, y_prob=probs_val, horizon=h)
         metrics_by_horizon[h] = m
         flood_model.metadata["horizon_metrics"][str(h)] = m.to_dict()
+
+    # Record metadata regarding clean feature policy and event provenance
+    training_event_ids = sorted(list(set(s.event_id for s in training_samples)))
+    assert held_out_event not in training_event_ids, f"Contamination: {held_out_event} in training events!"
+    flood_model.metadata["clean_feature_policy"] = (
+        "Target-derived variables (trigger_rain_threshold, flood_risk_proxy, waterlogged_proxy) "
+        "are strictly excluded from feature inputs."
+    )
+    flood_model.metadata["training_events"] = training_event_ids
+    flood_model.metadata["held_out_event_excluded"] = held_out_event
+    flood_model.metadata["validation_mode"] = "DEVELOPMENT_STRATIFIED_SPLIT"
+    flood_model.metadata["patna_status"] = (
+        f"Model trained with strict event isolation. Held-out test event '{held_out_event}' strictly excluded."
+    )
 
     # 5. Serialize model artifacts
     print(f"\n[4/5] Serializing model artifacts and metadata to '{model_dir}'...")
@@ -128,6 +147,8 @@ def main() -> None:
     parser.add_argument("--output-dataset-dir", type=str, default="data/m1", help="Directory to save proxy dataset")
     parser.add_argument("--test-size", type=float, default=0.20, help="Validation set split ratio (default: 0.20)")
     parser.add_argument("--seed", type=int, default=42, help="Random state seed (default: 42)")
+    parser.add_argument("--held-out-event", type=str, default="EVT_PATNA_2024_09_HEAVY_RAIN",
+                        help="Unseen held-out event to strictly exclude from training (default: EVT_PATNA_2024_09_HEAVY_RAIN)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -138,6 +159,7 @@ def main() -> None:
             test_size=args.test_size,
             random_state=args.seed,
             output_dataset_dir=args.output_dataset_dir,
+            held_out_event=args.held_out_event,
         )
     except Exception as exc:
         logger.error("Training pipeline failed: %s", exc, exc_info=True)

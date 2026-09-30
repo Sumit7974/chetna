@@ -1,164 +1,164 @@
 {
   "EVT_2021_NOV_DEPRESSION_H1_ml": {
-    "tp": 6,
-    "tn": 2730,
-    "fp": 0,
+    "tp": 0,
+    "tn": 2726,
+    "fp": 10,
     "fn": 0
   },
   "EVT_2021_NOV_DEPRESSION_H1_heuristic": {
     "tp": 0,
-    "tn": 2730,
+    "tn": 2736,
     "fp": 0,
-    "fn": 6
+    "fn": 0
   },
   "EVT_2021_NOV_DEPRESSION_H1_rainfall_threshold": {
     "tp": 0,
-    "tn": 2730,
+    "tn": 2736,
     "fp": 0,
-    "fn": 6
+    "fn": 0
   },
   "EVT_2021_NOV_DEPRESSION_H3_ml": {
-    "tp": 24,
-    "tn": 2712,
+    "tp": 0,
+    "tn": 2736,
     "fp": 0,
     "fn": 0
   },
   "EVT_2021_NOV_DEPRESSION_H3_heuristic": {
     "tp": 0,
-    "tn": 2712,
-    "fp": 0,
-    "fn": 24
-  },
-  "EVT_2021_NOV_DEPRESSION_H3_rainfall_threshold": {
-    "tp": 0,
-    "tn": 2712,
-    "fp": 0,
-    "fn": 24
-  },
-  "EVT_2021_NOV_DEPRESSION_H6_ml": {
-    "tp": 44,
-    "tn": 2692,
+    "tn": 2736,
     "fp": 0,
     "fn": 0
   },
+  "EVT_2021_NOV_DEPRESSION_H3_rainfall_threshold": {
+    "tp": 0,
+    "tn": 2736,
+    "fp": 0,
+    "fn": 0
+  },
+  "EVT_2021_NOV_DEPRESSION_H6_ml": {
+    "tp": 0,
+    "tn": 2721,
+    "fp": 10,
+    "fn": 5
+  },
   "EVT_2021_NOV_DEPRESSION_H6_heuristic": {
     "tp": 0,
-    "tn": 2692,
+    "tn": 2731,
     "fp": 0,
-    "fn": 44
+    "fn": 5
   },
   "EVT_2021_NOV_DEPRESSION_H6_rainfall_threshold": {
     "tp": 0,
-    "tn": 2692,
+    "tn": 2731,
     "fp": 0,
-    "fn": 44
+    "fn": 5
   },
   "EVT_2023_MICHAUNG_H1_ml": {
-    "tp": 275,
-    "tn": 2460,
-    "fp": 0,
-    "fn": 1
+    "tp": 151,
+    "tn": 2539,
+    "fp": 31,
+    "fn": 15
   },
   "EVT_2023_MICHAUNG_H1_heuristic": {
-    "tp": 196,
-    "tn": 2460,
+    "tp": 116,
+    "tn": 2570,
     "fp": 0,
-    "fn": 80
+    "fn": 50
   },
   "EVT_2023_MICHAUNG_H1_rainfall_threshold": {
     "tp": 0,
-    "tn": 2460,
+    "tn": 2570,
     "fp": 0,
-    "fn": 276
+    "fn": 166
   },
   "EVT_2023_MICHAUNG_H3_ml": {
-    "tp": 588,
-    "tn": 2137,
-    "fp": 6,
-    "fn": 5
+    "tp": 489,
+    "tn": 2210,
+    "fp": 22,
+    "fn": 15
   },
   "EVT_2023_MICHAUNG_H3_heuristic": {
-    "tp": 498,
-    "tn": 2142,
+    "tp": 413,
+    "tn": 2231,
     "fp": 1,
-    "fn": 95
+    "fn": 91
   },
   "EVT_2023_MICHAUNG_H3_rainfall_threshold": {
     "tp": 75,
-    "tn": 2142,
+    "tn": 2231,
     "fp": 1,
-    "fn": 518
+    "fn": 429
   },
   "EVT_2023_MICHAUNG_H6_ml": {
-    "tp": 754,
-    "tn": 1978,
-    "fp": 0,
-    "fn": 4
+    "tp": 660,
+    "tn": 2045,
+    "fp": 20,
+    "fn": 11
   },
   "EVT_2023_MICHAUNG_H6_heuristic": {
-    "tp": 683,
-    "tn": 1978,
+    "tp": 632,
+    "tn": 2065,
     "fp": 0,
-    "fn": 75
+    "fn": 39
   },
   "EVT_2023_MICHAUNG_H6_rainfall_threshold": {
     "tp": 262,
-    "tn": 1974,
+    "tn": 2061,
     "fp": 4,
-    "fn": 496
+    "fn": 409
   },
   "ALL_H1_ml": {
-    "tp": 281,
-    "tn": 5190,
-    "fp": 0,
-    "fn": 1
+    "tp": 863,
+    "tn": 11746,
+    "fp": 61,
+    "fn": 98
   },
   "ALL_H1_heuristic": {
-    "tp": 196,
-    "tn": 5190,
-    "fp": 0,
-    "fn": 86
+    "tp": 141,
+    "tn": 11687,
+    "fp": 120,
+    "fn": 820
   },
   "ALL_H1_rainfall_threshold": {
     "tp": 0,
-    "tn": 5190,
-    "fp": 0,
-    "fn": 282
+    "tn": 11769,
+    "fp": 38,
+    "fn": 961
   },
   "ALL_H3_ml": {
-    "tp": 612,
-    "tn": 4849,
-    "fp": 6,
-    "fn": 5
+    "tp": 1207,
+    "tn": 11416,
+    "fp": 53,
+    "fn": 92
   },
   "ALL_H3_heuristic": {
-    "tp": 498,
-    "tn": 4854,
-    "fp": 1,
-    "fn": 119
+    "tp": 448,
+    "tn": 11240,
+    "fp": 229,
+    "fn": 851
   },
   "ALL_H3_rainfall_threshold": {
-    "tp": 75,
-    "tn": 4854,
-    "fp": 1,
-    "fn": 542
+    "tp": 95,
+    "tn": 11298,
+    "fp": 171,
+    "fn": 1204
   },
   "ALL_H6_ml": {
-    "tp": 798,
-    "tn": 4670,
-    "fp": 0,
-    "fn": 4
+    "tp": 1388,
+    "tn": 11236,
+    "fp": 61,
+    "fn": 83
   },
   "ALL_H6_heuristic": {
-    "tp": 683,
-    "tn": 4670,
-    "fp": 0,
-    "fn": 119
+    "tp": 661,
+    "tn": 10994,
+    "fp": 303,
+    "fn": 810
   },
   "ALL_H6_rainfall_threshold": {
-    "tp": 262,
-    "tn": 4666,
-    "fp": 4,
-    "fn": 540
+    "tp": 272,
+    "tn": 11075,
+    "fp": 222,
+    "fn": 1199
   }
 }

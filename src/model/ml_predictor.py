@@ -241,14 +241,15 @@ class XGBoostRiskPredictor:
         except (ValueError, TypeError):
             rp24 = 0.0
 
-        # Known hotspot cell flag
-        is_hotspot = 1.0 if any(
-            h_code in cid for h_code in ["VEL", "MAD", "MUD", "TNG", "PUL", "VYA", "PRM", "KYM", "MNP", "PLK"]
+        # Known hotspot cell flag (supports Patna pilot and historical codes)
+        hotspot_codes = [
+            "RAJ", "KAN", "SAI", "BOR", "BAI", "GAN", "PAT", "ANI", "DIG", "BAZ",
+            "VEL", "MAD", "MUD", "TNG", "PUL", "VYA", "PRM", "KYM", "MNP", "PLK",
+        ]
+        is_hotspot = 1.0 if (
+            any(h_code in cid for h_code in hotspot_codes)
+            or static_info.get("is_hotspot", 0.0) >= 0.5
         ) else 0.0
-
-        # Horizon trigger threshold baseline
-        base_triggers = {1: 25.0 if is_hotspot else 40.0, 3: 45.0 if is_hotspot else 65.0, 6: 60.0 if is_hotspot else 90.0}
-        trigger_threshold = base_triggers.get(int(horizon), 35.0)
 
         return {
             "rainfall_mm": float(rainfall_mm),
@@ -258,7 +259,6 @@ class XGBoostRiskPredictor:
             "flow_accumulation": float(flow_acc),
             "imperviousness": float(imp),
             "vulnerability_score": float(v_score),
-            "trigger_rain_threshold": float(trigger_threshold),
             "is_hotspot": float(is_hotspot),
         }
 
