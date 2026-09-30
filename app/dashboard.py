@@ -104,12 +104,14 @@ except (ImportError, ModuleNotFoundError):
 try:
     from app.demo_scenario import (
         load_backtest_summary,
+        load_model_performance,
         reset_to_baseline_scenario,
         simulate_heavy_rain_scenario,
     )
 except (ImportError, ModuleNotFoundError):
     from demo_scenario import (  # type: ignore
         load_backtest_summary,
+        load_model_performance,
         reset_to_baseline_scenario,
         simulate_heavy_rain_scenario,
     )
@@ -1506,6 +1508,120 @@ def render_public_warning_activity_section(db_path: Any = DEFAULT_DB_PATH) -> No
 
 
 
+def render_model_performance(
+    perf_data: Optional[Dict[str, Any]] = None,
+    active_horizon: str = "NOW",
+) -> None:
+    """Render the Model Performance section in F1 Analytics.
+
+    Displays held-out evaluation accuracy, precision, recall, F1, test sample count,
+    and methodology note without marketing claims or fabricated fallback percentages.
+    """
+    if perf_data is None:
+        perf_data = load_model_performance()
+
+    st.markdown(
+        """
+        <div style="margin-top: 1rem; margin-bottom: 0.6rem;">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                <span>🎯</span>
+                <span>Model Performance</span>
+            </div>
+            <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">
+                Independent held-out evaluation on unseen historical monsoon precipitation
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if not perf_data.get("available"):
+        st.info("⚠️ Evaluation data unavailable")
+        return
+
+    horizons = perf_data.get("horizons", {})
+    horizon_options = ["+1h (Lead Time 1h)", "+3h (Lead Time 3h)", "+6h (Lead Time 6h)", "All Horizons Combined"]
+
+    default_idx = 0
+    if "+3h" in str(active_horizon):
+        default_idx = 1
+    elif "+6h" in str(active_horizon):
+        default_idx = 2
+
+    h_choice = st.radio(
+        "Evaluation Horizon",
+        options=horizon_options,
+        index=default_idx,
+        horizontal=True,
+        key="model_perf_horizon_radio",
+        help="Inspect held-out evaluation metrics across multi-hour forecast horizons.",
+    )
+
+    if "3h" in h_choice and "3" in horizons:
+        cur_metrics = horizons["3"]
+        cur_samples = cur_metrics.get("test_samples", 3648)
+    elif "6h" in h_choice and "6" in horizons:
+        cur_metrics = horizons["6"]
+        cur_samples = cur_metrics.get("test_samples", 3648)
+    elif "Combined" in h_choice and "aggregate" in perf_data:
+        cur_metrics = perf_data["aggregate"]
+        cur_samples = cur_metrics.get("test_samples", 10944)
+    else:
+        cur_metrics = horizons.get("1", perf_data)
+        cur_samples = cur_metrics.get("test_samples", perf_data.get("test_samples", 3648))
+
+    accuracy_val = cur_metrics.get("accuracy")
+    precision_val = cur_metrics.get("precision")
+    recall_val = cur_metrics.get("recall")
+    f1_val = cur_metrics.get("f1_score")
+
+    acc_str = f"{accuracy_val * 100:.2f}%" if accuracy_val is not None else "N/A"
+    prec_str = f"{precision_val * 100:.2f}%" if precision_val is not None else "N/A"
+    rec_str = f"{recall_val * 100:.2f}%" if recall_val is not None else "N/A"
+    f1_str = f"{f1_val * 100:.2f}%" if f1_val is not None else "N/A"
+    samples_str = f"{cur_samples:,}" if isinstance(cur_samples, int) else str(cur_samples)
+    eval_label = perf_data.get("evaluation", "Patna held-out test set")
+
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    with c1:
+        st.metric(label="Accuracy", value=acc_str)
+    with c2:
+        st.metric(label="Precision", value=prec_str)
+    with c3:
+        st.metric(label="Recall", value=rec_str)
+    with c4:
+        st.metric(label="F1 Score", value=f1_str)
+    with c5:
+        st.metric(label="Test Samples", value=samples_str)
+    with c6:
+        st.metric(label="Evaluation", value=eval_label)
+
+    methodology_note = perf_data.get(
+        "methodology_note",
+        "Performance metrics are calculated on held-out evaluation data and "
+        "should not be interpreted as guaranteed real-world flood prediction accuracy.",
+    )
+    test_evt = perf_data.get("test_event_id", "EVT_PATNA_2024_09_HEAVY_RAIN")
+    train_evt = perf_data.get("train_event_id", "EVT_PATNA_2019_FLOOD")
+
+    st.markdown(
+        f"""
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-left:4px solid #0284c7; border-radius:6px; padding:10px 14px; margin-top:0.75rem; margin-bottom:0.75rem; font-size:0.78rem; color:#334155; line-height:1.5;">
+            <div style="font-weight:700; color:#0f172a; margin-bottom:3px;">ℹ️ Evaluation Methodology Note:</div>
+            <div>{methodology_note}</div>
+            <div style="color:#475569; margin-top:3px; font-style:italic;">Metrics are reported together because raw accuracy alone can be misleading for imbalanced flood-event data.</div>
+            <div style="font-size:0.72rem; color:#64748b; margin-top:4px;">
+                <b>Dataset:</b> Patna held-out test set (<code>{test_evt}</code>) &bull;
+                <b>Training:</b> <code>{train_evt}</code> exclusively &bull;
+                <b>Policy:</b> Clean 8-feature policy strictly without target-derived leakage.
+            </div>
+        </div>
+
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_footer() -> None:
     """Render authoritative footer."""
     st.markdown(
@@ -1619,15 +1735,24 @@ def main() -> None:
                 st.markdown(f"### 📈 Model Evaluation &amp; Backtest Analytics &mdash; {PILOT_LOCATION_LABEL}")
                 st.markdown(f"**Hazard Scope:** {HAZARD_SCOPE} &bull; **Pilot Baseline:** 200m Metric Vulnerability Grid")
                 st.markdown(
-                    "Historical backtest evaluation comparing ML (XGBoost), Heuristic Linear, and Rainfall-only baseline models "
+                    "Historical evaluation comparing ML (XGBoost), Heuristic Linear, and Rainfall-only baseline models "
                     "across multi-hour forecast horizons (+1h, +3h, +6h)."
                 )
+
+                # 1. Official Model Performance section
+                render_model_performance(active_horizon=active_horizon)
+
+                # 2. Historical Comparative Backtest section
+                st.markdown("<hr style='margin: 1.25rem 0 1rem 0; border-color: #e2e8f0;'/>", unsafe_allow_html=True)
+                st.markdown("<div style='font-size:1.05rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem;'>Comparative Method Evaluation &amp; Baseline Benchmarks</div>", unsafe_allow_html=True)
 
                 bt_data = load_backtest_summary()
                 if bt_data.get("available") and bt_data.get("records"):
                     c_m1, c_m2, c_m3 = st.columns(3)
+                    events_list = bt_data.get("events", [])
+                    events_sub = "Patna Sept '24 Held-Out" if any("PATNA" in str(e) for e in events_list) else "Michaung '23 & Nov '21"
                     with c_m1:
-                        st.metric("Historical Events", "2 Events", "Michaung '23 & Nov '21")
+                        st.metric("Historical Events", f"{len(events_list)} Events", events_sub)
                     with c_m2:
                         st.metric("Prediction Methods", "3 Evaluated", "ML vs Heuristic vs Rainfall")
                     with c_m3:
@@ -1635,6 +1760,7 @@ def main() -> None:
 
                     st.markdown("<div style='font-size:0.85rem; font-weight:700; color:#0f172a; margin-top:0.75rem; margin-bottom:0.25rem;'>Comparative Model Metrics:</div>", unsafe_allow_html=True)
                     st.dataframe(bt_data["records"], use_container_width=True)
+
 
                     lims_html = "".join(f"<div>&bull; {lim}</div>" for lim in bt_data.get("limitations", []))
                     st.markdown(

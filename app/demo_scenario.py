@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_STATIC_RISK_PATH = Path("data/m1/static_risk_scores.json")
 DEFAULT_BACKTEST_RESULTS_PATH = Path("data/m1/backtest/results.json")
 DEFAULT_BACKTEST_EVENTS_PATH = Path("data/m1/backtest_events.json")
+DEFAULT_MODEL_PERFORMANCE_PATH = Path("data/m1/backtest/patna_held_out_metrics.json")
+FALLBACK_MODEL_PERFORMANCE_PATH = Path("data/m1/patna_held_out_metrics.json")
 
 # Standard monitored pilot nodes for telemetry simulation (Patna pilot)
 DEFAULT_PILOT_SENSOR_NODES = [
@@ -281,7 +283,17 @@ def load_backtest_summary(
             method_name = "XGBoost ML" if r.get("method") == "ml" else (
                 "Heuristic Linear" if r.get("method") == "heuristic" else "Rainfall Baseline"
             )
-            event_name = "Michaung 2023" if "MICHAUNG" in r.get("event_id", "") else "Nov 2021 Depression"
+            ev_id = str(r.get("event_id", ""))
+            if "PATNA_2024" in ev_id:
+                event_name = "Patna Sept 2024"
+            elif "PATNA_2019" in ev_id:
+                event_name = "Patna Sept 2019"
+            elif "MICHAUNG" in ev_id:
+                event_name = "Michaung 2023"
+            elif "2021" in ev_id:
+                event_name = "Nov 2021 Depression"
+            else:
+                event_name = ev_id or "Historical Event"
             prec = r.get("precision")
             rec = r.get("recall")
             f1 = r.get("f1")
@@ -322,6 +334,221 @@ def load_backtest_summary(
             "limitations": [],
             "disclaimer": "Prototype backtest evaluation notice.",
         }
+
+
+def load_model_performance(
+    path: Optional[Union[str, Path]] = None,
+    horizon: Optional[Union[int, str]] = None,
+) -> Dict[str, Any]:
+    """Load machine-readable Patna held-out evaluation performance metrics.
+
+    Reproducible source: Patna September 2024 held-out evaluation
+    (trained exclusively on September 2019 flood; clean 8-feature policy).
+
+    Returns:
+        Structured dictionary with accuracy, precision, recall, f1, test_samples,
+        evaluation label, and methodology notice. If evaluation data is missing or
+        unsupported, returns an honest 'available': False state without fabricated fallbacks.
+    """
+    candidates: List[Path] = []
+    if path is not None:
+        candidates = [Path(path)]
+    else:
+        candidates = [
+            DEFAULT_MODEL_PERFORMANCE_PATH,
+            FALLBACK_MODEL_PERFORMANCE_PATH,
+            DEFAULT_BACKTEST_RESULTS_PATH,
+        ]
+
+    target: Optional[Path] = None
+    for cand in candidates:
+        if cand.exists():
+            target = cand
+            break
+
+    if target is None:
+        return {
+            "available": False,
+            "status_text": "Evaluation data unavailable",
+            "accuracy": None,
+            "accuracy_pct": None,
+            "precision": None,
+            "precision_pct": None,
+            "recall": None,
+            "recall_pct": None,
+            "f1_score": None,
+            "f1_pct": None,
+            "test_samples": None,
+            "evaluation": "Patna held-out test set",
+            "methodology_note": (
+                "Performance metrics are calculated on held-out evaluation data and "
+                "should not be interpreted as guaranteed real-world flood prediction accuracy."
+            ),
+        }
+
+    try:
+        with open(target, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Case 1: Structured patna_held_out_metrics artifact
+        if "horizons" in data and ("accuracy" in data or "1" in data["horizons"]):
+            h_key = "1"
+            if horizon is not None:
+                h_norm = str(horizon).replace("+", "").replace("h", "").strip()
+                if h_norm in data["horizons"]:
+                    h_key = h_norm
+                elif h_norm.lower() in ("all", "aggregate", "combined"):
+                    h_key = "aggregate"
+
+            if h_key == "aggregate" and "aggregate" in data:
+                selected = data["aggregate"]
+            else:
+                selected = data["horizons"].get(h_key, data["horizons"].get("1", {}))
+
+            acc = selected.get("accuracy", data.get("accuracy"))
+            prec = selected.get("precision", data.get("precision"))
+            rec = selected.get("recall", data.get("recall"))
+            f1 = selected.get("f1_score", data.get("f1_score"))
+            samples = selected.get("test_samples", data.get("test_samples"))
+
+            return {
+                "available": True,
+                "status_text": "Available",
+                "accuracy": acc,
+                "accuracy_pct": f"{acc * 100:.2f}%" if acc is not None else "N/A",
+                "precision": prec,
+                "precision_pct": f"{prec * 100:.2f}%" if prec is not None else "N/A",
+                "recall": rec,
+                "recall_pct": f"{rec * 100:.2f}%" if rec is not None else "N/A",
+                "f1_score": f1,
+                "f1_pct": f"{f1 * 100:.2f}%" if f1 is not None else "N/A",
+                "test_samples": samples,
+                "evaluation": data.get("evaluation", "Patna held-out test set"),
+                "methodology_note": data.get(
+                    "methodology_note",
+                    "Performance metrics are calculated on held-out evaluation data and "
+                    "should not be interpreted as guaranteed real-world flood prediction accuracy.",
+                ),
+                "horizons": data.get("horizons", {}),
+                "aggregate": data.get("aggregate", {}),
+                "source_file": str(target),
+                "selected_horizon": h_key,
+            }
+
+        # Case 2: Standard backtest results.json with Patna held-out records
+        raw_results = data.get("event_results", [])
+        ml_patna_records = [
+            r for r in raw_results
+            if r.get("method") == "ml" and (
+                "PATNA" in r.get("event_id", "").upper() or r.get("data_city") == "Patna"
+            ) and r.get("is_held_out")
+        ]
+
+        if not ml_patna_records:
+            return {
+                "available": False,
+                "status_text": "Evaluation data unavailable",
+                "accuracy": None,
+                "accuracy_pct": None,
+                "precision": None,
+                "precision_pct": None,
+                "recall": None,
+                "recall_pct": None,
+                "f1_score": None,
+                "f1_pct": None,
+                "test_samples": None,
+                "evaluation": "Patna held-out test set",
+                "methodology_note": (
+                    "Performance metrics are calculated on held-out evaluation data and "
+                    "should not be interpreted as guaranteed real-world flood prediction accuracy."
+                ),
+            }
+
+        # Build horizons dictionary from backtest records
+        horizons_dict: Dict[str, Any] = {}
+        for r in ml_patna_records:
+            hk = str(r.get("horizon", 1))
+            acc = r.get("accuracy", (r.get("tp", 0) + r.get("tn", 0)) / max(1, r.get("n_samples", 1)))
+            prec = r.get("precision")
+            rec = r.get("recall")
+            f1 = r.get("f1")
+            horizons_dict[hk] = {
+                "horizon": r.get("horizon"),
+                "horizon_label": f"+{r.get('horizon')}h",
+                "method": "ml",
+                "accuracy": acc,
+                "accuracy_pct": f"{acc * 100:.2f}%" if acc is not None else "N/A",
+                "precision": prec,
+                "precision_pct": f"{prec * 100:.2f}%" if prec is not None else "N/A",
+                "recall": rec,
+                "recall_pct": f"{rec * 100:.2f}%" if rec is not None else "N/A",
+                "f1_score": f1,
+                "f1_pct": f"{f1 * 100:.2f}%" if f1 is not None else "N/A",
+                "test_samples": r.get("n_samples", 0),
+                "n_positive": r.get("n_positive", 0),
+                "tp": r.get("tp", 0),
+                "tn": r.get("tn", 0),
+                "fp": r.get("fp", 0),
+                "fn": r.get("fn", 0),
+            }
+
+        target_h = "1"
+        if horizon is not None:
+            h_norm = str(horizon).replace("+", "").replace("h", "").strip()
+            if h_norm in horizons_dict:
+                target_h = h_norm
+
+        chosen = horizons_dict.get(target_h, horizons_dict.get("1", {}))
+        acc = chosen.get("accuracy")
+        prec = chosen.get("precision")
+        rec = chosen.get("recall")
+        f1 = chosen.get("f1_score")
+        samples = chosen.get("test_samples")
+
+        return {
+            "available": True,
+            "status_text": "Available",
+            "accuracy": acc,
+            "accuracy_pct": f"{acc * 100:.2f}%" if acc is not None else "N/A",
+            "precision": prec,
+            "precision_pct": f"{prec * 100:.2f}%" if prec is not None else "N/A",
+            "recall": rec,
+            "recall_pct": f"{rec * 100:.2f}%" if rec is not None else "N/A",
+            "f1_score": f1,
+            "f1_pct": f"{f1 * 100:.2f}%" if f1 is not None else "N/A",
+            "test_samples": samples,
+            "evaluation": "Patna held-out test set",
+            "methodology_note": (
+                "Performance metrics are calculated on held-out evaluation data and "
+                "should not be interpreted as guaranteed real-world flood prediction accuracy."
+            ),
+            "horizons": horizons_dict,
+            "source_file": str(target),
+            "selected_horizon": target_h,
+        }
+
+    except Exception as exc:
+        logger.warning("Could not load model performance from %s: %s", target, exc)
+        return {
+            "available": False,
+            "status_text": "Evaluation data unavailable",
+            "error": str(exc),
+            "accuracy": None,
+            "accuracy_pct": None,
+            "precision": None,
+            "precision_pct": None,
+            "recall": None,
+            "recall_pct": None,
+            "f1_score": None,
+            "f1_pct": None,
+            "test_samples": None,
+            "evaluation": "Patna held-out test set",
+            "methodology_note": (
+                "Performance metrics are calculated on held-out evaluation data and "
+                "should not be interpreted as guaranteed real-world flood prediction accuracy."
+            ),
+        }
+
 
 
 def replay_historical_backtest_event(

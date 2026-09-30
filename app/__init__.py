@@ -12,6 +12,7 @@ from app.dashboard import (
     get_system_metrics,
     load_hotspots_data,
     load_static_risk_metadata,
+    render_model_performance,
 )
 from app.citizen_view import (
     extract_facilities_from_hotspots,
@@ -47,6 +48,7 @@ from app.alert_service import (
 )
 from app.demo_scenario import (
     load_backtest_summary,
+    load_model_performance,
     reset_to_baseline_scenario,
     simulate_heavy_rain_scenario,
 )
@@ -90,4 +92,6 @@ __all__ = [
     "simulate_heavy_rain_scenario",
     "reset_to_baseline_scenario",
     "load_backtest_summary",
+    "load_model_performance",
+    "render_model_performance",
 ]

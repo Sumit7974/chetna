@@ -761,5 +761,104 @@ def run_held_out_event_backtest(
         result.save_json(out_p / "results.json")
         result.save_csv(out_p / "results.csv")
         result.save_confusion_matrices(out_p / "confusion_matrices.json")
+        if is_patna_eval:
+            patna_summary = generate_patna_held_out_metrics_summary(result)
+            with open(out_p / "patna_held_out_metrics.json", "w", encoding="utf-8") as f:
+                json.dump(patna_summary, f, indent=2)
 
     return result
+
+
+def generate_patna_held_out_metrics_summary(result: BacktestResult) -> Dict[str, Any]:
+    """Extracts clean machine-readable performance metrics for Patna held-out evaluation."""
+    horizons: Dict[str, Any] = {}
+    tot_samples = 0
+    tot_pos = 0
+    tot_tp = 0
+    tot_tn = 0
+    tot_fp = 0
+    tot_fn = 0
+
+    for r in result.event_results:
+        if r.method == "ml":
+            h_key = str(r.horizon)
+            horizons[h_key] = {
+                "horizon": r.horizon,
+                "horizon_label": f"+{r.horizon}h",
+                "method": "ml",
+                "accuracy": r.accuracy,
+                "accuracy_pct": f"{r.accuracy * 100:.2f}%",
+                "precision": r.precision,
+                "precision_pct": f"{r.precision * 100:.2f}%" if r.precision is not None else "N/A",
+                "recall": r.recall,
+                "recall_pct": f"{r.recall * 100:.2f}%" if r.recall is not None else "N/A",
+                "f1_score": r.f1,
+                "f1_pct": f"{r.f1 * 100:.2f}%" if r.f1 is not None else "N/A",
+                "test_samples": r.n_samples,
+                "n_positive": r.n_positive,
+                "tp": r.tp,
+                "tn": r.tn,
+                "fp": r.fp,
+                "fn": r.fn,
+                "roc_auc": r.roc_auc,
+                "pr_auc": r.pr_auc,
+                "brier": r.brier,
+            }
+            tot_samples += r.n_samples
+            tot_pos += r.n_positive
+            tot_tp += r.tp
+            tot_tn += r.tn
+            tot_fp += r.fp
+            tot_fn += r.fn
+
+    agg_acc = (tot_tp + tot_tn) / max(1, tot_samples)
+    agg_prec = tot_tp / max(1, tot_tp + tot_fp) if (tot_tp + tot_fp) > 0 else 0.0
+    agg_rec = tot_tp / max(1, tot_tp + tot_fn) if (tot_tp + tot_fn) > 0 else 0.0
+    agg_f1 = (2 * agg_prec * agg_rec) / max(1e-9, agg_prec + agg_rec) if (agg_prec + agg_rec) > 0 else 0.0
+
+    h1 = horizons.get("1", {})
+    return {
+        "evaluation": "Patna held-out test set",
+        "evaluation_mode": "HELD_OUT_EVENT_TEST",
+        "train_event_id": result.training_event_ids[0] if result.training_event_ids else "EVT_PATNA_2019_FLOOD",
+        "test_event_id": result.test_event_ids[0] if result.test_event_ids else "EVT_PATNA_2024_09_HEAVY_RAIN",
+        "data_city": "Patna",
+        "is_held_out": True,
+        "default_horizon": 1,
+        "accuracy": h1.get("accuracy", agg_acc),
+        "accuracy_pct": h1.get("accuracy_pct", f"{agg_acc * 100:.2f}%"),
+        "precision": h1.get("precision", agg_prec),
+        "precision_pct": h1.get("precision_pct", f"{agg_prec * 100:.2f}%"),
+        "recall": h1.get("recall", agg_rec),
+        "recall_pct": h1.get("recall_pct", f"{agg_rec * 100:.2f}%"),
+        "f1_score": h1.get("f1_score", agg_f1),
+        "f1_pct": h1.get("f1_pct", f"{agg_f1 * 100:.2f}%"),
+        "test_samples": h1.get("test_samples", tot_samples),
+        "methodology_note": (
+            "Performance metrics are calculated on held-out evaluation data and "
+            "should not be interpreted as guaranteed real-world flood prediction accuracy."
+        ),
+        "clean_feature_policy": (
+            "Target-derived variables (trigger_rain_threshold, flood_risk_proxy, waterlogged_proxy) "
+            "are strictly excluded from feature inputs."
+        ),
+        "horizons": horizons,
+        "aggregate": {
+            "horizon_label": "All Horizons Combined",
+            "method": "ml",
+            "accuracy": agg_acc,
+            "accuracy_pct": f"{agg_acc * 100:.2f}%",
+            "precision": agg_prec,
+            "precision_pct": f"{agg_prec * 100:.2f}%",
+            "recall": agg_rec,
+            "recall_pct": f"{agg_rec * 100:.2f}%",
+            "f1_score": agg_f1,
+            "f1_pct": f"{agg_f1 * 100:.2f}%",
+            "test_samples": tot_samples,
+            "n_positive": tot_pos,
+            "tp": tot_tp,
+            "tn": tot_tn,
+            "fp": tot_fp,
+            "fn": tot_fn,
+        },
+    }
