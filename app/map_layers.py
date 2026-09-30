@@ -1023,8 +1023,8 @@ def add_map_legend(folium_map: folium.Map, horizon: str = "NOW", is_dynamic: boo
     """Inject a clean, compact, floating map legend into the Folium map."""
     dynamic_severe_html = (
         "<div style=\"display:flex; align-items:center; gap:6px; margin-bottom:2px;\">"
-        "<span style=\"display:inline-block; width:12px; height:8px; background:#991b1b; opacity:0.85; border:1px solid #7f1d1d; border-radius:2px;\"></span>"
-        "<span style=\"color:#1e293b;\">Severe Inundation</span>"
+        "<span style=\"display:inline-block; width:12px; height:8px; background:#991b1b; opacity:0.9; border:1px solid #7f1d1d; border-radius:2px;\"></span>"
+        "<span style=\"color:#f8fafc;\">Severe Inundation</span>"
         "</div>"
     ) if is_dynamic else ""
 
@@ -1034,48 +1034,49 @@ def add_map_legend(folium_map: folium.Map, horizon: str = "NOW", is_dynamic: boo
         bottom: 22px;
         right: 22px;
         z-index: 9999;
-        background: rgba(255, 255, 255, 0.96);
+        background: rgba(11, 21, 40, 0.94);
         backdrop-filter: blur(8px);
-        border: 1px solid #cbd5e1;
+        border: 1px solid #1e3a5f;
         border-radius: 8px;
         padding: 9px 12px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 11px;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
         line-height: 1.45;
         max-width: 220px;
+        color: #f8fafc;
     ">
-        <div style="font-weight: 700; font-size: 10px; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px;">
+        <div style="font-weight: 700; font-size: 10px; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; border-bottom: 1px solid #1e293b; padding-bottom: 3px;">
             Operational Risk Legend ({horizon})
         </div>
         <div style="margin-bottom: 5px;">
-            <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px;">Risk Tiers</div>
+            <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px;">Risk Tiers</div>
             {dynamic_severe_html}
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
-                <span style="display:inline-block; width:12px; height:8px; background:#dc2626; opacity:0.8; border:1px solid #991b1b; border-radius:2px;"></span>
-                <span style="color:#1e293b;">High Risk (&ge; 0.70)</span>
+                <span style="display:inline-block; width:12px; height:8px; background:#dc2626; opacity:0.9; border:1px solid #991b1b; border-radius:2px;"></span>
+                <span style="color:#f1f5f9;">High Risk (&ge; 0.70)</span>
             </div>
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
-                <span style="display:inline-block; width:12px; height:8px; background:#f59e0b; opacity:0.8; border:1px solid #b45309; border-radius:2px;"></span>
-                <span style="color:#1e293b;">Medium Risk (0.40–0.70)</span>
+                <span style="display:inline-block; width:12px; height:8px; background:#f59e0b; opacity:0.9; border:1px solid #b45309; border-radius:2px;"></span>
+                <span style="color:#f1f5f9;">Medium Risk (0.40–0.70)</span>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
-                <span style="display:inline-block; width:12px; height:8px; background:#16a34a; opacity:0.8; border:1px solid #15803d; border-radius:2px;"></span>
-                <span style="color:#1e293b;">Low Risk (&lt; 0.40)</span>
+                <span style="display:inline-block; width:12px; height:8px; background:#16a34a; opacity:0.9; border:1px solid #15803d; border-radius:2px;"></span>
+                <span style="color:#f1f5f9;">Low Risk (&lt; 0.40)</span>
             </div>
         </div>
-        <div style="border-top: 1px solid #f1f5f9; padding-top: 4px;">
-            <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px;">Monitored Features</div>
+        <div style="border-top: 1px solid #1e293b; padding-top: 4px;">
+            <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px;">Monitored Features</div>
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
                 <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ef4444; border:1.5px solid #991b1b;"></span>
-                <span style="color:#1e293b;">Hotspot (Waterlogging)</span>
+                <span style="color:#f1f5f9;">Hotspot (Waterlogging)</span>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
                 <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#38bdf8; border:1.5px solid #0369a1;"></span>
-                <span style="color:#1e293b;">Sensor (Telemetry)</span>
+                <span style="color:#f1f5f9;">Sensor (Telemetry)</span>
             </div>
         </div>
-        <div style="margin-top: 5px; font-size: 8.5px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 3px;">
+        <div style="margin-top: 5px; font-size: 8.5px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 3px;">
             Prototype Baseline: Reference Spatial Grid
         </div>
     </div>
@@ -1118,8 +1119,8 @@ def get_mapbox_map_style(mapbox_token: Optional[str] = None) -> Tuple[str, Optio
     if is_valid:
         return "mapbox://styles/mapbox/light-v10", {"mapbox": token}, True
     else:
-        # High quality Carto Positron vector style (no token required, zero telemetry leak)
-        return pdk.map_styles.CARTO_LIGHT, None, False
+        # High quality Carto Dark Matter vector style (no token required, zero telemetry leak)
+        return pdk.map_styles.CARTO_DARK, None, False
 
 
 def build_risk_cells_deck_layer(
@@ -1711,9 +1712,16 @@ def build_operational_map(
         folium_map = folium.Map(
             location=[center[0], center[1]],
             zoom_start=zoom_start,
-            tiles="OpenStreetMap",
+            tiles="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+            attr="&copy; <a href='https://carto.com/'>CARTO</a> &copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
+            name="Dark Command Canvas",
             control_scale=True,
         )
+        folium.TileLayer(
+            tiles="OpenStreetMap",
+            name="OpenStreetMap (Standard)",
+        ).add_to(folium_map)
+        folium.LayerControl(position="topright", collapsed=True).add_to(folium_map)
 
         if add_fullscreen:
             plugins.Fullscreen(
