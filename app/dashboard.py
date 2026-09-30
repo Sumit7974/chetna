@@ -1118,6 +1118,7 @@ def render_main_workspace(
         scroll_content = "".join(hotspot_items_html) if hotspot_items_html else "<div style='color:#64748b; font-size:0.8rem;'>No hotspots records currently loaded.</div>"
 
         hotspot_panel_html = (
+            f'<div style="font-family:-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; padding:2px 4px;">'
             f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">'
             f'<div>'
             f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a; letter-spacing:-0.01em;">'
@@ -1127,21 +1128,19 @@ def render_main_workspace(
             f'Chronic drainage bottlenecks'
             f'</div>'
             f'</div>'
-            f'<span class="status-pill status-pill-amber">{len(hotspots)} Sourced Sites</span>'
+            f'<span class="status-pill status-pill-amber" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; border-radius:9999px; padding:3px 10px; font-weight:600; font-size:0.75rem;">{len(hotspots)} Sourced Sites</span>'
             f'</div>'
-            f'<div class="chetna-hotspots-scroll" style="max-height: 520px; overflow-y: auto; padding-right: 4px;">'
+            f'<div class="chetna-hotspots-scroll" style="max-height: 480px; overflow-y: auto; padding-right: 4px;">'
             f'{scroll_content}'
             f'</div>'
             f'<div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem; text-align:center;">'
             f'Monitored high-risk municipal points and drainage depressions.'
             f'</div>'
+            f'</div>'
         )
 
         with st.container(border=True):
-            if hasattr(st, "html"):
-                st.html(hotspot_panel_html)
-            else:
-                st.markdown(hotspot_panel_html, unsafe_allow_html=True)
+            st.components.v1.html(hotspot_panel_html, height=540, scrolling=True)
 
 
 def render_alert_and_architecture_section(
@@ -1436,7 +1435,7 @@ def main() -> None:
             predictions_map=horizon_status.get("predictions") if horizon_status else None,
             add_legend=False,
             add_fullscreen=True,
-            backend="pydeck",
+            backend="folium",
         )
         citizen_section = controls.get("citizen_section", "My Area")
         render_citizen_view(citizen_map, hotspots, metrics, active_section=citizen_section)

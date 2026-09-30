@@ -1477,7 +1477,9 @@ def validate_deck(deck_obj: Any) -> bool:
     """
     if deck_obj is None:
         return False
-    if not isinstance(deck_obj, pdk.Deck) or isinstance(deck_obj, folium.Map) or hasattr(deck_obj, "get_root"):
+    if isinstance(deck_obj, folium.Map) or hasattr(deck_obj, "get_root") or "folium" in str(type(deck_obj)).lower():
+        return False
+    if not (isinstance(deck_obj, pdk.Deck) or type(deck_obj).__name__ == "Deck"):
         return False
     if not hasattr(deck_obj, "layers") or not isinstance(deck_obj.layers, (list, tuple)):
         return False

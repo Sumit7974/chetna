@@ -363,18 +363,19 @@ def render_citizen_map(folium_map: Any) -> None:
         )
         render_html(header_html)
 
-        from app.map_layers import validate_deck, build_operational_deck, DEFAULT_PILOT_CENTER
+        from app.map_layers import validate_deck, build_operational_map, DEFAULT_PILOT_CENTER
 
-        if isinstance(folium_map, folium.Map) or hasattr(folium_map, "get_root"):
+        if isinstance(folium_map, folium.Map) or hasattr(folium_map, "get_root") or "folium" in str(type(folium_map)).lower():
             # Folium Map must ALWAYS route to HTML renderer, NEVER st.pydeck_chart
             map_html = folium_map.get_root().render()
             st.components.v1.html(map_html, height=480, scrolling=False)
         elif validate_deck(folium_map):
             st.pydeck_chart(folium_map, use_container_width=True)
         else:
-            # None, empty, or malformed map input: graceful fallback to valid Deck
-            fallback_deck = build_operational_deck(center=DEFAULT_PILOT_CENTER, zoom_start=12.0)
-            st.pydeck_chart(fallback_deck, use_container_width=True)
+            # None, empty, or malformed map input: graceful fallback to valid Folium map
+            fallback_map = build_operational_map(center=DEFAULT_PILOT_CENTER, zoom_start=12, backend="folium")
+            map_html = fallback_map.get_root().render()
+            st.components.v1.html(map_html, height=480, scrolling=False)
 
 
 def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]]) -> None:

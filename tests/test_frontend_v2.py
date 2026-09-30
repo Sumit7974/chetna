@@ -914,16 +914,16 @@ class TestFrontendV2(unittest.TestCase):
             self.assertEqual(expected_badge, "Carto Vector Engine")
 
     def test_hotspot_cards_html_rendering_regression(self):
-        """Regression test for LIVE ERROR 1: Monitored Hotspots HTML must not be rendered as raw text/code."""
+        """Regression test for LIVE ERROR 1: Monitored Hotspots HTML must be rendered through components.html, not st.markdown."""
         from unittest.mock import MagicMock, patch
         hotspots = db.load_hotspots_data()
         self.assertEqual(len(hotspots), 10, "All 10 sourced Patna hotspots must be present")
 
-        captured_html = []
+        captured_components_html = []
         captured_markdowns = []
 
-        def mock_html(content):
-            captured_html.append(content)
+        def mock_components_html(content, *args, **kwargs):
+            captured_components_html.append(content)
 
         def mock_markdown(content, unsafe_allow_html=False):
             captured_markdowns.append((content, unsafe_allow_html))
@@ -935,19 +935,24 @@ class TestFrontendV2(unittest.TestCase):
 
         with patch("streamlit.columns", return_value=[mock_col_map, mock_col_hotspots]), \
              patch("streamlit.container"), \
-             patch("streamlit.html", side_effect=mock_html, create=True), \
+             patch("streamlit.components.v1.html", side_effect=mock_components_html), \
+             patch("streamlit.html", create=True), \
              patch("streamlit.markdown", side_effect=mock_markdown), \
              patch("streamlit.pydeck_chart"):
             dummy_map = ml.build_operational_deck()
             db.render_main_workspace(dummy_map, hotspots)
 
-        # Find the Monitored Hotspots panel content from st.html or st.markdown
-        panel_candidates = [c for c in captured_html if "Monitored Hotspots" in c] + \
-                           [c for c, unsafe in captured_markdowns if "Monitored Hotspots" in c and unsafe]
-        self.assertTrue(len(panel_candidates) >= 1, "Monitored Hotspots panel must be rendered via st.html or st.markdown(unsafe_allow_html=True)")
+        # 1. Hotspots HTML must be rendered through components.html
+        self.assertTrue(len(captured_components_html) >= 1, "Hotspot cards must be rendered through st.components.v1.html")
+        panel_candidates = [c for c in captured_components_html if "Monitored Hotspots" in c]
+        self.assertTrue(len(panel_candidates) >= 1, "Monitored Hotspots panel must be passed to st.components.v1.html")
         panel_html = panel_candidates[0]
 
-        # Verify that all 10 hotspot sites and details (name, severity, zone, elevation, trigger rain) are rendered
+        # 2. Hotspot source must NOT be sent through st.markdown
+        markdown_hotspot_leaks = [c for c, unsafe in captured_markdowns if "Monitored Hotspots" in c or "HS01" in c]
+        self.assertEqual(len(markdown_hotspot_leaks), 0, "Hotspot source HTML must NEVER be sent through st.markdown")
+
+        # 3. Verify that all 10 hotspot sites and details (name, severity, zone, elevation, trigger rain) are rendered
         for h in hotspots:
             self.assertIn(h["hotspot_id"], panel_html)
             self.assertIn(h["name"], panel_html)
@@ -965,22 +970,22 @@ class TestFrontendV2(unittest.TestCase):
                 self.assertLess(indent, 4, f"Line has {indent} spaces of leading indent, which triggers CommonMark code block: {line}")
 
     def test_community_flood_safety_map_null_data_regression(self):
-        """Regression test for LIVE ERROR 2: Community Flood Safety Map handles empty/null data and does not pass folium to pydeck."""
+        """Regression test for LIVE ERROR 2: Community Flood Safety Map renders Folium through components.html and never passes folium to pydeck."""
         import pydeck as pdk
         from unittest.mock import MagicMock, patch
 
-        # 1. Real F2 map construction returns a validated pdk.Deck
+        # 1. Real F2 map construction returns a validated folium.Map
         static_meta = db.load_static_risk_metadata()
         hotspots = db.load_hotspots_data()
         sensors = db.load_sensor_stations()
-        f2_deck = ml.build_operational_map(
+        f2_map = ml.build_operational_map(
             static_risk_data=static_meta,
             hotspots_data=hotspots,
             sensors_data=sensors,
-            backend="pydeck",
+            backend="folium",
         )
-        self.assertIsInstance(f2_deck, pdk.Deck)
-        self.assertTrue(ml.validate_deck(f2_deck), "Real F2 map must be a valid DeckGL Deck")
+        self.assertIsInstance(f2_map, folium.Map)
+        self.assertTrue(hasattr(f2_map, "get_root"))
 
         # 2. build_operational_map with empty / None data must produce a valid pdk.Deck
         empty_deck = ml.build_operational_map(
@@ -1043,13 +1048,15 @@ class TestFrontendV2(unittest.TestCase):
             cv.render_citizen_map(empty_deck)
             self.assertEqual(len(pydeck_calls), 1, "pdk.Deck must be rendered via st.pydeck_chart")
 
-            # c) When given None, must safely render fallback deck
+            # c) When given None, must safely render fallback Folium map
             cv.render_citizen_map(None)
-            self.assertEqual(len(pydeck_calls), 2, "None map input must fall back gracefully to a valid deck")
+            self.assertEqual(len(html_calls), 2, "None map input must fall back gracefully to Folium map via components.html")
+            self.assertEqual(len(pydeck_calls), 1, "Fallback map must not call st.pydeck_chart")
 
-            # d) When given broken deck, must safely render fallback deck
+            # d) When given broken deck, must safely render fallback Folium map
             cv.render_citizen_map(broken_deck)
-            self.assertEqual(len(pydeck_calls), 3, "Broken deck must fall back gracefully to a valid deck")
+            self.assertEqual(len(html_calls), 3, "Broken deck must fall back gracefully to Folium map via components.html")
+            self.assertEqual(len(pydeck_calls), 1, "Broken deck must not call st.pydeck_chart")
 
 
 if __name__ == "__main__":
