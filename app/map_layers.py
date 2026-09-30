@@ -1131,6 +1131,8 @@ def build_risk_cells_deck_layer(
     """Construct a pydeck PolygonLayer for spatial risk cells."""
     if isinstance(cells_data, dict):
         cells = cells_data.get("cells", [])
+        if cells is None:
+            cells = []
     elif isinstance(cells_data, list):
         cells = cells_data
     else:
@@ -1140,13 +1142,15 @@ def build_risk_cells_deck_layer(
         return None
 
     hotspot_cell_ids = set()
-    if hotspots_data:
+    if hotspots_data and isinstance(hotspots_data, list):
         for h in hotspots_data:
-            if h.get("cell_id"):
+            if isinstance(h, dict) and h.get("cell_id"):
                 hotspot_cell_ids.add(h.get("cell_id"))
 
     records = []
     for cell in cells:
+        if not isinstance(cell, dict):
+            continue
         cell_id = cell.get("cell_id") or cell.get("id", "UNKNOWN_CELL")
         geometry = cell.get("geometry")
         if not geometry:
@@ -1157,41 +1161,61 @@ def build_risk_cells_deck_layer(
             except Exception:
                 continue
 
-        coords = []
-        geom_type = geometry.get("type", "")
-        if geom_type == "Polygon":
-            coords = geometry.get("coordinates", [[]])[0]
-        elif geom_type == "MultiPolygon":
-            poly_list = geometry.get("coordinates", [])
-            if poly_list:
-                coords = poly_list[0][0]
-
-        if not coords or len(coords) < 3:
+        if not isinstance(geometry, dict):
             continue
 
-        raw = cell.get("raw_features") or {}
+        raw_coords = geometry.get("coordinates")
+        coords = []
+        geom_type = geometry.get("type", "")
+        if geom_type == "Polygon" and isinstance(raw_coords, (list, tuple)) and len(raw_coords) > 0:
+            coords = raw_coords[0]
+        elif geom_type == "MultiPolygon" and isinstance(raw_coords, (list, tuple)) and len(raw_coords) > 0:
+            first_poly = raw_coords[0]
+            if isinstance(first_poly, (list, tuple)) and len(first_poly) > 0:
+                coords = first_poly[0]
+
+        if not coords or not isinstance(coords, (list, tuple)):
+            continue
+
+        valid_coords = []
+        for pt in coords:
+            if isinstance(pt, (list, tuple)) and len(pt) >= 2 and pt[0] is not None and pt[1] is not None:
+                try:
+                    valid_coords.append([float(pt[0]), float(pt[1])])
+                except (ValueError, TypeError):
+                    continue
+
+        if len(valid_coords) < 3:
+            continue
+
+        raw = cell.get("raw_features") if isinstance(cell.get("raw_features"), dict) else {}
         elevation = raw.get("elevation", cell.get("elevation"))
-        slope = raw.get("slope", cell.get("slope"))
         name = cell.get("name", f"Grid Cell {cell_id}")
 
-        if predictions_map and cell_id in predictions_map:
-            pred = predictions_map[cell_id]
-            prob = float(pred.get("probability", 0.0))
-            level = str(pred.get("level", "LOW")).upper()
+        if predictions_map and isinstance(predictions_map, dict) and cell_id in predictions_map:
+            pred = predictions_map[cell_id] or {}
+            raw_prob = pred.get("probability", 0.0)
+            prob = float(raw_prob) if raw_prob is not None else 0.0
+            level = str(pred.get("level", "LOW") or "LOW").upper()
             fill_rgba, border_rgba = get_risk_tier_rgba(prob, level=level)
             prob_text = f" &bull; Prob: {int(round(prob * 100))}%"
             expl = pred.get("explanation")
             why_txt = expl.get("summary", "Elevated runoff") if isinstance(expl, dict) else "Dynamic Precipitation"
         else:
-            score = float(cell.get("vulnerability_score", cell.get("vulnerability", 0.0)))
-            level = str(cell.get("risk_level", "LOW")).upper()
+            raw_score = cell.get("vulnerability_score", cell.get("vulnerability", 0.0))
+            score = float(raw_score) if raw_score is not None else 0.0
+            level = str(cell.get("risk_level", "LOW") or "LOW").upper()
             fill_rgba, border_rgba = get_risk_tier_rgba(score, level=level)
             prob_text = f" &bull; Score: {score:.2f}"
             why_txt = "Topographic Basin Vulnerability"
 
-        elev_str = f"{float(elevation):.1f}m" if elevation is not None else "N/A"
+        try:
+            elev_str = f"{float(elevation):.1f}m" if elevation is not None else "N/A"
+        except (ValueError, TypeError):
+            elev_str = "N/A"
+
         records.append({
-            "polygon": coords,
+            "polygon": valid_coords,
             "fill_color": fill_rgba,
             "border_color": border_rgba,
             "cell_id": cell_id,
@@ -1223,20 +1247,27 @@ def build_hotspots_deck_layer(
     hotspots_data: Optional[List[Dict[str, Any]]],
 ) -> Optional[pdk.Layer]:
     """Construct a pydeck ScatterplotLayer for waterlogging hotspots."""
-    if not hotspots_data:
+    if not hotspots_data or not isinstance(hotspots_data, list):
         return None
 
     records = []
     for h in hotspots_data:
+        if not isinstance(h, dict):
+            continue
         lat = h.get("latitude")
         lon = h.get("longitude")
         if lat is None or lon is None:
             continue
+        try:
+            f_lat = float(lat)
+            f_lon = float(lon)
+        except (ValueError, TypeError):
+            continue
 
-        sev = h.get("severity_tier", "Moderate")
+        sev = str(h.get("severity_tier", "Moderate") or "Moderate")
         color = [220, 38, 38, 230] if sev == "Severe" else [245, 158, 11, 230]
         records.append({
-            "coordinates": [float(lon), float(lat)],
+            "coordinates": [f_lon, f_lat],
             "color": color,
             "radius": 170,
             "hotspot_id": h.get("hotspot_id", "HS"),
@@ -1271,19 +1302,41 @@ def build_sensors_deck_layer(
     sensors_data: Optional[List[Dict[str, Any]]],
 ) -> Optional[pdk.Layer]:
     """Construct a pydeck ScatterplotLayer for telemetry monitoring stations."""
-    if not sensors_data:
+    if not sensors_data or not isinstance(sensors_data, list):
         return None
 
     records = []
     for s in sensors_data:
+        if not isinstance(s, dict):
+            continue
         lat = s.get("latitude")
         lon = s.get("longitude")
         if lat is None or lon is None:
             continue
+        try:
+            f_lat = float(lat)
+            f_lon = float(lon)
+        except (ValueError, TypeError):
+            continue
 
-        status = str(s.get("status", "ACTIVE")).upper()
-        stage = float(s.get("water_level_cm", 25.0))
-        warn = float(s.get("warning_threshold_cm", 75.0))
+        status = str(s.get("status", "ACTIVE") or "ACTIVE").upper()
+        try:
+            raw_stage = s.get("water_level_cm", 25.0)
+            stage = float(raw_stage) if raw_stage is not None else 25.0
+        except (ValueError, TypeError):
+            stage = 25.0
+
+        try:
+            raw_warn = s.get("warning_threshold_cm", 75.0)
+            warn = float(raw_warn) if raw_warn is not None else 75.0
+        except (ValueError, TypeError):
+            warn = 75.0
+
+        try:
+            raw_batt = s.get("battery_pct", 95.0)
+            batt = float(raw_batt) if raw_batt is not None else 95.0
+        except (ValueError, TypeError):
+            batt = 95.0
 
         if stage >= warn or status in ("WARNING", "CRITICAL"):
             color = [220, 38, 38, 240]
@@ -1291,14 +1344,14 @@ def build_sensors_deck_layer(
             color = [14, 165, 233, 230]
 
         records.append({
-            "coordinates": [float(lon), float(lat)],
+            "coordinates": [f_lon, f_lat],
             "color": color,
             "radius": 140,
             "node_id": s.get("node_id", "NODE"),
             "name": s.get("name", "Station"),
             "water_level": stage,
             "tooltip_title": f"Telemetry Node: {s.get('node_id')}",
-            "tooltip_body": f"Station: {s.get('name')}<br/>Stage: <b>{stage:.1f} cm</b> (Warn: {warn:.0f} cm)<br/>Status: {status} &bull; Batt: {s.get('battery_pct', 95):.0f}%",
+            "tooltip_body": f"Station: {s.get('name')}<br/>Stage: <b>{stage:.1f} cm</b> (Warn: {warn:.0f} cm)<br/>Status: {status} &bull; Batt: {batt:.0f}%",
         })
 
     if not records:
@@ -1335,7 +1388,7 @@ def build_operational_deck(
     predictions_map: Optional[Dict[str, Dict[str, Any]]] = None,
     mapbox_token: Optional[str] = None,
 ) -> pdk.Deck:
-    """Construct an operational Mapbox / pydeck Deck for F1 Authority Operations Center."""
+    """Construct an operational Mapbox / pydeck Deck for F1 Authority Operations Center and F2 Community Map."""
     layers: List[pdk.Layer] = []
 
     # 1. Risk Cells PolygonLayer
@@ -1361,10 +1414,24 @@ def build_operational_deck(
         if sensors_layer is not None:
             layers.append(sensors_layer)
 
+    # Defensive coordinate normalization
+    c_lat, c_lon = DEFAULT_PILOT_CENTER
+    if center and len(center) >= 2 and center[0] is not None and center[1] is not None:
+        try:
+            c_lat = float(center[0])
+            c_lon = float(center[1])
+        except (ValueError, TypeError):
+            c_lat, c_lon = DEFAULT_PILOT_CENTER
+
+    try:
+        z_start = float(zoom_start) if zoom_start is not None else 11.8
+    except (ValueError, TypeError):
+        z_start = 11.8
+
     view_state = pdk.ViewState(
-        latitude=center[0],
-        longitude=center[1],
-        zoom=zoom_start,
+        latitude=c_lat,
+        longitude=c_lon,
+        zoom=z_start,
         pitch=0,
         bearing=0,
     )
@@ -1389,7 +1456,7 @@ def build_operational_deck(
     }
 
     return pdk.Deck(
-        layers=layers,
+        layers=[l for l in layers if l is not None],
         initial_view_state=view_state,
         map_style=map_style,
         api_keys=api_keys,
@@ -1453,44 +1520,57 @@ def build_citizen_route_deck(
 
     # 3. Path Layer for the Safe Route
     if route_coords and len(route_coords) >= 2:
-        path_points = [[float(p["lon"]), float(p["lat"])] for p in route_coords]
-        layers.append(
-            pdk.Layer(
-                "PathLayer",
-                data=[{
-                    "path": path_points,
-                    "color": [2, 132, 199, 240],
-                    "width": 6,
-                    "tooltip_title": "Safe Navigation Route",
-                    "tooltip_body": f"Decision-support route to {dest_name}",
-                }],
-                get_path="path",
-                get_color="color",
-                get_width="width",
-                width_min_pixels=4,
-                width_max_pixels=12,
-                pickable=True,
+        path_points = []
+        for p in route_coords:
+            if isinstance(p, dict) and p.get("lon") is not None and p.get("lat") is not None:
+                try:
+                    path_points.append([float(p["lon"]), float(p["lat"])])
+                except (ValueError, TypeError):
+                    continue
+        if len(path_points) >= 2:
+            layers.append(
+                pdk.Layer(
+                    "PathLayer",
+                    data=[{
+                        "path": path_points,
+                        "color": [2, 132, 199, 240],
+                        "width": 6,
+                        "tooltip_title": "Safe Navigation Route",
+                        "tooltip_body": f"Decision-support route to {dest_name}",
+                    }],
+                    get_path="path",
+                    get_color="color",
+                    get_width="width",
+                    width_min_pixels=4,
+                    width_max_pixels=12,
+                    pickable=True,
+                )
             )
-        )
 
     # 4. Start & Destination Pins
     pins = []
-    if start_coord:
-        pins.append({
-            "coordinates": [float(start_coord[1]), float(start_coord[0])],
-            "color": [22, 163, 74, 255],
-            "radius": 180,
-            "tooltip_title": "Origin Location",
-            "tooltip_body": "Your selected starting position",
-        })
-    if dest_coord:
-        pins.append({
-            "coordinates": [float(dest_coord[1]), float(dest_coord[0])],
-            "color": [220, 38, 38, 255],
-            "radius": 200,
-            "tooltip_title": f"Destination Shelter: {dest_name}",
-            "tooltip_body": "Nearest accessible elevated safe haven",
-        })
+    if start_coord and len(start_coord) >= 2 and start_coord[0] is not None and start_coord[1] is not None:
+        try:
+            pins.append({
+                "coordinates": [float(start_coord[1]), float(start_coord[0])],
+                "color": [22, 163, 74, 255],
+                "radius": 180,
+                "tooltip_title": "Origin Location",
+                "tooltip_body": "Your selected starting position",
+            })
+        except (ValueError, TypeError):
+            pass
+    if dest_coord and len(dest_coord) >= 2 and dest_coord[0] is not None and dest_coord[1] is not None:
+        try:
+            pins.append({
+                "coordinates": [float(dest_coord[1]), float(dest_coord[0])],
+                "color": [220, 38, 38, 255],
+                "radius": 200,
+                "tooltip_title": f"Destination Shelter: {dest_name}",
+                "tooltip_body": "Nearest accessible elevated safe haven",
+            })
+        except (ValueError, TypeError):
+            pass
     if pins:
         layers.append(
             pdk.Layer(
@@ -1510,10 +1590,23 @@ def build_citizen_route_deck(
             )
         )
 
+    c_lat, c_lon = DEFAULT_PILOT_CENTER
+    if center and len(center) >= 2 and center[0] is not None and center[1] is not None:
+        try:
+            c_lat = float(center[0])
+            c_lon = float(center[1])
+        except (ValueError, TypeError):
+            c_lat, c_lon = DEFAULT_PILOT_CENTER
+
+    try:
+        z_start = float(zoom_start) if zoom_start is not None else 12.2
+    except (ValueError, TypeError):
+        z_start = 12.2
+
     view_state = pdk.ViewState(
-        latitude=center[0],
-        longitude=center[1],
-        zoom=zoom_start,
+        latitude=c_lat,
+        longitude=c_lon,
+        zoom=z_start,
         pitch=0,
         bearing=0,
     )
@@ -1537,7 +1630,7 @@ def build_citizen_route_deck(
     }
 
     return pdk.Deck(
-        layers=layers,
+        layers=[l for l in layers if l is not None],
         initial_view_state=view_state,
         map_style=map_style,
         api_keys=api_keys,

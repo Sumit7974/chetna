@@ -360,31 +360,34 @@ def render_citizen_map(folium_map: Any) -> None:
     """Render community base map with Mapbox / PyDeck or Folium."""
     with st.container(border=True):
         st.markdown(
-            f"""
-            <div style="margin-bottom:0.75rem;">
-                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🗺️ Community Flood Safety Map</div>
-                <div style="font-size:0.8rem; color:#64748b;">Interactive Mapbox vector map centered on {PILOT_LOCATION_LABEL} with monitored flood areas and safe facilities.</div>
-            </div>
-            """,
+            f'<div style="margin-bottom:0.75rem;">'
+            f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🗺️ Community Flood Safety Map</div>'
+            f'<div style="font-size:0.8rem; color:#64748b;">Interactive Mapbox vector map centered on {PILOT_LOCATION_LABEL} with monitored flood areas and safe facilities.</div>'
+            f'</div>',
             unsafe_allow_html=True,
         )
-        if hasattr(folium_map, "to_json"):
+        import pydeck as pdk
+        if isinstance(folium_map, pdk.Deck):
             st.pydeck_chart(folium_map, use_container_width=True)
-        elif hasattr(folium_map, "get_root"):
+        elif hasattr(folium_map, "get_root") or isinstance(folium_map, folium.Map):
             map_html = folium_map.get_root().render()
             st.components.v1.html(map_html, height=480, scrolling=False)
+        elif folium_map is not None and hasattr(folium_map, "to_json") and not str(type(folium_map)).startswith("<class 'folium"):
+            st.pydeck_chart(folium_map, use_container_width=True)
+        else:
+            from app.map_layers import build_operational_deck, DEFAULT_PILOT_CENTER
+            fallback_deck = build_operational_deck(center=DEFAULT_PILOT_CENTER, zoom_start=12.0)
+            st.pydeck_chart(fallback_deck, use_container_width=True)
 
 
 def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]]) -> None:
     """Render categorized at-risk facilities and nearby safe places."""
     with st.container(border=True):
         st.markdown(
-            f"""
-            <div style="margin-bottom:0.5rem;">
-                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🏛️ Nearby Safe Places &amp; Facilities</div>
-                <div style="font-size:0.8rem; color:#64748b;">Verified emergency shelters, community havens, and healthcare centers.</div>
-            </div>
-            """,
+            f'<div style="margin-bottom:0.5rem;">'
+            f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🏛️ Nearby Safe Places &amp; Facilities</div>'
+            f'<div style="font-size:0.8rem; color:#64748b;">Verified emergency shelters, community havens, and healthcare centers.</div>'
+            f'</div>',
             unsafe_allow_html=True,
         )
 
@@ -399,14 +402,11 @@ def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]])
             if shelters:
                 for sh in shelters[:5]:
                     st.markdown(
-                        f"""
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
-                            <div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{sh['name']}</div>
-                            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">
-                                Vicinity: <b>{sh['vicinity']}</b> &bull; Elevated Safe Haven
-                            </div>
-                        </div>
-                        """,
+                        f'<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">'
+                        f'<div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{sh["name"]}</div>'
+                        f'<div style="font-size:0.75rem; color:#64748b; margin-top:2px;">'
+                        f'Vicinity: <b>{sh["vicinity"]}</b> &bull; Elevated Safe Haven'
+                        f'</div></div>',
                         unsafe_allow_html=True,
                     )
             else:
@@ -417,14 +417,11 @@ def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]])
             if hospitals:
                 for h in hospitals[:5]:
                     st.markdown(
-                        f"""
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
-                            <div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{h['name']}</div>
-                            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">
-                                Vicinity: <b>{h['vicinity']}</b> &bull; Emergency Medical Care
-                            </div>
-                        </div>
-                        """,
+                        f'<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">'
+                        f'<div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{h["name"]}</div>'
+                        f'<div style="font-size:0.75rem; color:#64748b; margin-top:2px;">'
+                        f'Vicinity: <b>{h["vicinity"]}</b> &bull; Emergency Medical Care'
+                        f'</div></div>',
                         unsafe_allow_html=True,
                     )
             else:
@@ -435,14 +432,11 @@ def render_citizen_facilities_panel(facilities: Dict[str, List[Dict[str, str]]])
             if schools:
                 for s in schools[:5]:
                     st.markdown(
-                        f"""
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
-                            <div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{s['name']}</div>
-                            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">
-                                Vicinity: <b>{s['vicinity']}</b> &bull; Secondary Relief Staging
-                            </div>
-                        </div>
-                        """,
+                        f'<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:6px;">'
+                        f'<div style="font-weight:600; font-size:0.84rem; color:#0f172a;">{s["name"]}</div>'
+                        f'<div style="font-size:0.75rem; color:#64748b; margin-top:2px;">'
+                        f'Vicinity: <b>{s["vicinity"]}</b> &bull; Secondary Relief Staging'
+                        f'</div></div>',
                         unsafe_allow_html=True,
                     )
             else:
@@ -789,9 +783,10 @@ def render_citizen_footer() -> None:
 
 
 def render_citizen_view(
-    folium_map: folium.Map,
+    folium_map: Any,
     hotspots: List[Dict[str, Any]],
     metrics: Dict[str, Any],
+    active_section: Optional[str] = None,
 ) -> None:
     """Main orchestrator for F2 Citizen Safety Portal."""
     facilities = extract_facilities_from_hotspots(hotspots)
@@ -799,25 +794,33 @@ def render_citizen_view(
     # 1. Citizen Header with Logo
     render_citizen_header()
 
-    # 2. Prominent Safety Status Card
-    render_citizen_status_card()
+    sec = active_section or "My Area"
 
-    # 3. Neighborhood & Horizon Risk Check
-    render_citizen_input_stub(hotspots)
+    if sec in ("My Area", "Flood Risk"):
+        # 2. Prominent Safety Status Card
+        render_citizen_status_card()
 
-    # 4. Map and At-Risk Facilities in Split Layout
-    col_map, col_info = st.columns([60, 40])
-    with col_map:
-        render_citizen_map(folium_map)
-    with col_info:
-        render_citizen_facilities_panel(facilities)
+        # 3. Neighborhood & Horizon Risk Check
+        render_citizen_input_stub(hotspots)
 
-    # 5. Safe Route Finder & Bilingual Advisory Section
-    col_route, col_advisory = st.columns([45, 55])
-    with col_route:
-        render_citizen_safe_route(folium_map, hotspots)
-    with col_advisory:
+    if sec in ("My Area", "Flood Risk", "Safe Places"):
+        # 4. Map and At-Risk Facilities in Split Layout
+        col_map, col_info = st.columns([60, 40])
+        with col_map:
+            render_citizen_map(folium_map)
+        with col_info:
+            render_citizen_facilities_panel(facilities)
+
+    if sec in ("My Area", "Safe Route"):
+        # 5. Safe Route Finder & Bilingual Advisory Section
+        col_route, col_advisory = st.columns([45, 55])
+        with col_route:
+            render_citizen_safe_route(folium_map, hotspots)
+        with col_advisory:
+            render_citizen_advisory_section()
+    elif sec == "Advisory":
         render_citizen_advisory_section()
 
-    # 6. Emergency Help & Helplines Footer
-    render_citizen_footer()
+    if sec in ("My Area", "Emergency Help"):
+        # 6. Emergency Help & Helplines Footer
+        render_citizen_footer()

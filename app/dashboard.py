@@ -1095,46 +1095,42 @@ def render_main_workspace(
                     badge_col = "#92400e"
 
                 hotspot_items_html.append(
-                    f"""
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:7px;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div style="font-weight:600; font-size:0.83rem; color:#1e293b; line-height:1.25;">
-                                {h.get('hotspot_id')}: {h.get('name')}
-                            </div>
-                            <span style="font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:4px; background:{badge_bg}; color:{badge_col}; white-space:nowrap; margin-left:6px;">
-                                {severity}
-                            </span>
-                        </div>
-                        <div style="font-size:0.74rem; color:#64748b; margin-top:4px;">
-                            {h.get('zone')} &bull; Elev: <b>{h.get('elevation_m', 0.0)}m</b> &bull; Trigger (6h): <b>{h.get('typical_trigger_rain_6h_mm', 0.0)}mm</b>
-                        </div>
-                    </div>
-                    """
+                    f'<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:7px;">'
+                    f'<div style="display:flex; justify-content:space-between; align-items:flex-start;">'
+                    f'<div style="font-weight:600; font-size:0.83rem; color:#1e293b; line-height:1.25;">'
+                    f'{h.get("hotspot_id")}: {h.get("name")}'
+                    f'</div>'
+                    f'<span style="font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:4px; background:{badge_bg}; color:{badge_col}; white-space:nowrap; margin-left:6px;">'
+                    f'{severity}'
+                    f'</span>'
+                    f'</div>'
+                    f'<div style="font-size:0.74rem; color:#64748b; margin-top:4px;">'
+                    f'{h.get("zone")} &bull; Elev: <b>{h.get("elevation_m", 0.0)}m</b> &bull; Trigger (6h): <b>{h.get("typical_trigger_rain_6h_mm", 0.0)}mm</b>'
+                    f'</div>'
+                    f'</div>'
                 )
 
         scroll_content = "".join(hotspot_items_html) if hotspot_items_html else "<div style='color:#64748b; font-size:0.8rem;'>No hotspots records currently loaded.</div>"
 
         with st.container(border=True):
             st.markdown(
-                f"""
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-                    <div>
-                        <div style="font-weight:700; font-size:1.05rem; color:#0f172a; letter-spacing:-0.01em;">
-                            Monitored Hotspots
-                        </div>
-                        <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
-                            Chronic drainage bottlenecks
-                        </div>
-                    </div>
-                    <span class="status-pill status-pill-amber">{len(hotspots)} Sourced Sites</span>
-                </div>
-                <div class="chetna-hotspots-scroll" style="max-height: 520px; overflow-y: auto; padding-right: 4px;">
-                    {scroll_content}
-                </div>
-                <div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem; text-align:center;">
-                    Monitored high-risk municipal points and drainage depressions.
-                </div>
-                """,
+                f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">'
+                f'<div>'
+                f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a; letter-spacing:-0.01em;">'
+                f'Monitored Hotspots'
+                f'</div>'
+                f'<div style="font-size:0.78rem; color:#64748b; margin-top:2px;">'
+                f'Chronic drainage bottlenecks'
+                f'</div>'
+                f'</div>'
+                f'<span class="status-pill status-pill-amber">{len(hotspots)} Sourced Sites</span>'
+                f'</div>'
+                f'<div class="chetna-hotspots-scroll" style="max-height: 520px; overflow-y: auto; padding-right: 4px;">'
+                f'{scroll_content}'
+                f'</div>'
+                f'<div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem; text-align:center;">'
+                f'Monitored high-risk municipal points and drainage depressions.'
+                f'</div>',
                 unsafe_allow_html=True,
             )
 
@@ -1322,14 +1318,12 @@ def render_alert_and_architecture_section(
                         ch_badge = "#dcfce7" if is_ok else "#fee2e2"
                         ch_col = "#166534" if is_ok else "#991b1b"
                         st.markdown(
-                            f"""
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:4px 8px; margin-bottom:4px; font-size:0.74rem;">
-                                <div><b>{ch_name}</b> &bull; <span style="color:#64748b;">{ch_info.get('recipient')}</span></div>
-                                <span style="font-size:0.68rem; font-weight:700; background:{ch_badge}; color:{ch_col}; padding:2px 6px; border-radius:3px;">
-                                    {ch_info.get('status')}
-                                </span>
-                            </div>
-                            """,
+                            f'<div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:4px 8px; margin-bottom:4px; font-size:0.74rem;">'
+                            f'<div><b>{ch_name}</b> &bull; <span style="color:#64748b;">{ch_info.get("recipient")}</span></div>'
+                            f'<span style="font-size:0.68rem; font-weight:700; background:{ch_badge}; color:{ch_col}; padding:2px 6px; border-radius:3px;">'
+                            f'{ch_info.get("status")}'
+                            f'</span>'
+                            f'</div>',
                             unsafe_allow_html=True,
                         )
 
@@ -1420,14 +1414,23 @@ def main() -> None:
 
     # 5. Render Selected Portal View
     if controls.get("view_mode") == "👤 Citizen Safety Portal":
-        citizen_map = create_base_map(
+        citizen_map = build_operational_map(
             center=DEFAULT_COORDINATES,
             zoom_start=DEFAULT_ZOOM_START,
-            tiles="OpenStreetMap",
-            add_center_marker=True,
-            add_fullscreen_control=True,
+            static_risk_data=static_meta,
+            hotspots_data=hotspots,
+            sensors_data=sensors,
+            layer_static=True,
+            layer_hotspots=True,
+            layer_sensors=False,
+            horizon=active_horizon,
+            predictions_map=horizon_status.get("predictions") if horizon_status else None,
+            add_legend=False,
+            add_fullscreen=True,
+            backend="pydeck",
         )
-        render_citizen_view(citizen_map, hotspots, metrics)
+        citizen_section = controls.get("citizen_section", "My Area")
+        render_citizen_view(citizen_map, hotspots, metrics, active_section=citizen_section)
     else:
         # Authority Operations Center (F1)
         render_header()
