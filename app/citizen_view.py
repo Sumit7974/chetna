@@ -13,6 +13,7 @@ Accessible, community-oriented interface for Patna residents:
 from __future__ import annotations
 
 import logging
+import textwrap
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -33,6 +34,15 @@ logger = logging.getLogger(__name__)
 ASSETS_DIR: Path = Path(__file__).resolve().parent / "assets"
 LOGO_SVG_PATH: Path = ASSETS_DIR / "chetna_logo.svg"
 LOGO_PNG_PATH: Path = ASSETS_DIR / "chetna_logo.png"
+
+
+def render_html(html_str: str) -> None:
+    """Render raw HTML safely using st.html if available, falling back to st.markdown with unsafe_allow_html."""
+    dedented = textwrap.dedent(html_str).strip()
+    if hasattr(st, "html"):
+        st.html(dedented)
+    else:
+        st.markdown(dedented, unsafe_allow_html=True)
 
 
 def get_logo_asset_path(prefer_svg: bool = False) -> Optional[Path]:
@@ -226,48 +236,38 @@ def render_citizen_header() -> None:
 
 def render_citizen_status_card() -> None:
     """Render prominent, reassuring status card for citizens."""
-    st.markdown(
-        f"""
-        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-left:5px solid #16a34a; border-radius:10px; padding:1.1rem 1.35rem; margin-bottom:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div style="font-size:1.8rem; line-height:1;">🟢</div>
-                    <div>
-                        <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#15803d;">OVERALL SAFETY STATUS</div>
-                        <div style="font-size:1.2rem; font-weight:800; color:#14532d; letter-spacing:-0.01em;">
-                            LOW RISK &bull; NO ACTIVE FLOOD WARNINGS
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:12px; font-size:0.8rem; color:#166534; font-weight:600;">
-                    <div>City: <b>{PILOT_CITY}</b></div>
-                    <div>&bull;</div>
-                    <div>Transit: <b>Normal</b></div>
-                    <div>&bull;</div>
-                    <div>Drainage: <b>Clear</b></div>
-                </div>
-            </div>
-            <div style="margin-top:0.6rem; font-size:0.85rem; color:#166534; line-height:1.45;">
-                Monitored drainage corridors across <b>{PILOT_CITY}</b> are currently operating within safe thresholds. Roads and pedestrian thoroughfares are clear. Check your neighborhood below for local outlooks.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    card_html = (
+        f'<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-left:5px solid #16a34a; border-radius:10px; padding:1.1rem 1.35rem; margin-bottom:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.03);">'
+        f'<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">'
+        f'<div style="display:flex; align-items:center; gap:12px;">'
+        f'<div style="font-size:1.8rem; line-height:1;">🟢</div>'
+        f'<div>'
+        f'<div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#15803d;">OVERALL SAFETY STATUS</div>'
+        f'<div style="font-size:1.2rem; font-weight:800; color:#14532d; letter-spacing:-0.01em;">'
+        f'LOW RISK &bull; NO ACTIVE FLOOD WARNINGS'
+        f'</div></div></div>'
+        f'<div style="display:flex; gap:12px; font-size:0.8rem; color:#166534; font-weight:600;">'
+        f'<div>City: <b>{PILOT_CITY}</b></div><div>&bull;</div>'
+        f'<div>Transit: <b>Normal</b></div><div>&bull;</div>'
+        f'<div>Drainage: <b>Clear</b></div>'
+        f'</div></div>'
+        f'<div style="margin-top:0.6rem; font-size:0.85rem; color:#166534; line-height:1.45;">'
+        f'Monitored drainage corridors across <b>{PILOT_CITY}</b> are currently operating within safe thresholds. Roads and pedestrian thoroughfares are clear. Check your neighborhood below for local outlooks.'
+        f'</div></div>'
     )
+    render_html(card_html)
 
 
 def render_citizen_input_stub(hotspots: Optional[List[Dict[str, Any]]] = None) -> None:
     """Render neighborhood risk checker and 6-hour forecast timeline."""
     with st.container(border=True):
-        st.markdown(
-            f"""
-            <div style="margin-bottom:0.75rem;">
-                <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">📍 Check Your Neighborhood Flood Risk</div>
-                <div style="font-size:0.8rem; color:#64748b;">Select your locality to view localized waterlogging risk and upcoming 6-hour outlook.</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        header_html = (
+            f'<div style="margin-bottom:0.75rem;">'
+            f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a;">📍 Check Your Neighborhood Flood Risk</div>'
+            f'<div style="font-size:0.8rem; color:#64748b;">Select your locality to view localized waterlogging risk and upcoming 6-hour outlook.</div>'
+            f'</div>'
         )
+        render_html(header_html)
 
         col_area, col_horizon = st.columns([0.55, 0.45])
 
@@ -335,47 +335,44 @@ def render_citizen_input_stub(hotspots: Optional[List[Dict[str, Any]]] = None) -
             status_desc = f"At <b>{selected_horizon}</b>, rainfall rates are within nominal thresholds. Local streets and pedestrian paths in {selected_area} are safe for transit. No major waterlogging expected."
 
         # Risk assessment result card for selected locality
-        st.markdown(
-            f"""
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 14px; margin-top:0.5rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <div>
-                        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:#64748b;">LOCALITY OUTLOOK</span>
-                        <div style="font-weight:700; font-size:1.05rem; color:#0f172a;">{selected_area}</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        {risk_badge}
-                    </div>
-                </div>
-                <div style="margin-top:8px; font-size:0.83rem; color:#334155; line-height:1.4;">
-                    {status_desc}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        outlook_html = (
+            f'<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 14px; margin-top:0.5rem;">'
+            f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">'
+            f'<div>'
+            f'<span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:#64748b;">LOCALITY OUTLOOK</span>'
+            f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a;">{selected_area}</div>'
+            f'</div>'
+            f'<div style="display:flex; align-items:center; gap:8px;">'
+            f'{risk_badge}'
+            f'</div></div>'
+            f'<div style="margin-top:8px; font-size:0.83rem; color:#334155; line-height:1.4;">'
+            f'{status_desc}'
+            f'</div></div>'
         )
+        render_html(outlook_html)
 
 
 def render_citizen_map(folium_map: Any) -> None:
-    """Render community base map with Mapbox / PyDeck or Folium."""
+    """Render community base map with Folium (primary) or PyDeck."""
     with st.container(border=True):
-        st.markdown(
+        header_html = (
             f'<div style="margin-bottom:0.75rem;">'
             f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a;">🗺️ Community Flood Safety Map</div>'
-            f'<div style="font-size:0.8rem; color:#64748b;">Interactive Mapbox vector map centered on {PILOT_LOCATION_LABEL} with monitored flood areas and safe facilities.</div>'
-            f'</div>',
-            unsafe_allow_html=True,
+            f'<div style="font-size:0.8rem; color:#64748b;">Interactive map centered on {PILOT_LOCATION_LABEL} with monitored flood areas and safe facilities.</div>'
+            f'</div>'
         )
-        import pydeck as pdk
-        if isinstance(folium_map, pdk.Deck):
-            st.pydeck_chart(folium_map, use_container_width=True)
-        elif hasattr(folium_map, "get_root") or isinstance(folium_map, folium.Map):
+        render_html(header_html)
+
+        from app.map_layers import validate_deck, build_operational_deck, DEFAULT_PILOT_CENTER
+
+        if isinstance(folium_map, folium.Map) or hasattr(folium_map, "get_root"):
+            # Folium Map must ALWAYS route to HTML renderer, NEVER st.pydeck_chart
             map_html = folium_map.get_root().render()
             st.components.v1.html(map_html, height=480, scrolling=False)
-        elif folium_map is not None and hasattr(folium_map, "to_json") and not str(type(folium_map)).startswith("<class 'folium"):
+        elif validate_deck(folium_map):
             st.pydeck_chart(folium_map, use_container_width=True)
         else:
-            from app.map_layers import build_operational_deck, DEFAULT_PILOT_CENTER
+            # None, empty, or malformed map input: graceful fallback to valid Deck
             fallback_deck = build_operational_deck(center=DEFAULT_PILOT_CENTER, zoom_start=12.0)
             st.pydeck_chart(fallback_deck, use_container_width=True)
 

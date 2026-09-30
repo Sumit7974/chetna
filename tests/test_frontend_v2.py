@@ -27,6 +27,16 @@ import app.map_layers as ml
 class TestFrontendV2(unittest.TestCase):
     """Test suite for Frontend Day 1 & Day 2 architecture, config, and operational map layers."""
 
+    @classmethod
+    def setUpClass(cls):
+        from app.demo_scenario import reset_to_baseline_scenario
+        reset_to_baseline_scenario()
+
+    @classmethod
+    def tearDownClass(cls):
+        from app.demo_scenario import reset_to_baseline_scenario
+        reset_to_baseline_scenario()
+
     def test_frontend_config_layer(self):
         """Verify frontend config defines pilot city, state, hazard scope, and navigation."""
         self.assertEqual(PILOT_CITY, "Patna")
@@ -909,7 +919,11 @@ class TestFrontendV2(unittest.TestCase):
         hotspots = db.load_hotspots_data()
         self.assertEqual(len(hotspots), 10, "All 10 sourced Patna hotspots must be present")
 
+        captured_html = []
         captured_markdowns = []
+
+        def mock_html(content):
+            captured_html.append(content)
 
         def mock_markdown(content, unsafe_allow_html=False):
             captured_markdowns.append((content, unsafe_allow_html))
@@ -921,21 +935,26 @@ class TestFrontendV2(unittest.TestCase):
 
         with patch("streamlit.columns", return_value=[mock_col_map, mock_col_hotspots]), \
              patch("streamlit.container"), \
+             patch("streamlit.html", side_effect=mock_html, create=True), \
              patch("streamlit.markdown", side_effect=mock_markdown), \
              patch("streamlit.pydeck_chart"):
             dummy_map = ml.build_operational_deck()
             db.render_main_workspace(dummy_map, hotspots)
 
-        # Find the Monitored Hotspots panel markdown
-        hotspot_panel = [content for content, unsafe in captured_markdowns if "Monitored Hotspots" in content and unsafe]
-        self.assertTrue(len(hotspot_panel) >= 1, "Monitored Hotspots panel must be rendered via st.markdown with unsafe_allow_html=True")
-        panel_html = hotspot_panel[0]
+        # Find the Monitored Hotspots panel content from st.html or st.markdown
+        panel_candidates = [c for c in captured_html if "Monitored Hotspots" in c] + \
+                           [c for c, unsafe in captured_markdowns if "Monitored Hotspots" in c and unsafe]
+        self.assertTrue(len(panel_candidates) >= 1, "Monitored Hotspots panel must be rendered via st.html or st.markdown(unsafe_allow_html=True)")
+        panel_html = panel_candidates[0]
 
-        # Verify that all 10 hotspot sites and details are rendered inside the HTML
+        # Verify that all 10 hotspot sites and details (name, severity, zone, elevation, trigger rain) are rendered
         for h in hotspots:
             self.assertIn(h["hotspot_id"], panel_html)
             self.assertIn(h["name"], panel_html)
             self.assertIn(h.get("severity_tier", "Moderate"), panel_html)
+            self.assertIn(h.get("zone"), panel_html)
+            self.assertIn(f"{h.get('elevation_m', 0.0)}m", panel_html)
+            self.assertIn(f"{h.get('typical_trigger_rain_6h_mm', 0.0)}mm", panel_html)
 
         # Critical regression check: CommonMark considers lines with 4+ spaces of leading indentation
         # following an empty line as code blocks. Verify no hotspot card starts with leading spaces.
@@ -950,7 +969,20 @@ class TestFrontendV2(unittest.TestCase):
         import pydeck as pdk
         from unittest.mock import MagicMock, patch
 
-        # 1. build_operational_map with empty / None data must produce a valid pdk.Deck
+        # 1. Real F2 map construction returns a validated pdk.Deck
+        static_meta = db.load_static_risk_metadata()
+        hotspots = db.load_hotspots_data()
+        sensors = db.load_sensor_stations()
+        f2_deck = ml.build_operational_map(
+            static_risk_data=static_meta,
+            hotspots_data=hotspots,
+            sensors_data=sensors,
+            backend="pydeck",
+        )
+        self.assertIsInstance(f2_deck, pdk.Deck)
+        self.assertTrue(ml.validate_deck(f2_deck), "Real F2 map must be a valid DeckGL Deck")
+
+        # 2. build_operational_map with empty / None data must produce a valid pdk.Deck
         empty_deck = ml.build_operational_map(
             static_risk_data=None,
             hotspots_data=[],
@@ -963,6 +995,7 @@ class TestFrontendV2(unittest.TestCase):
         self.assertIsNotNone(empty_deck.initial_view_state)
         self.assertAlmostEqual(empty_deck.initial_view_state.latitude, 25.6093, places=3)
         self.assertAlmostEqual(empty_deck.initial_view_state.longitude, 85.1376, places=3)
+        self.assertTrue(ml.validate_deck(empty_deck), "Empty deck must pass Deck validation")
 
         # Spec must be valid JSON containing DeckGLJsonChart expected keys
         spec = json.loads(empty_deck.to_json())
@@ -972,7 +1005,7 @@ class TestFrontendV2(unittest.TestCase):
         self.assertEqual(spec["layers"], [])
         self.assertEqual(spec["initialViewState"]["latitude"], empty_deck.initial_view_state.latitude)
 
-        # 2. Defensive handling of malformed records
+        # 3. Defensive handling of malformed records
         malformed_deck = ml.build_operational_deck(
             static_risk_data={"cells": [{"cell_id": "C_BAD", "geometry": None, "vulnerability_score": None}]},
             hotspots_data=[{"name": "Bad HS", "latitude": None, "longitude": None}],
@@ -980,18 +1013,27 @@ class TestFrontendV2(unittest.TestCase):
         )
         self.assertIsInstance(malformed_deck, pdk.Deck)
         self.assertEqual(len(malformed_deck.layers), 0)
+        self.assertTrue(ml.validate_deck(malformed_deck), "Deck with malformed inputs must still be a valid Deck")
 
-        # 3. render_citizen_map component routing:
+        # 4. validate_deck must reject non-decks and broken decks
+        f_map = folium.Map(location=[25.6093, 85.1376], zoom_start=12)
+        self.assertFalse(ml.validate_deck(f_map), "validate_deck must reject folium.Map")
+        self.assertFalse(ml.validate_deck(None), "validate_deck must reject None")
+        self.assertFalse(ml.validate_deck("not a deck"), "validate_deck must reject strings")
+        broken_deck = pdk.Deck(layers=[None])
+        self.assertFalse(ml.validate_deck(broken_deck), "validate_deck must reject decks containing None layers")
+
+        # 5. render_citizen_map component routing:
         # a) When given a Folium Map, must NOT call st.pydeck_chart (which caused JS TypeError)
         pydeck_calls = []
         html_calls = []
 
         with patch("streamlit.container"), \
+             patch("streamlit.html", create=True), \
              patch("streamlit.markdown"), \
              patch("streamlit.pydeck_chart", side_effect=lambda *args, **kwargs: pydeck_calls.append(args)), \
              patch("streamlit.components.v1.html", side_effect=lambda *args, **kwargs: html_calls.append(args)):
 
-            f_map = folium.Map(location=[25.6093, 85.1376], zoom_start=12)
             cv.render_citizen_map(f_map)
 
             self.assertEqual(len(pydeck_calls), 0, "folium.Map must NEVER be passed to st.pydeck_chart")
@@ -1004,6 +1046,10 @@ class TestFrontendV2(unittest.TestCase):
             # c) When given None, must safely render fallback deck
             cv.render_citizen_map(None)
             self.assertEqual(len(pydeck_calls), 2, "None map input must fall back gracefully to a valid deck")
+
+            # d) When given broken deck, must safely render fallback deck
+            cv.render_citizen_map(broken_deck)
+            self.assertEqual(len(pydeck_calls), 3, "Broken deck must fall back gracefully to a valid deck")
 
 
 if __name__ == "__main__":

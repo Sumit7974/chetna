@@ -1039,12 +1039,17 @@ def render_main_workspace(
                 unsafe_allow_html=True,
             )
 
-            if hasattr(folium_map, "to_json"):
-                # Native Streamlit Mapbox / PyDeck WebGL engine
-                st.pydeck_chart(folium_map, use_container_width=True)
-            elif hasattr(folium_map, "get_root"):
+            from app.map_layers import validate_deck, build_operational_deck, DEFAULT_PILOT_CENTER
+
+            if isinstance(folium_map, folium.Map) or hasattr(folium_map, "get_root"):
                 map_html = folium_map.get_root().render()
                 st.components.v1.html(map_html, height=540, scrolling=False)
+            elif validate_deck(folium_map):
+                # Native Streamlit Mapbox / PyDeck WebGL engine
+                st.pydeck_chart(folium_map, use_container_width=True)
+            else:
+                fallback_deck = build_operational_deck(center=DEFAULT_PILOT_CENTER, zoom_start=11.8)
+                st.pydeck_chart(fallback_deck, use_container_width=True)
 
             from config.settings import Settings
             _map_engine = "Mapbox Vector Active (light-v10)" if Settings().has_valid_mapbox_token else "Vector Engine (Carto Positron Fallback)"
@@ -1112,27 +1117,31 @@ def render_main_workspace(
 
         scroll_content = "".join(hotspot_items_html) if hotspot_items_html else "<div style='color:#64748b; font-size:0.8rem;'>No hotspots records currently loaded.</div>"
 
+        hotspot_panel_html = (
+            f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">'
+            f'<div>'
+            f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a; letter-spacing:-0.01em;">'
+            f'Monitored Hotspots'
+            f'</div>'
+            f'<div style="font-size:0.78rem; color:#64748b; margin-top:2px;">'
+            f'Chronic drainage bottlenecks'
+            f'</div>'
+            f'</div>'
+            f'<span class="status-pill status-pill-amber">{len(hotspots)} Sourced Sites</span>'
+            f'</div>'
+            f'<div class="chetna-hotspots-scroll" style="max-height: 520px; overflow-y: auto; padding-right: 4px;">'
+            f'{scroll_content}'
+            f'</div>'
+            f'<div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem; text-align:center;">'
+            f'Monitored high-risk municipal points and drainage depressions.'
+            f'</div>'
+        )
+
         with st.container(border=True):
-            st.markdown(
-                f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">'
-                f'<div>'
-                f'<div style="font-weight:700; font-size:1.05rem; color:#0f172a; letter-spacing:-0.01em;">'
-                f'Monitored Hotspots'
-                f'</div>'
-                f'<div style="font-size:0.78rem; color:#64748b; margin-top:2px;">'
-                f'Chronic drainage bottlenecks'
-                f'</div>'
-                f'</div>'
-                f'<span class="status-pill status-pill-amber">{len(hotspots)} Sourced Sites</span>'
-                f'</div>'
-                f'<div class="chetna-hotspots-scroll" style="max-height: 520px; overflow-y: auto; padding-right: 4px;">'
-                f'{scroll_content}'
-                f'</div>'
-                f'<div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem; text-align:center;">'
-                f'Monitored high-risk municipal points and drainage depressions.'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+            if hasattr(st, "html"):
+                st.html(hotspot_panel_html)
+            else:
+                st.markdown(hotspot_panel_html, unsafe_allow_html=True)
 
 
 def render_alert_and_architecture_section(

@@ -1464,6 +1464,53 @@ def build_operational_deck(
     )
 
 
+def validate_deck(deck_obj: Any) -> bool:
+    """Validate that deck_obj is an authentic, valid pdk.Deck instance with valid JSON spec.
+
+    Verifies:
+      1. isinstance(deck_obj, pdk.Deck)
+      2. Not a folium.Map or branca/folium Element
+      3. deck_obj.layers is a valid sequence with NO None elements
+      4. deck_obj.initial_view_state is present and valid
+      5. deck_obj.to_json() produces valid JSON parseable into DeckGLJsonChart schema
+         (containing initialViewState with valid coords and list of layers)
+    """
+    if deck_obj is None:
+        return False
+    if not isinstance(deck_obj, pdk.Deck) or isinstance(deck_obj, folium.Map) or hasattr(deck_obj, "get_root"):
+        return False
+    if not hasattr(deck_obj, "layers") or not isinstance(deck_obj.layers, (list, tuple)):
+        return False
+    if any(layer is None for layer in deck_obj.layers):
+        return False
+    if not hasattr(deck_obj, "initial_view_state") or deck_obj.initial_view_state is None:
+        return False
+
+    try:
+        raw_json = deck_obj.to_json()
+        if not raw_json or not isinstance(raw_json, str):
+            return False
+        spec = json.loads(raw_json)
+        if not isinstance(spec, dict):
+            return False
+        if "initialViewState" not in spec or not isinstance(spec["initialViewState"], dict):
+            return False
+        ivs = spec["initialViewState"]
+        lat = ivs.get("latitude")
+        lon = ivs.get("longitude")
+        if lat is None or lon is None or not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
+            return False
+        if "layers" not in spec or not isinstance(spec["layers"], list):
+            return False
+        for l in spec["layers"]:
+            if not isinstance(l, dict) or "@@type" not in l:
+                return False
+    except Exception:
+        return False
+
+    return True
+
+
 def build_citizen_route_deck(
     center: Tuple[float, float] = DEFAULT_PILOT_CENTER,
     zoom_start: float = 12.2,
