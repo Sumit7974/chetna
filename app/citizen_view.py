@@ -634,6 +634,15 @@ def render_citizen_advisory_section() -> None:
     """Render bilingual emergency advisory and alert guidance (English | हिंदी) with risk-level guidance."""
     messages = get_bilingual_messages()
 
+    active_warning = None
+    try:
+        from database.db import get_recent_public_warnings
+        recent_pw = get_recent_public_warnings(limit=1)
+        if recent_pw and str(recent_pw[0].get("severity", "")).upper() in ("CRITICAL", "HIGH", "SEVERE", "EMERGENCY"):
+            active_warning = recent_pw[0]
+    except Exception as pw_err:
+        logger.debug("Citizen view public warning query notice: %s", pw_err)
+
     with st.container(border=True):
         st.markdown(
             """
@@ -649,6 +658,29 @@ def render_citizen_advisory_section() -> None:
 
         with tab_en:
             en_data = messages["en"]
+
+            if active_warning:
+                sev = active_warning.get("severity", "WARNING").upper()
+                zone = active_warning.get("zone_name", PILOT_CITY)
+                msg_txt = active_warning.get("message_en") or active_warning.get("headline_en", "Flood Warning Active")
+                st.markdown(
+                    f"""
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-left:5px solid #dc2626; border-radius:8px; padding:12px 14px; margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-weight:800; font-size:0.95rem; color:#991b1b;">⚠️ Flood Warning — {zone}</span>
+                            <span style="font-size:0.68rem; font-weight:700; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px;">{sev}</span>
+                        </div>
+                        <p style="margin:4px 0 6px 0; font-size:0.84rem; color:#7f1d1d; line-height:1.45;">
+                            {msg_txt}
+                        </p>
+                        <div style="font-size:0.72rem; color:#991b1b; opacity:0.85;">
+                            Simulated geo-targeted public warning &bull; No telephone registration needed &bull; Follow official local guidance
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
             st.markdown(
                 f"""
                 <div style="background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; border-radius:6px; padding:10px 12px; margin-bottom:0.75rem;">
@@ -680,6 +712,29 @@ def render_citizen_advisory_section() -> None:
 
         with tab_hi:
             hi_data = messages["hi"]
+
+            if active_warning:
+                sev = active_warning.get("severity", "WARNING").upper()
+                zone = active_warning.get("zone_name", PILOT_CITY)
+                msg_txt = active_warning.get("message_hi") or active_warning.get("headline_hi", "बाढ़ चेतावनी सक्रिय")
+                st.markdown(
+                    f"""
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-left:5px solid #dc2626; border-radius:8px; padding:12px 14px; margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-weight:800; font-size:0.95rem; color:#991b1b;">⚠️ बाढ़ चेतावनी — {zone}</span>
+                            <span style="font-size:0.68rem; font-weight:700; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px;">{sev}</span>
+                        </div>
+                        <p style="margin:4px 0 6px 0; font-size:0.84rem; color:#7f1d1d; line-height:1.45;">
+                            {msg_txt}
+                        </p>
+                        <div style="font-size:0.72rem; color:#991b1b; opacity:0.85;">
+                            स्वचालित प्रोटोटाइप सार्वजनिक चेतावनी &bull; किसी फ़ोन पंजीकरण की आवश्यकता नहीं &bull; स्थानीय आपदा निर्देशों का पालन करें
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
             st.markdown(
                 f"""
                 <div style="background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; border-radius:6px; padding:10px 12px; margin-bottom:0.75rem;">

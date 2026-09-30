@@ -1089,20 +1089,38 @@ WEATHER FORECAST / SENSOR TELEMETRY
 (Topographic vulnerability + XGBoost/Heuristic precipitation runoff)
                 ↓
     AFFECTED ASSET & SECTOR EVALUATION
-                ↓
-    DRAFT OPERATIONAL ADVISORY
-                ↓
-    HUMAN AUTHORITY REVIEW GATE
-       /                   \
-[APPROVE & SEND]       [DISMISS]
-      ↓                     ↓
-MULTI-CHANNEL DISPATCH  AUDIT LOG ENTRY
-(Dry-run simulation)    (Suppressed)
-      ↓
-FULL AUDIT TRAIL LOGGING (`alert_logs`)
-      ↓
-CITIZEN RISK & SAFE ROUTE INTEGRATION
+        /                              \
+       ↓                                ↓
+[B2 AUTHORITY WORKFLOW]        [AUTOMATIC PUBLIC WARNING]
+       ↓                                ↓
+ DRAFT OPERATIONAL ADVISORY     AFFECTED ZONE IDENTIFICATION
+       ↓                                ↓
+ HUMAN AUTHORITY REVIEW GATE    THRESHOLD POLICY EVALUATION
+   /              \                     ↓
+[APPROVE]      [DISMISS]        DUPLICATE & COOLDOWN SUPPRESSION
+   ↓              ↓                     ↓
+DISPATCH       AUDIT LOG        BILINGUAL MESSAGE GENERATOR
+(Dry-run)     (Suppressed)              ↓
+   ↓              ↓             SIMULATED PUBLIC/CELL BROADCAST
+FULL AUDIT TRAIL LOGGING        (PublicBroadcastAdapter)
+(`alert_logs`)                          ↓
+                                PUBLIC WARNING AUDIT TRAIL
+                                (`public_warnings` & `alert_logs`)
 ```
+
+---
+
+## 3.1. Automatic Geo-Targeted Public Warning
+
+Chetna includes an autonomous, geo-targeted public warning subsystem that complements the human-in-the-loop operational advisory gate:
+
+- **Automated Trigger**: When configured critical-risk thresholds (e.g. `CRITICAL` or `SEVERE` flood risk) are detected by municipal drainage sensors or forecast runoff evaluation, Chetna automatically generates an emergency public warning without requiring manual authority dispatch for that emergency broadcast.
+- **Geographic Zone Targeting**: Warnings target entire geographic zones (e.g. `Kankarbagh`, `Rajendra Nagar`, `Patliputra`) rather than individual citizen phone numbers.
+- **No Citizen Database**: No resident signup, phone numbers, email addresses, or personal contact databases are required or stored.
+- **Simulated Cell Broadcast**: The current implementation operates through an architectural adapter (`SimulatedCellBroadcastAdapter`), which models the behavior of a future authorized public-warning / Cell Broadcast gateway.
+- **Bilingual Output**: Generates concise, standardized English and Hindi emergency messages with clear prototype disclaimers.
+- **Deterministic Cooldown**: Applies configurable duplicate suppression (`cooldown_seconds`) so that identical warnings are not spammed on every evaluation cycle, while allowing immediate escalation if severity increases.
+- **Important Prototype Boundary**: This implementation is strictly simulated. Chetna does not have direct access to live telecom operator networks, Cell Broadcast Centers (CBCs), or government emergency broadcast infrastructure. In an authorized production deployment, the adapter would interface with designated emergency management gateways.
 
 ---
 

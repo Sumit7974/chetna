@@ -1379,6 +1379,83 @@ def render_alert_and_architecture_section(
                 unsafe_allow_html=True,
             )
 
+    st.markdown("<div style='margin-top:0.6rem;'></div>", unsafe_allow_html=True)
+    render_public_warning_activity_section()
+
+
+def render_public_warning_activity_section(db_path: Any = DEFAULT_DB_PATH) -> None:
+    """Render the Automated Geo-Targeted Public Warning Activity section in F1."""
+    with st.container(border=True):
+        st.markdown(
+            """
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <div>
+                    <div style="font-weight:700; font-size:1rem; color:#0f172a;">Public Warning Activity</div>
+                    <div style="font-size:0.78rem; color:#64748b;">Autonomous Geo-Targeted Broadcasts &bull; No Citizen Signup or Contact Database Required</div>
+                </div>
+                <span class="status-pill status-pill-amber" style="font-size:0.7rem;">Prototype — simulated public broadcast</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        try:
+            from database.db import get_recent_public_warnings
+            recent_warnings = get_recent_public_warnings(limit=5, db_path=db_path)
+        except Exception as err:
+            logger.debug("Could not query public warnings for F1: %s", err)
+            recent_warnings = []
+
+        if recent_warnings:
+            for w in recent_warnings:
+                zone = w.get("zone_name", "Patna Zone")
+                sev = str(w.get("severity", "WARNING")).upper()
+                w_type = "Geo-targeted public warning" if "EMERGENCY" in str(w.get("warning_type", "")) else "Public advisory"
+                target = w.get("target_type", "GEO_ZONE")
+                channel = "SIMULATED CELL BROADCAST"
+                status = "SIMULATED DELIVERED"
+                ts = w.get("created_at", "Just now")
+                msg_txt = w.get("message_en") or w.get("headline_en", "")
+
+                sev_badge_bg = "#fee2e2" if sev in ("CRITICAL", "SEVERE", "EMERGENCY") else "#fef3c7"
+                sev_badge_col = "#991b1b" if sev in ("CRITICAL", "SEVERE", "EMERGENCY") else "#92400e"
+
+                st.markdown(
+                    f"""
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid {sev_badge_col}; border-radius:6px; padding:10px 12px; margin-bottom:8px; font-size:0.8rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:6px;">
+                            <div>
+                                <span style="font-weight:700; font-size:0.9rem; color:#0f172a;">{zone}</span>
+                                &bull; <span style="color:#475569;">{w_type}</span>
+                            </div>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <span style="font-size:0.68rem; font-weight:700; background:{sev_badge_bg}; color:{sev_badge_col}; padding:2px 6px; border-radius:4px;">{sev}</span>
+                                <span style="font-size:0.68rem; font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px;">Target: {target}</span>
+                                <span style="font-size:0.68rem; font-weight:700; background:#f1f5f9; color:#334155; padding:2px 6px; border-radius:4px;">{channel}</span>
+                                <span style="font-size:0.68rem; font-weight:700; background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px;">{status}</span>
+                            </div>
+                        </div>
+                        <p style="margin:4px 0 2px 0; color:#334155; font-size:0.78rem; line-height:1.4;">
+                            {msg_txt}
+                        </p>
+                        <div style="font-size:0.7rem; color:#94a3b8; margin-top:2px;">
+                            Timestamp: {ts} &bull; Autonomous trigger &bull; Prototype Cell Broadcast simulation gateway
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.markdown(
+                """
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:12px; font-size:0.8rem; color:#64748b;">
+                    <div style="font-weight:600; color:#334155; margin-bottom:2px;">No Active Geo-Targeted Emergency Broadcasts</div>
+                    When municipal drainage sensors or precipitation forecasts detect CRITICAL conditions, Chetna automatically triggers geo-targeted Cell Broadcast simulations for the affected zone without requiring citizen phone numbers or manual authority dispatch.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
 
 
 def render_footer() -> None:

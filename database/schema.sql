@@ -152,6 +152,31 @@ CREATE INDEX IF NOT EXISTS idx_alert_logs_zone_id ON alert_logs (zone_id);
 CREATE INDEX IF NOT EXISTS idx_alert_logs_timestamp ON alert_logs (timestamp);
 
 -- ------------------------------------------------------------------------------
+-- Table: public_warnings (Simulated geo-targeted Cell Broadcasts & public alerts)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public_warnings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    warning_id TEXT UNIQUE NOT NULL,
+    zone_id TEXT NOT NULL,
+    zone_name TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    warning_type TEXT NOT NULL,          -- 'EMERGENCY_BROADCAST', 'PUBLIC_ADVISORY'
+    headline_en TEXT NOT NULL,
+    headline_hi TEXT NOT NULL,
+    message_en TEXT NOT NULL,
+    message_hi TEXT NOT NULL,
+    target_type TEXT NOT NULL DEFAULT 'GEO_ZONE',
+    channel TEXT NOT NULL DEFAULT 'CELL_BROADCAST_SIMULATION',
+    status TEXT NOT NULL DEFAULT 'SIMULATED_DELIVERED',
+    is_prototype BOOLEAN NOT NULL DEFAULT 1,
+    source TEXT NOT NULL DEFAULT 'chetna',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_pub_warnings_zone ON public_warnings (zone_id);
+CREATE INDEX IF NOT EXISTS idx_pub_warnings_created ON public_warnings (created_at);
+
+-- ------------------------------------------------------------------------------
 -- Table: sensor_table (Compatibility table for legacy telemetry queries)
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sensor_table (

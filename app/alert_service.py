@@ -374,3 +374,48 @@ def dispatch_authority_alert(
             "message": f"Alert dispatch failure: {exc}",
             "error": str(exc),
         }
+
+
+def get_recent_public_warnings(
+    limit: int = 10,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> List[Dict[str, Any]]:
+    """Retrieve recent simulated public warnings for dashboard and citizen view."""
+    try:
+        from src.geo_alerts.public_warning import get_public_warning_engine
+        engine = get_public_warning_engine(db_path=db_path)
+        return engine.get_recent_warnings(limit=limit, db_path=db_path)
+    except Exception as exc:
+        logger.debug("Could not query public warnings: %s", exc)
+        return []
+
+
+def trigger_automatic_public_warning(
+    location_name: str = "Patna",
+    risk_level: str = "CRITICAL",
+    risk_score: Optional[float] = None,
+    water_level_cm: Optional[float] = None,
+    rainfall_rate_mm_h: Optional[float] = None,
+    cell_id: Optional[str] = None,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> Dict[str, Any]:
+    """Trigger automated geo-targeted public warning evaluation for early-warning prototype."""
+    try:
+        from src.geo_alerts.public_warning import get_public_warning_engine
+        engine = get_public_warning_engine(db_path=db_path)
+        res = engine.evaluate_and_broadcast(
+            location_name=location_name,
+            cell_id=cell_id,
+            risk_level=risk_level,
+            risk_score=risk_score,
+            water_level_cm=water_level_cm,
+            rainfall_rate_mm_h=rainfall_rate_mm_h,
+        )
+        return res.to_dict()
+    except Exception as exc:
+        logger.error("Failed to execute automatic public warning trigger: %s", exc)
+        return {
+            "triggered": False,
+            "error": str(exc),
+            "is_prototype": True,
+        }

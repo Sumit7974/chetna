@@ -50,6 +50,7 @@ class PipelineResult:
     dispatched: bool
     suppressed: bool
     lifecycle_status: str     # 'generated', 'dispatched', 'suppressed'
+    public_warning: Optional[Any] = None
 
 
 class AlertPipeline:
@@ -67,6 +68,7 @@ class AlertPipeline:
         cooldown_seconds: int = 300,
         db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
         sms_recipients: Optional[List[str]] = None,
+        public_warning_engine: Optional[Any] = None,
     ) -> None:
         self.dispatcher = dispatcher or AlertDispatcher(db_path=db_path)
         self.evaluator = evaluator or AlertEvaluator()
@@ -74,6 +76,12 @@ class AlertPipeline:
         self.db_path = db_path
         self.sms_recipients = sms_recipients or []
         self.predictor = FloodRiskPredictor(db_path=db_path)
+
+        from src.geo_alerts.public_warning import PublicWarningEngine
+        self.public_warning_engine = public_warning_engine or PublicWarningEngine(
+            cooldown_seconds=cooldown_seconds,
+            db_path=db_path,
+        )
 
         # Ensure schema is ready
         if not isinstance(db_path, sqlite3.Connection):
@@ -203,6 +211,21 @@ class AlertPipeline:
             lifecycle_status = "generated"
             dispatched = False
 
+        # Step 7: Automatic Geo-Targeted Public Warning (Simulated Cell Broadcast, no phone numbers required)
+        pw_result = None
+        if getattr(evaluation, "alert_type", "FLOOD_ALERT") != "SENSOR_QUALITY":
+            try:
+                pw_result = self.public_warning_engine.evaluate_and_broadcast(
+                    risk_source=evaluation,
+                    node_id=validated.node_id,
+                    location_name=evaluation.affected_area,
+                    risk_level=evaluation.severity.value,
+                    water_level_cm=getattr(validated, "water_level_cm", None),
+                    rainfall_rate_mm_h=getattr(validated, "rainfall_rate_mm_h", None),
+                )
+            except Exception as pw_err:
+                logger.debug("Automatic public warning evaluation notice: %s", pw_err)
+
         return PipelineResult(
             reading=reading,
             evaluation=evaluation,
@@ -210,6 +233,7 @@ class AlertPipeline:
             dispatched=dispatched,
             suppressed=False,
             lifecycle_status=lifecycle_status,
+            public_warning=pw_result,
         )
 
     # ------------------------------------------------------------------

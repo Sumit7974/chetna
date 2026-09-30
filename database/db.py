@@ -322,3 +322,23 @@ def get_alert_by_id(
         cursor.execute(sql, (alert_id,))
         row = cursor.fetchone()
         return dict(row) if row else None
+
+
+def get_recent_public_warnings(
+    limit: int = 10,
+    db_path: Union[str, Path, sqlite3.Connection] = DEFAULT_DB_PATH,
+) -> List[Dict[str, Any]]:
+    """Retrieve recent simulated public warnings for dashboard and citizen view."""
+    sql = """
+    SELECT * FROM public_warnings
+    ORDER BY id DESC
+    LIMIT ?;
+    """
+    try:
+        with get_db_connection(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (limit,))
+            return [dict(row) for row in cursor.fetchall()]
+    except Exception as exc:
+        logger.debug("Could not query public_warnings: %s", exc)
+        return []

@@ -290,6 +290,20 @@ def run_pipeline(
         saved_count = predictor.save_predictions_batch(all_predictions)
         logger.info("Persisted %d risk predictions into 'risk_predictions' table", saved_count)
 
+    # 5.5 Automatic Geo-Targeted Public Warning Evaluation for Critical Cells
+    public_warnings_triggered = []
+    if persist and all_predictions:
+        try:
+            from src.geo_alerts.public_warning import get_public_warning_engine
+            engine = get_public_warning_engine(db_path=db_path)
+            for pred in all_predictions:
+                if getattr(pred, "level", "").upper() in ("CRITICAL", "SEVERE", "EMERGENCY"):
+                    pw_res = engine.evaluate_and_broadcast(risk_source=pred)
+                    if pw_res.triggered:
+                        public_warnings_triggered.append(pw_res)
+        except Exception as pw_err:
+            logger.debug("Forecast risk public warning trigger notice: %s", pw_err)
+
     # 6. Return Structured Execution Summary
     result = PipelineResult(
         forecast_timestamp=forecast_ts,
