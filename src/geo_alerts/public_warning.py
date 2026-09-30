@@ -24,7 +24,7 @@ import logging
 import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from database.db import DEFAULT_DB_PATH, get_db_connection
 from src.geo_alerts.broadcast_adapter import PublicBroadcastAdapter, SimulatedCellBroadcastAdapter
@@ -138,6 +138,10 @@ class PublicWarningEngine:
         except Exception as exc:
             logger.debug("Public warning table initialization notice: %s", exc)
 
+    def reset_cooldown(self) -> None:
+        """Reset all active zone cooldowns."""
+        self._zone_cooldown.clear()
+
     def _should_suppress_duplicate(self, zone_id: str, severity: str) -> Tuple[bool, Optional[str]]:
         """Determine whether to suppress warning due to cooldown or duplicate state."""
         entry = self._zone_cooldown.get(zone_id)
@@ -212,6 +216,14 @@ class PublicWarningEngine:
                 suppression_reason=f"Risk level {effective_level} is below public warning threshold",
             )
 
+        # Ensure that qualifying emergency broadcast severity is at least CRITICAL
+        if action == PublicWarningAction.EMERGENCY_BROADCAST and effective_level not in self.policy.emergency_severities:
+            effective_level = "CRITICAL"
+            target.risk_level = "CRITICAL"
+        elif action == PublicWarningAction.PUBLIC_ADVISORY and effective_level not in self.policy.advisory_severities:
+            effective_level = "HIGH"
+            target.risk_level = "HIGH"
+
         # 3. Duplicate Protection
         if not force:
             suppress, reason = self._should_suppress_duplicate(target.zone_id, effective_level)
@@ -233,33 +245,56 @@ class PublicWarningEngine:
             rainfall_rate_mm_h=rainfall_rate_mm_h,
         )
 
-        # 5. Broadcast via Adapter (Simulated Cell Broadcast)
-        delivery = self.adapter.broadcast(
-            target_zone=target,
-            severity=effective_level,
-            message=msg.full_text_en,
-            language="en/hi",
-            source="chetna",
-            metadata={
-                "warning_type": msg.warning_type,
-                "message_hi": msg.full_text_hi,
-                "action": action.value,
-            },
-        )
+        # 5. Broadcast via Adapter (Simulated Cell Broadcast) with Fail-Safe Handling
+        try:
+            delivery = self.adapter.broadcast(
+                target_zone=target,
+                severity=effective_level,
+                message=msg.full_text_en,
+                language="en/hi",
+                source="chetna",
+                metadata={
+                    "warning_type": msg.warning_type,
+                    "message_hi": msg.full_text_hi,
+                    "action": action.value,
+                },
+            )
+            is_success = delivery.get("status") == "SIMULATED_DELIVERED"
+        except Exception as exc:
+            logger.error("Broadcast adapter failure: %s", exc)
+            delivery = {
+                "status": "FAILED",
+                "reason": str(exc),
+                "channel": getattr(self.adapter, "CHANNEL_NAME", "CELL_BROADCAST_SIMULATION"),
+                "target_type": "GEO_ZONE",
+                "target_zone": target.zone_id,
+                "zone_name": target.zone_name,
+                "message_id": f"PUB-WARN-FAIL-{target.zone_id}",
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "severity": effective_level,
+                "language": "en/hi",
+                "message": msg.full_text_en,
+                "prototype": True,
+                "source": "chetna",
+                "gateway": getattr(self.adapter, "GATEWAY_NAME", "PROTOTYPE_CELL_BROADCAST_SIMULATION_GATEWAY"),
+                "metadata": {"error": str(exc)},
+            }
+            is_success = False
 
-        # Record Cooldown
-        self._zone_cooldown[target.zone_id] = _ZoneCooldownEntry(
-            severity=effective_level,
-            sent_at=datetime.datetime.now(datetime.timezone.utc),
-            warning_type=msg.warning_type,
-        )
+        if is_success:
+            # Record Cooldown only when broadcast succeeded
+            self._zone_cooldown[target.zone_id] = _ZoneCooldownEntry(
+                severity=effective_level,
+                sent_at=datetime.datetime.now(datetime.timezone.utc),
+                warning_type=msg.warning_type,
+            )
 
         # 6. Record in Database / Audit
         audit_id = delivery.get("message_id")
         self._record_audit(target, action, msg, delivery)
 
         return PublicWarningResult(
-            triggered=True,
+            triggered=is_success,
             action=action,
             target_zone=target,
             warning_message=msg,

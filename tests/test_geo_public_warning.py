@@ -313,5 +313,132 @@ class TestGeoTargetedPublicWarning(unittest.TestCase):
         self.assertEqual(res.public_warning.action, PublicWarningAction.EMERGENCY_BROADCAST)
 
 
+    def test_15_heavy_rain_simulation_automatically_triggers_public_warning_without_approval(self) -> None:
+        """15. Heavy Rain Simulation automatically triggers public warning to SIMULATED_DELIVERED without manual approval."""
+        from app.demo_scenario import reset_to_baseline_scenario, simulate_heavy_rain_scenario
+        from database.db import get_recent_public_warnings
+
+        # Reset state to clean baseline
+        reset_res = reset_to_baseline_scenario(db_path=self.mem_conn)
+        self.assertTrue(reset_res["success"])
+        self.assertEqual(len(get_recent_public_warnings(limit=10, db_path=self.mem_conn)), 0)
+
+        # Run Heavy Rain Simulation
+        sim_res = simulate_heavy_rain_scenario(db_path=self.mem_conn)
+        self.assertTrue(sim_res["success"])
+        self.assertGreater(sim_res.get("public_warnings_triggered", 0), 0)
+
+        # Verify automatic warnings in public_warnings table
+        warnings = get_recent_public_warnings(limit=10, db_path=self.mem_conn)
+        self.assertGreater(len(warnings), 0)
+        for w in warnings:
+            self.assertEqual(w["status"], "SIMULATED_DELIVERED")
+            self.assertEqual(w["channel"], "CELL_BROADCAST_SIMULATION")
+            self.assertEqual(w["target_type"], "GEO_ZONE")
+            self.assertEqual(w["severity"], "CRITICAL")
+            self.assertEqual(w["is_prototype"], 1)
+            self.assertIn("FLOOD WARNING", w["headline_en"])
+            self.assertIn("बाढ़ चेतावनी", w["headline_hi"])
+
+    def test_16_failsafe_behavior_on_adapter_failure(self) -> None:
+        """16. Fail-safe behavior: Adapter failure records FAILED and does not fabricate SIMULATED_DELIVERED."""
+        failing_adapter = MagicMock()
+        failing_adapter.broadcast.side_effect = RuntimeError("Cell Broadcast Gateway Timeout")
+        failing_adapter.CHANNEL_NAME = "CELL_BROADCAST_SIMULATION"
+        failing_adapter.GATEWAY_NAME = "PROTOTYPE_CELL_BROADCAST_SIMULATION_GATEWAY"
+
+        engine = PublicWarningEngine(
+            geo_service=self.geo_service,
+            policy=self.policy,
+            message_builder=self.message_builder,
+            adapter=failing_adapter,
+            cooldown_seconds=300,
+            db_path=self.mem_conn,
+        )
+
+        res = engine.evaluate_and_broadcast(
+            location_name="Kankarbagh",
+            risk_level="CRITICAL",
+            cell_id="CELL_KAN_01",
+        )
+
+        self.assertFalse(res.triggered)
+        self.assertEqual(res.delivery_result.get("status"), "FAILED")
+        self.assertIn("Gateway Timeout", res.delivery_result.get("reason", ""))
+
+        # Verify database record reflects FAILED status, not fabricated delivery
+        rows = engine.get_recent_warnings(limit=1, db_path=self.mem_conn)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["status"], "FAILED")
+
+    def test_17_f2_displays_automatic_warning_without_login_or_phone(self) -> None:
+        """17. F2 citizen view receives and displays automatic warning without login or phone database."""
+        from database.db import get_recent_public_warnings
+
+        # Trigger automatic warning
+        res = self.engine.evaluate_and_broadcast(
+            location_name="Rajendra Nagar",
+            risk_level="CRITICAL",
+            cell_id="CELL_RAJ_01",
+        )
+        self.assertTrue(res.triggered)
+
+        recent = get_recent_public_warnings(limit=1, db_path=self.mem_conn)
+        self.assertEqual(len(recent), 1)
+        w = recent[0]
+        self.assertEqual(w["zone_name"], "Rajendra Nagar")
+        self.assertEqual(w["severity"], "CRITICAL")
+        self.assertEqual(w["status"], "SIMULATED_DELIVERED")
+        self.assertEqual(w["target_type"], "GEO_ZONE")
+        self.assertEqual(w["is_prototype"], 1)
+
+    def test_18_f1_displays_automatic_warning_status(self) -> None:
+        """18. F1 dashboard queries recent warnings with SIMULATED_DELIVERED and no approval gate."""
+        from database.db import get_recent_public_warnings
+
+        self.engine.evaluate_and_broadcast(
+            location_name="Bazar Samiti",
+            risk_level="CRITICAL",
+            cell_id="CELL_BAZ_01",
+        )
+
+        warnings = get_recent_public_warnings(limit=5, db_path=self.mem_conn)
+        self.assertGreater(len(warnings), 0)
+        self.assertEqual(warnings[0]["status"], "SIMULATED_DELIVERED")
+        self.assertEqual(warnings[0]["channel"], "CELL_BROADCAST_SIMULATION")
+
+    def test_19_critical_simulation_to_simulated_delivered_without_manual_dispatch(self) -> None:
+        """19. Strict E2E proof: CRITICAL simulation -> automatic public warning -> SIMULATED_DELIVERED.
+
+        Proves zero manual approval, zero 'Issue Broadcast' requirement, and zero manual dispatch.
+        """
+        from app.demo_scenario import reset_to_baseline_scenario, simulate_heavy_rain_scenario
+        from database.db import get_recent_public_warnings
+
+        # Reset system
+        reset_to_baseline_scenario(db_path=self.mem_conn)
+        self.assertEqual(len(get_recent_public_warnings(limit=5, db_path=self.mem_conn)), 0)
+
+        # Mock manual approval and dispatch functions to ensure they are NEVER invoked
+        with patch("app.alert_service.dispatch_authority_alert") as mock_auth_dispatch, \
+             patch("app.alert_service.create_draft_alert") as mock_create_draft:
+
+            # Execute Heavy Rain Simulation
+            sim_res = simulate_heavy_rain_scenario(db_path=self.mem_conn)
+
+            # Assert simulation was successful
+            self.assertTrue(sim_res["success"])
+            self.assertEqual(sim_res["scenario"], "HEAVY_RAIN")
+
+            # Assert manual functions were NOT called
+            mock_auth_dispatch.assert_not_called()
+            mock_create_draft.assert_not_called()
+
+            # Assert automatic public warnings were delivered
+            warnings = get_recent_public_warnings(limit=10, db_path=self.mem_conn)
+            self.assertGreater(len(warnings), 0)
+            self.assertTrue(any(w["status"] == "SIMULATED_DELIVERED" and w["severity"] == "CRITICAL" for w in warnings))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -136,6 +136,21 @@ def simulate_heavy_rain_scenario(
 
     saved_count = predictor.save_predictions_batch(all_predictions)
 
+    # 4. Trigger automatic public warning directly for qualifying risk predictions
+    # Pipeline: simulate_heavy_rain_scenario() -> persist predictions -> PublicWarningEngine
+    # -> evaluate_and_broadcast() -> GeoTargetingService -> PublicWarningPolicy -> MessageBuilder
+    # -> SimulatedCellBroadcastAdapter -> SIMULATED_DELIVERED
+    pw_warnings_count = 0
+    try:
+        from src.geo_alerts.public_warning import get_public_warning_engine
+        engine = get_public_warning_engine(db_path=db_path)
+        for pred in all_predictions:
+            pw_res = engine.evaluate_and_broadcast(risk_source=pred)
+            if pw_res.triggered:
+                pw_warnings_count += 1
+    except Exception as pw_err:
+        logger.warning("Automatic public warning trigger notice: %s", pw_err)
+
     # 4. Generate Elevated Sensor Telemetry using SensorSimulator
     from app.map_layers import DEFAULT_PILOT_SENSORS
     elevated_readings: List[SensorReading] = []
@@ -165,7 +180,8 @@ def simulate_heavy_rain_scenario(
         "forecast": {"rain_1h": 52.5, "rain_3h": 84.0, "rain_6h": 126.0},
         "predictions_created": saved_count,
         "sensors_updated": len(elevated_readings),
-        "message": "Heavy rainfall scenario active: +1h/+3h/+6h risk and sensor telemetry updated.",
+        "public_warnings_triggered": pw_warnings_count,
+        "message": "Heavy rainfall scenario active: +1h/+3h/+6h risk, sensor telemetry, and automatic public warnings updated.",
     }
 
 
@@ -182,6 +198,8 @@ def reset_to_baseline_scenario(
     1. Clears dynamic risk predictions from the risk_predictions table.
     2. Resets IoT sensor telemetry to normal baseline levels using SensorSimulator.
     3. Cleans scenario forecast entries.
+    4. Cleans alerts, alert logs, and public warnings tables.
+    5. Resets public warning cooldown caches.
     """
     try:
         with get_db_connection(db_path) as conn:
@@ -205,8 +223,19 @@ def reset_to_baseline_scenario(
                 conn.execute("DELETE FROM alert_logs;")
             except Exception:
                 pass
+            try:
+                conn.execute("DELETE FROM public_warnings;")
+            except Exception:
+                pass
     except Exception as exc:
         logger.warning("Notice resetting database in scenario controller: %s", exc)
+
+    try:
+        from src.geo_alerts.public_warning import get_public_warning_engine
+        engine = get_public_warning_engine(db_path=db_path)
+        engine.reset_cooldown()
+    except Exception as cd_err:
+        logger.debug("Notice resetting public warning cooldown: %s", cd_err)
 
     return {
         "success": True,

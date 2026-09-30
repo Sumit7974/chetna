@@ -47,13 +47,11 @@ class PublicWarningPolicy:
         if risk_score is not None and risk_score >= self.critical_probability_threshold:
             return PublicWarningAction.EMERGENCY_BROADCAST
 
-        # Check if severity or score indicates advisory
+        # Check if severity indicates advisory (HIGH)
         if norm_level in self.advisory_severities:
             return PublicWarningAction.PUBLIC_ADVISORY
-        if risk_score is not None and risk_score >= self.high_probability_threshold:
-            return PublicWarningAction.PUBLIC_ADVISORY
 
-        # Conditions normal or low/medium
+        # Conditions normal, low, or medium: no emergency broadcast
         return PublicWarningAction.NONE
 
     def should_broadcast_emergency(

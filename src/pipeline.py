@@ -297,10 +297,9 @@ def run_pipeline(
             from src.geo_alerts.public_warning import get_public_warning_engine
             engine = get_public_warning_engine(db_path=db_path)
             for pred in all_predictions:
-                if getattr(pred, "level", "").upper() in ("CRITICAL", "SEVERE", "EMERGENCY"):
-                    pw_res = engine.evaluate_and_broadcast(risk_source=pred)
-                    if pw_res.triggered:
-                        public_warnings_triggered.append(pw_res)
+                pw_res = engine.evaluate_and_broadcast(risk_source=pred)
+                if pw_res.triggered:
+                    public_warnings_triggered.append(pw_res)
         except Exception as pw_err:
             logger.debug("Forecast risk public warning trigger notice: %s", pw_err)
 

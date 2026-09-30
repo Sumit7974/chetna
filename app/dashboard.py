@@ -695,6 +695,8 @@ def render_sidebar(metrics: Dict[str, Any]) -> Dict[str, Any]:
             with col_s1:
                 if st.button("🌧️ Simulate Rain", key="btn_sim_heavy_rain", help="Simulate intense monsoon rainfall via existing backend engine."):
                     simulate_heavy_rain_scenario()
+                    # UI feedback indicating automatic public warning was triggered
+                    st.info("⚡ Automatic public warning triggered & simulated delivered. No authority broadcast required.")
                     st.session_state["simulation_active"] = True
                     st.session_state["review_alert_open"] = False
                     st.session_state.pop("alert_dismissed_notice", None)
@@ -1170,184 +1172,226 @@ def render_alert_and_architecture_section(
         asset_summary=at_risk_assets,
     )
 
+    # Query latest simulated public warning
+    recent_pw = None
+    try:
+        from database.db import get_recent_public_warnings
+        pws = get_recent_public_warnings(limit=1)
+        if pws:
+            recent_pw = pws[0]
+    except Exception as pw_err:
+        logger.debug("Public warning query notice in F1: %s", pw_err)
+
+    has_active_pw = bool(recent_pw and recent_pw.get("status") in ("SIMULATED_DELIVERED", "DELIVERED"))
+    if has_active_pw:
+        status_label = "SIMULATED DELIVERED"
+        status_pill_class = "status-pill status-pill-green"
+    elif high_zones_count > 0:
+        status_label = "MONITORING"
+        status_pill_class = "status-pill status-pill-amber"
+    else:
+        status_label = "READY"
+        status_pill_class = "status-pill status-pill-blue"
+
     with col_alert:
         with st.container(border=True):
             st.markdown(
                 f"""
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
                     <div>
-                        <div style="font-weight:700; font-size:1rem; color:#0f172a;">Alert Centre (Authorized Personnel)</div>
-                        <div style="font-size:0.78rem; color:#64748b;">Emergency Advisory Approval &amp; Broadcast Gate</div>
+                        <div style="font-weight:700; font-size:1rem; color:#0f172a;">Automatic Public Warning System</div>
+                        <div style="font-size:0.78rem; color:#64748b;">Autonomous Geo-Targeted Emergency Warning &bull; No Authority Approval Required</div>
                     </div>
-                    <span class="status-pill status-pill-amber">Horizon: {active_horizon}</span>
+                    <span class="{status_pill_class}">{status_label}</span>
                 </div>
-                <div style="background:#fffbeb; border:1px solid #fde68a; border-left:4px solid #f59e0b; border-radius:6px; padding:10px 12px; margin-bottom:0.85rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-weight:700; font-size:0.84rem; color:#92400e;">⚠️ DRAFT FLOOD ADVISORY — Low-Elevation Depressions ({PILOT_CITY})</span>
-                        <span style="font-size:0.72rem; color:#b45309; font-weight:600;">Status: Ready for Review</span>
-                    </div>
-                    <p style="margin:6px 0 4px 0; font-size:0.8rem; color:#78350f; line-height:1.4;">
-                        Precipitation outlook indicates potential stormwater accumulation at railway underpasses and depression basins.
-                        Impact footprint: <b>{high_zones_count} high-risk zones</b> &bull; <b>{asset_total} critical facilities</b> ({hosp_cnt} Hospitals, {sch_cnt} Schools, {she_cnt} Transit Shelters).
-                    </p>
-                    <div style="font-size:0.72rem; color:#92400e; margin-top:4px;">
-                        Integrated Channels: <b>Twilio WhatsApp Sandbox &bull; SMS &bull; Telegram &bull; Automated Voice</b>
-                    </div>
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; border-radius:6px; padding:8px 12px; margin-bottom:0.85rem; font-size:0.78rem; color:#1e40af; line-height:1.4;">
+                    <b>AUTOMATIC GEO-TARGETED WARNING</b><br/>
+                    Critical flood conditions automatically trigger a geo-targeted public-warning simulation. No citizen registration or manual broadcast approval is required.
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            b_col0, b_col1, b_col2 = st.columns([0.34, 0.33, 0.33])
-            with b_col0:
-                if st.button("🔍 Review Alert", key="btn_review_alert", help="Review detailed alert draft, why-flagged factors, and channel payload."):
-                    st.session_state["review_alert_open"] = True
-                    st.session_state.pop("alert_dismissed_notice", None)
-                    if not st.session_state.get("current_draft_id"):
-                        try:
-                            st.session_state["current_draft_id"] = create_draft_alert(
-                                severity=current_risk_level,
-                                title=f"Urban Flood Warning ({active_horizon})",
-                                message=draft_msg,
-                                affected_area=PILOT_LOCATION_LABEL,
-                            )
-                        except Exception as draft_err:
-                            logger.debug("Draft generation notice: %s", draft_err)
-            with b_col1:
-                if st.button("✅ Issue Broadcast", disabled=False, key="btn_issue_broadcast"):
-                    st.session_state["review_alert_open"] = True
-                    if not st.session_state.get("current_draft_id"):
-                        try:
-                            st.session_state["current_draft_id"] = create_draft_alert(
-                                severity=current_risk_level,
-                                title=f"Urban Flood Warning ({active_horizon})",
-                                message=draft_msg,
-                                affected_area=PILOT_LOCATION_LABEL,
-                            )
-                        except Exception as draft_err:
-                            logger.debug("Draft generation notice: %s", draft_err)
-            with b_col2:
-                if st.button("❌ Suppress Advisory", disabled=False, key="btn_dismiss_broadcast"):
-                    st.session_state["review_alert_open"] = False
-                    st.session_state["alert_dismissed_notice"] = "Advisory suppressed by authority. No broadcast transmitted."
-                    st.session_state.pop("alert_dispatch_outcome", None)
-                    try:
-                        dismiss_authority_alert(st.session_state.get("current_draft_id"))
-                    except Exception as dis_err:
-                        logger.debug("Dismissal notice: %s", dis_err)
-                    st.session_state.pop("current_draft_id", None)
+            if has_active_pw and recent_pw is not None:
+                w_zone = recent_pw.get("zone_name", PILOT_CITY)
+                w_sev = str(recent_pw.get("severity", "CRITICAL")).upper()
+                w_target = recent_pw.get("target_type", "GEO_ZONE")
+                w_chan = "SIMULATED CELL BROADCAST"
+                w_stat = "SIMULATED DELIVERED"
+                w_msg = recent_pw.get("message_en") or recent_pw.get("headline_en", "Critical flood warning active.")
+                w_ts = recent_pw.get("created_at", "Just now")
 
-            # PART A & B: Explicit Review Panel & Approval Gate
-            if st.session_state.get("review_alert_open", False):
-                curr_draft_ref = st.session_state.get("current_draft_id", "ALT-DRAFT-PENDING")
                 st.markdown(
                     f"""
-                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-top:3px solid #0284c7; border-radius:6px; padding:12px; margin-top:0.75rem; font-size:0.78rem;">
+                    <div style="background:#fff1f2; border:1px solid #fecdd3; border-left:4px solid #e11d48; border-radius:6px; padding:12px; margin-bottom:0.85rem; font-size:0.8rem;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <span style="font-weight:700; font-size:0.88rem; color:#0f172a;">📋 DRAFT ALERT &mdash; HUMAN-IN-THE-LOOP APPROVAL GATE</span>
-                            <span style="font-size:0.7rem; font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px;">PENDING APPROVAL</span>
+                            <span style="font-weight:800; font-size:0.92rem; color:#9f1239;">🚨 AUTOMATIC PUBLIC WARNING</span>
+                            <span style="font-size:0.68rem; font-weight:700; background:#ffe4e6; color:#9f1239; padding:2px 8px; border-radius:4px;">{w_stat}</span>
                         </div>
-                        <div style="color:#334155; line-height:1.6;">
-                            <div>&bull; <b>Draft Reference:</b> <code style="color:#0369a1; font-weight:600;">{curr_draft_ref}</code></div>
-                            <div>&bull; <b>1. Target Area:</b> {PILOT_LOCATION_LABEL} &mdash; Low-Elevation Depressions &amp; Underpasses</div>
-                            <div>&bull; <b>2. Forecast Horizon:</b> {active_horizon}</div>
-                            <div>&bull; <b>3. Evaluated Risk Tier:</b> <span style="font-weight:700; color:#dc2626;">{current_risk_level}</span></div>
-                            <div>&bull; <b>4. Affected Monitored Cells:</b> {high_zones_count} sectors</div>
-                            <div>&bull; <b>5. Affected Critical Facilities:</b> {asset_total} ({hosp_cnt} Hospitals, {sch_cnt} Schools, {she_cnt} Shelters)</div>
-                            <div>&bull; <b>6. Why Flagged:</b> Low ground elevation (&le;8m), concentrated drainage flow accumulation, high impervious surface fraction.</div>
-                            <div>&bull; <b>7. Recommended Operational Action:</b> Deploy dewatering pumps, clear road grates, alert railway underpass traffic police, and post traffic advisories.</div>
-                            <div style="margin-top:6px; padding:6px 8px; background:#f1f5f9; border-radius:4px; font-style:italic; color:#0f172a;">
-                                <b>8. Proposed Message:</b> "{draft_msg}"
-                            </div>
-                            <div style="margin-top:4px;">&bull; <b>9. Notification Channels:</b> Twilio WhatsApp Sandbox &bull; Twilio SMS &bull; Telegram Bot &bull; Automated Voice</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px 12px; color:#1e293b; font-size:0.78rem; line-height:1.5;">
+                            <div>&bull; <b>Zone:</b> {w_zone}</div>
+                            <div>&bull; <b>Severity:</b> <span style="font-weight:700; color:#e11d48;">{w_sev}</span></div>
+                            <div>&bull; <b>Trigger:</b> Automated Chetna Risk Engine</div>
+                            <div>&bull; <b>Target:</b> {w_zone} ({w_target})</div>
+                            <div>&bull; <b>Channel:</b> {w_chan}</div>
+                            <div>&bull; <b>Status:</b> <span style="color:#059669; font-weight:700;">{w_stat}</span></div>
+                            <div>&bull; <b>Authority approval:</b> <span style="color:#059669; font-weight:700;">NOT REQUIRED</span></div>
+                            <div>&bull; <b>Citizen registration:</b> <span style="color:#059669; font-weight:700;">NOT REQUIRED</span></div>
+                            <div>&bull; <b>Prototype:</b> YES</div>
+                            <div>&bull; <b>Dispatched:</b> {w_ts}</div>
                         </div>
-                        <div style="font-size:8.5px; color:#64748b; margin-top:6px; font-style:italic; border-top:1px dashed #cbd5e1; padding-top:4px;">
-                            Scientific provenance: Model feature attribution, not proven physical causation.
+                        <div style="margin-top:8px; padding:8px 10px; background:#ffffff; border:1px solid #fecdd3; border-radius:4px; font-size:0.76rem; color:#881337; line-height:1.4;">
+                            <b>Broadcast Payload:</b> "{w_msg}"
+                        </div>
+                        <div style="font-size:0.7rem; color:#9f1239; margin-top:6px; font-style:italic;">
+                            Automatic &mdash; no manual approval required. Zero human clicks between detection and broadcast.
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f"""
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #94a3b8; border-radius:6px; padding:12px; font-size:0.8rem; color:#475569; margin-bottom:0.85rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:700; font-size:0.88rem; color:#0f172a;">Status: {status_label}</span>
+                            <span style="font-size:0.68rem; font-weight:700; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:4px;">AUTONOMOUS ENGINE</span>
+                        </div>
+                        <div style="line-height:1.45; font-size:0.78rem;">
+                            Monitoring real-time sensors and precipitation forecasts. When CRITICAL risk is detected, simulated Cell Broadcast is dispatched autonomously across affected geographic sectors without requiring citizen phone numbers or manual authority dispatch.
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-top:8px; font-size:0.72rem; color:#64748b;">
+                            <div>&bull; Authority approval: <b>NOT REQUIRED</b></div>
+                            <div>&bull; Citizen registration: <b>NOT REQUIRED</b></div>
+                            <div>&bull; Citizen phone database: <b>NONE</b></div>
+                            <div>&bull; Channel: <b>SIMULATED CELL BROADCAST</b></div>
                         </div>
                     </div>
                     """,
                     unsafe_allow_html=True,
                 )
 
-                # Explicit Approval Action Buttons
-                st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
-                col_ap1, col_ap2 = st.columns(2)
-                with col_ap1:
-                    approve_clicked = st.button("✅ APPROVE & SEND", key="btn_approve_and_send", type="primary")
-                with col_ap2:
-                    dismiss_clicked = st.button("❌ DISMISS", key="btn_dismiss_alert_gate")
+            # Separate Section: Authority-Managed Notifications for Internal Personnel
+            with st.expander("🏛️ Authority-Managed Notifications (Internal DEOC Staff)", expanded=False):
+                st.markdown(
+                    """
+                    <div style="font-size:0.74rem; color:#64748b; margin-bottom:8px; line-height:1.4;">
+                        <b>Internal Authority Channel:</b> Operational notifications for pre-registered DEOC response teams and drainage engineers via SMS / Telegram.
+                        <i>Completely independent of the Automatic Public Warning System above.</i>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-                if approve_clicked:
-                    with st.spinner("Dispatching multi-channel emergency broadcast..."):
-                        outcome = dispatch_authority_alert(
-                            severity=current_risk_level,
-                            title=f"Urban Flood Warning ({active_horizon})",
-                            message=draft_msg,
-                            affected_area=PILOT_LOCATION_LABEL,
-                            draft_id=st.session_state.get("current_draft_id"),
-                        )
-                    st.session_state["alert_dispatch_outcome"] = outcome
-                    st.session_state["review_alert_open"] = False
-                    st.session_state.pop("alert_dismissed_notice", None)
-                    st.session_state.pop("current_draft_id", None)
+                b_col0, b_col1, b_col2 = st.columns([0.34, 0.33, 0.33])
+                with b_col0:
+                    if st.button("🔍 Review Alert", key="btn_review_alert", help="Review internal operational alert draft."):
+                        st.session_state["review_alert_open"] = True
+                        st.session_state.pop("alert_dismissed_notice", None)
+                        if not st.session_state.get("current_draft_id"):
+                            try:
+                                st.session_state["current_draft_id"] = create_draft_alert(
+                                    severity=current_risk_level,
+                                    title=f"Urban Flood Warning ({active_horizon})",
+                                    message=draft_msg,
+                                    affected_area=PILOT_LOCATION_LABEL,
+                                )
+                            except Exception as draft_err:
+                                logger.debug("Draft generation notice: %s", draft_err)
+                with b_col1:
+                    if st.button("✅ Issue Broadcast", disabled=False, key="btn_issue_broadcast", help="Issue internal authority notification to registered staff."):
+                        st.session_state["review_alert_open"] = True
+                        if not st.session_state.get("current_draft_id"):
+                            try:
+                                st.session_state["current_draft_id"] = create_draft_alert(
+                                    severity=current_risk_level,
+                                    title=f"Urban Flood Warning ({active_horizon})",
+                                    message=draft_msg,
+                                    affected_area=PILOT_LOCATION_LABEL,
+                                )
+                            except Exception as draft_err:
+                                logger.debug("Draft generation notice: %s", draft_err)
+                with b_col2:
+                    if st.button("❌ Suppress Advisory", disabled=False, key="btn_dismiss_broadcast"):
+                        st.session_state["review_alert_open"] = False
+                        st.session_state["alert_dismissed_notice"] = "Internal advisory suppressed by authority."
+                        st.session_state.pop("alert_dispatch_outcome", None)
+                        try:
+                            dismiss_authority_alert(st.session_state.get("current_draft_id"))
+                        except Exception as dis_err:
+                            logger.debug("Dismissal notice: %s", dis_err)
+                        st.session_state.pop("current_draft_id", None)
 
-                if dismiss_clicked:
-                    st.session_state["review_alert_open"] = False
-                    st.session_state["alert_dismissed_notice"] = "Advisory dismissed by authority. No broadcast transmitted."
-                    st.session_state.pop("alert_dispatch_outcome", None)
-                    try:
-                        dismiss_authority_alert(st.session_state.get("current_draft_id"))
-                    except Exception as dis_err:
-                        logger.debug("Dismissal notice: %s", dis_err)
-                    st.session_state.pop("current_draft_id", None)
-
-            # Show Dismiss Notice
-            if st.session_state.get("alert_dismissed_notice"):
-                st.warning(f"⚠️ {st.session_state['alert_dismissed_notice']}")
-
-            # PART C & D: Show Dispatch Outcome and Individual Channel Results
-            if st.session_state.get("alert_dispatch_outcome"):
-                outcome = st.session_state["alert_dispatch_outcome"]
-                if outcome.get("dry_run"):
-                    st.info(
-                        f"ℹ️ **Dry-run:** {outcome.get('message')}\n\n"
-                        f"Audit Reference: `{outcome.get('alert_id')}` &bull; Severity: `{outcome.get('severity')}`"
+                # Explicit Internal Review Panel
+                if st.session_state.get("review_alert_open", False):
+                    curr_draft_ref = st.session_state.get("current_draft_id", "ALT-DRAFT-PENDING")
+                    st.markdown(
+                        f"""
+                        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-top:3px solid #0284c7; border-radius:6px; padding:10px; margin-top:0.5rem; font-size:0.76rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-weight:700; color:#0f172a;">📋 INTERNAL AUTHORITY ADVISORY DRAFT</span>
+                                <span style="font-size:0.68rem; font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px;">STAFF REVIEW</span>
+                            </div>
+                            <div style="color:#334155; line-height:1.5;">
+                                <div>&bull; <b>Reference:</b> <code>{curr_draft_ref}</code></div>
+                                <div>&bull; <b>Area:</b> {PILOT_LOCATION_LABEL}</div>
+                                <div>&bull; <b>Risk Tier:</b> {current_risk_level} &bull; <b>Monitored Footprint:</b> {high_zones_count} sectors</div>
+                                <div style="margin-top:4px; padding:4px 6px; background:#f1f5f9; border-radius:4px; font-style:italic;">
+                                    "{draft_msg}"
+                                </div>
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
                     )
-                elif outcome.get("success"):
-                    st.success(f"✅ {outcome.get('message')}")
-                else:
-                    st.error(f"❌ {outcome.get('message')}")
 
-                channels = outcome.get("channels", {})
-                if channels:
-                    st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#0f172a; margin-top:6px;'>Channel Delivery Status:</div>", unsafe_allow_html=True)
-                    for ch_name, ch_info in channels.items():
-                        is_ok = ch_info.get("success", False)
-                        ch_badge = "#dcfce7" if is_ok else "#fee2e2"
-                        ch_col = "#166534" if is_ok else "#991b1b"
-                        st.markdown(
-                            f'<div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:4px 8px; margin-bottom:4px; font-size:0.74rem;">'
-                            f'<div><b>{ch_name}</b> &bull; <span style="color:#64748b;">{ch_info.get("recipient")}</span></div>'
-                            f'<span style="font-size:0.68rem; font-weight:700; background:{ch_badge}; color:{ch_col}; padding:2px 6px; border-radius:3px;">'
-                            f'{ch_info.get("status")}'
-                            f'</span>'
-                            f'</div>',
-                            unsafe_allow_html=True,
+                    col_ap1, col_ap2 = st.columns(2)
+                    with col_ap1:
+                        approve_clicked = st.button("✅ APPROVE & SEND", key="btn_approve_and_send", type="primary")
+                    with col_ap2:
+                        dismiss_clicked = st.button("❌ DISMISS", key="btn_dismiss_alert_gate")
+
+                    if approve_clicked:
+                        with st.spinner("Dispatching internal authority notification..."):
+                            outcome = dispatch_authority_alert(
+                                severity=current_risk_level,
+                                title=f"Urban Flood Warning ({active_horizon})",
+                                message=draft_msg,
+                                affected_area=PILOT_LOCATION_LABEL,
+                                draft_id=st.session_state.get("current_draft_id"),
+                            )
+                        st.session_state["alert_dispatch_outcome"] = outcome
+                        st.session_state["review_alert_open"] = False
+                        st.session_state.pop("alert_dismissed_notice", None)
+                        st.session_state.pop("current_draft_id", None)
+
+                    if dismiss_clicked:
+                        st.session_state["review_alert_open"] = False
+                        st.session_state["alert_dismissed_notice"] = "Internal advisory suppressed."
+                        st.session_state.pop("alert_dispatch_outcome", None)
+                        try:
+                            dismiss_authority_alert(st.session_state.get("current_draft_id"))
+                        except Exception as dis_err:
+                            logger.debug("Dismissal notice: %s", dis_err)
+                        st.session_state.pop("current_draft_id", None)
+
+                # Show Dismiss Notice
+                if st.session_state.get("alert_dismissed_notice"):
+                    st.warning(f"⚠️ {st.session_state['alert_dismissed_notice']}")
+
+                # Show Dispatch Outcome
+                if st.session_state.get("alert_dispatch_outcome"):
+                    outcome = st.session_state["alert_dispatch_outcome"]
+                    if outcome.get("dry_run"):
+                        st.info(
+                            f"ℹ️ **Internal Dry-run:** {outcome.get('message')}\n\n"
+                            f"Reference: `{outcome.get('alert_id')}`"
                         )
-
-                if outcome.get("partial_failure"):
-                    st.warning("⚠️ Partial delivery failure encountered on one or more secondary channels.")
-                if outcome.get("error"):
-                    st.error(f"Operational error logged: {outcome['error']}")
-
-            st.markdown(
-                """
-                <div style="margin-top:0.6rem; font-size:0.75rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:0.4rem;">
-                    Multi-channel alert dispatch requires designated authority confirmation. Dry-run mode protects live subscribers.
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                    elif outcome.get("success"):
+                        st.success(f"✅ {outcome.get('message')}")
+                    else:
+                        st.error(f"❌ {outcome.get('message')}")
 
     with col_arch:
         with st.container(border=True):
@@ -1438,8 +1482,12 @@ def render_public_warning_activity_section(db_path: Any = DEFAULT_DB_PATH) -> No
                         <p style="margin:4px 0 2px 0; color:#334155; font-size:0.78rem; line-height:1.4;">
                             {msg_txt}
                         </p>
-                        <div style="font-size:0.7rem; color:#94a3b8; margin-top:2px;">
-                            Timestamp: {ts} &bull; Autonomous trigger &bull; Prototype Cell Broadcast simulation gateway
+                        <div style="font-size:0.7rem; color:#64748b; margin-top:4px; display:flex; flex-wrap:wrap; gap:8px;">
+                            <span><b>Trigger:</b> Automated Chetna Risk Engine</span>
+                            <span>&bull; <b>Authority Approval:</b> <span style="color:#166534; font-weight:600;">NOT REQUIRED</span></span>
+                            <span>&bull; <b>Citizen Registration:</b> <span style="color:#166534; font-weight:600;">NOT REQUIRED</span></span>
+                            <span>&bull; <b>Prototype:</b> YES</span>
+                            <span>&bull; <b>Dispatched:</b> {ts}</span>
                         </div>
                     </div>
                     """,

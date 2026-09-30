@@ -665,16 +665,24 @@ def render_citizen_advisory_section() -> None:
                 msg_txt = active_warning.get("message_en") or active_warning.get("headline_en", "Flood Warning Active")
                 st.markdown(
                     f"""
-                    <div style="background:#fef2f2; border:1px solid #fecaca; border-left:5px solid #dc2626; border-radius:8px; padding:12px 14px; margin-bottom:1rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <span style="font-weight:800; font-size:0.95rem; color:#991b1b;">⚠️ Flood Warning — {zone}</span>
-                            <span style="font-size:0.68rem; font-weight:700; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px;">{sev}</span>
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-left:5px solid #dc2626; border-radius:8px; padding:14px 16px; margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:800; font-size:1.05rem; color:#991b1b;">⚠️ FLOOD WARNING &mdash; {zone}</span>
+                            <span style="font-size:0.7rem; font-weight:700; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px;">{sev}</span>
+                        </div>
+                        <div style="font-weight:700; font-size:0.92rem; color:#7f1d1d; margin-bottom:4px;">
+                            High flood risk has been detected in your area.
                         </div>
                         <p style="margin:4px 0 6px 0; font-size:0.84rem; color:#7f1d1d; line-height:1.45;">
-                            {msg_txt}
+                            Avoid waterlogged roads and follow local safety guidance.
                         </p>
-                        <div style="font-size:0.72rem; color:#991b1b; opacity:0.85;">
-                            Simulated geo-targeted public warning &bull; No telephone registration needed &bull; Follow official local guidance
+                        <div style="font-size:0.76rem; color:#581c87; background:#faf5ff; border:1px solid #e9d5ff; border-radius:4px; padding:6px 10px; margin:6px 0;">
+                            <b>Broadcast Message:</b> "{msg_txt}"
+                        </div>
+                        <div style="font-size:0.72rem; color:#991b1b; opacity:0.9; border-top:1px dashed #fecaca; padding-top:6px; margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px;">
+                            <span><b>Language:</b> English / हिंदी</span>
+                            <span><b>Delivery:</b> Geo-targeted simulated Cell Broadcast (No login, signup, phone number, or subscription required)</span>
+                            <span><b>Status:</b> Prototype &mdash; simulated public broadcast</span>
                         </div>
                     </div>
                     """,
@@ -719,16 +727,24 @@ def render_citizen_advisory_section() -> None:
                 msg_txt = active_warning.get("message_hi") or active_warning.get("headline_hi", "बाढ़ चेतावनी सक्रिय")
                 st.markdown(
                     f"""
-                    <div style="background:#fef2f2; border:1px solid #fecaca; border-left:5px solid #dc2626; border-radius:8px; padding:12px 14px; margin-bottom:1rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <span style="font-weight:800; font-size:0.95rem; color:#991b1b;">⚠️ बाढ़ चेतावनी — {zone}</span>
-                            <span style="font-size:0.68rem; font-weight:700; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px;">{sev}</span>
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-left:5px solid #dc2626; border-radius:8px; padding:14px 16px; margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:800; font-size:1.05rem; color:#991b1b;">⚠️ बाढ़ चेतावनी &mdash; {zone}</span>
+                            <span style="font-size:0.7rem; font-weight:700; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px;">{sev}</span>
+                        </div>
+                        <div style="font-weight:700; font-size:0.92rem; color:#7f1d1d; margin-bottom:4px;">
+                            आपके क्षेत्र में उच्च बाढ़ जोखिम का पता चला है।
                         </div>
                         <p style="margin:4px 0 6px 0; font-size:0.84rem; color:#7f1d1d; line-height:1.45;">
-                            {msg_txt}
+                            जलमग्न सड़कों से बचें और स्थानीय सुरक्षा निर्देशों का पालन करें।
                         </p>
-                        <div style="font-size:0.72rem; color:#991b1b; opacity:0.85;">
-                            स्वचालित प्रोटोटाइप सार्वजनिक चेतावनी &bull; किसी फ़ोन पंजीकरण की आवश्यकता नहीं &bull; स्थानीय आपदा निर्देशों का पालन करें
+                        <div style="font-size:0.76rem; color:#581c87; background:#faf5ff; border:1px solid #e9d5ff; border-radius:4px; padding:6px 10px; margin:6px 0;">
+                            <b>प्रसारित संदेश:</b> "{msg_txt}"
+                        </div>
+                        <div style="font-size:0.72rem; color:#991b1b; opacity:0.9; border-top:1px dashed #fecaca; padding-top:6px; margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px;">
+                            <span><b>भाषा:</b> English / हिंदी</span>
+                            <span><b>प्रसारण:</b> भौगोलिक सेल ब्रॉडकास्ट (किसी लॉगिन, साइनअप, फ़ोन नंबर या सदस्यता की आवश्यकता नहीं)</span>
+                            <span><b>स्थिति:</b> प्रोटोटाइप &mdash; सिम्युलेटेड सार्वजनिक प्रसारण</span>
                         </div>
                     </div>
                     """,
